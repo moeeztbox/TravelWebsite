@@ -10,7 +10,7 @@ import {
 export default function Footer() {
   return (
     <footer className="bg-gray-800 text-gray-300 pt-12 px-6 pb-6">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+      <div className="max-w-8xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
         {/* 1. Company Info + Socials + Payment */}
         <div>
           <img

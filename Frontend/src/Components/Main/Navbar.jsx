@@ -17,7 +17,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <nav className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <nav className="max-w-8xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <div className="text-xl font-bold text-gray-800">
           <Link to="/">Al Burak International</Link>

@@ -11,7 +11,7 @@ function CopyrightSection() {
 
   return (
     <footer className="bg-gray-900 text-gray-300 text-sm py-6 px-4">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+      <div className="max-w-8xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
         <div className="text-center md:text-left">
           &copy; {year}{" "}
           <span className="font-semibold">Al Burak International</span>. All
