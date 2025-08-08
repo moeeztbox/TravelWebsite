@@ -204,7 +204,7 @@ const HomePage = () => {
             <div key={i} className="bg-white shadow rounded-xl p-6 text-center">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-300" />
               <h3 className="text-xl font-semibold">{member}</h3>
-              <p className="text-sm text-gray-500">Team Roles</p>
+              <p className="text-sm text-gray-500 text-bold">Team Roles</p>
             </div>
           ))}
         </div>
