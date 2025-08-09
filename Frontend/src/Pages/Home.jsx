@@ -1,11 +1,15 @@
 import React from "react";
 import HomeHeroSection from "../Components/Home/HomeHeroSection";
+import TimelineSection from "../Components/Home/TimelineSection";
 
 const HomePage = () => {
   return (
     <div className="font-sans text-gray-800">
       {/* Hero Banner */}
       <HomeHeroSection />
+
+      {/* Timeline Section*/}
+      <TimelineSection />
 
       {/* Visas We Offer */}
       {/* <section className="py-12 px-6 md:px-20 bg-gray-50">

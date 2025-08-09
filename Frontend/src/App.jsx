@@ -7,13 +7,15 @@ import Packages from "./Pages/Packages";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
 import Copyright from "./Components/Main/CopyRight";
-import Navbar from "./Components/Main/Navbar";
+// import Navbar from "./Components/Main/Navbar";
+// import Navbar from "./Components/Main/Navbar - Copy";
+import Navbar from "./Components/Main/ReNavbar";
 import Footer from "./Components/Main/Footer";
 
 function App() {
   return (
     <Router>
-      {/* <Navbar /> */}
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about-us" element={<AboutUs />} />

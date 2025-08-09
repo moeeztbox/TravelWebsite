@@ -190,15 +190,15 @@ const HomeHeroSection = () => {
 
             {/* Content Container */}
             <div className="relative z-10 w-full px-12 pb-24 md:px-20 md:pb-32">
-                <div className="max-w-3xl -ml-2 md:ml-16">
-                    {/* Company Name */}
-                    <h1 ref={titleRef} className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight drop-shadow-2xl" style={{ fontFamily: 'Inter, sans-serif', fontWeight: '700' }}>
+                <div className="max-w-5xl -ml-2 md:ml-16">
+                    {/* Company Name - All in one line */}
+                    <h1 ref={titleRef} className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold mb-4 md:mb-6 leading-tight drop-shadow-2xl" style={{ fontFamily: 'Inter, sans-serif', fontWeight: '600' }}>
                         <span className="text-white">Al </span>
                         <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent">
-                            Burak
+                            Buraq
                         </span>
-                        <br />
-                        <span className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-light text-gray-200 tracking-wide" style={{ fontWeight: '300' }}>
+                        <span className="text-white"> </span>
+                        <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold text-white tracking-wide align-baseline" style={{ fontWeight: '600' }}>
                             International
                         </span>
                     </h1>
