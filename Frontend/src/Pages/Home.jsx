@@ -1,20 +1,14 @@
 import React from "react";
+import HomeHeroSection from "../Components/Home/HomeHeroSection";
 
 const HomePage = () => {
   return (
     <div className="font-sans text-gray-800">
       {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white py-20 text-center px-6">
-        <h1 className="text-4xl font-bold mb-4">
-          Welcome to Al Burak International Travelers
-        </h1>
-        <p className="text-lg">
-          Your trusted partner for Hajj, Umrah, and global travel needs.
-        </p>
-      </section>
+      <HomeHeroSection />
 
       {/* Visas We Offer */}
-      <section className="py-12 px-6 md:px-20 bg-gray-50">
+      {/* <section className="py-12 px-6 md:px-20 bg-gray-50">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Visas We Offer
         </h2>
@@ -31,10 +25,10 @@ const HomePage = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Makkah Hotels */}
-      <section className="py-12 px-6 md:px-20">
+      {/* <section className="py-12 px-6 md:px-20">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Makkah Hotels
         </h2>
@@ -52,10 +46,10 @@ const HomePage = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Madinah Hotels */}
-      <section className="py-12 px-6 md:px-20 bg-gray-50">
+      {/* <section className="py-12 px-6 md:px-20 bg-gray-50">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Madinah Hotels
         </h2>
@@ -70,10 +64,10 @@ const HomePage = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Services */}
-      <section className="py-12 px-6 md:px-20">
+      {/* <section className="py-12 px-6 md:px-20">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Our Services
         </h2>
@@ -91,10 +85,10 @@ const HomePage = () => {
             <p>Support</p>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Subscribe */}
-      <section className="bg-indigo-900 text-white py-12 px-6 text-center">
+      {/* <section className="bg-indigo-900 text-white py-12 px-6 text-center">
         <h2 className="text-3xl font-semibold mb-4">
           Subscribe to Our Newsletter
         </h2>
@@ -111,10 +105,10 @@ const HomePage = () => {
             Subscribe
           </button>
         </div>
-      </section>
+      </section> */}
 
       {/* Travel Guide */}
-      <section className="py-12 px-6 md:px-20 bg-gray-50">
+      {/* <section className="py-12 px-6 md:px-20 bg-gray-50">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Travel Guide
         </h2>
@@ -122,10 +116,10 @@ const HomePage = () => {
           Explore our expertly crafted travel guides to make your journey smooth
           and spiritual.
         </p>
-      </section>
+      </section> */}
 
       {/* Offers */}
-      <section className="py-12 px-6 md:px-20">
+      {/* <section className="py-12 px-6 md:px-20">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Latest Offers
         </h2>
@@ -143,10 +137,10 @@ const HomePage = () => {
         <div className="text-center mt-6">
           <button className="text-blue-600 underline">View More Offers</button>
         </div>
-      </section>
+      </section> */}
 
       {/* Reviews */}
-      <section className="py-12 px-6 md:px-20 bg-gray-100">
+      {/* <section className="py-12 px-6 md:px-20 bg-gray-100">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Client Reviews
         </h2>
@@ -163,10 +157,10 @@ const HomePage = () => {
         <div className="text-center mt-6">
           <button className="text-blue-600 underline">See All Reviews</button>
         </div>
-      </section>
+      </section> */}
 
       {/* Inquire Now */}
-      <section className="py-12 px-6 md:px-20 text-center">
+      {/* <section className="py-12 px-6 md:px-20 text-center">
         <h2 className="text-3xl font-semibold mb-4">Have a Question?</h2>
         <p className="mb-6 text-gray-600">
           Send us your inquiry and our team will get back to you soon.
@@ -174,10 +168,10 @@ const HomePage = () => {
         <button className="bg-blue-700 text-white px-6 py-3 rounded hover:bg-blue-800">
           Inquire Now
         </button>
-      </section>
+      </section> */}
 
       {/* Packages */}
-      <section className="py-12 px-6 md:px-20 bg-gray-50">
+      {/* <section className="py-12 px-6 md:px-20 bg-gray-50">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Our Packages
         </h2>
@@ -192,10 +186,10 @@ const HomePage = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Team Members */}
-      <section className="py-12 px-6 md:px-20">
+      {/* <section className="py-12 px-6 md:px-20">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Explore Our Team
         </h2>
@@ -208,7 +202,7 @@ const HomePage = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };
