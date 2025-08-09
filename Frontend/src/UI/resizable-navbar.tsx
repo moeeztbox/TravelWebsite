@@ -209,7 +209,7 @@ export const NavItems: React.FC<NavItemsProps> = ({
   );
 };
 
-// 4. MobileNav - Simplified animations
+// 4. MobileNav - Simplified animations with small device support
 
 interface MobileNavProps {
   children: ReactNode;
@@ -243,6 +243,8 @@ export const MobileNav: React.FC<MobileNavProps> = ({
       className={cn(
         "relative z-50 mx-auto flex w-full max-w-[calc(100vw-2rem)] flex-col items-center justify-between bg-transparent px-0 py-2 lg:hidden",
         "bg-black/80 border border-white/10 rounded-2xl",
+        // Small device adjustments
+        "max-[400px]:max-w-[calc(100vw-1rem)] max-[400px]:py-1.5",
         visible && "bg-black/90 border-white/15",
         className
       )}
@@ -252,7 +254,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   );
 };
 
-// 5. MobileNavHeader
+// 5. MobileNavHeader - Smaller for small devices
 
 interface MobileNavHeaderProps {
   children: ReactNode;
@@ -264,7 +266,12 @@ export const MobileNavHeader: React.FC<MobileNavHeaderProps> = ({
   className,
 }) => {
   return (
-    <div className={cn("flex w-full flex-row items-center justify-between px-2", className)}>
+    <div className={cn(
+      "flex w-full flex-row items-center justify-between px-2",
+      // Small device adjustments
+      "max-[400px]:px-1",
+      className
+    )}>
       {children}
     </div>
   );
@@ -295,6 +302,8 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
           className={cn(
             "absolute inset-x-0 top-16 z-50 flex w-full flex-col items-start justify-start gap-3 rounded-lg px-4 py-6",
             "bg-black/95 border border-white/10 backdrop-blur-xl",
+            // Small device adjustments
+            "max-[400px]:top-14 max-[400px]:px-3 max-[400px]:py-4 max-[400px]:gap-2",
             className
           )}
         >
@@ -305,7 +314,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
   );
 };
 
-// 7. MobileNavToggle - No animations
+// 7. MobileNavToggle - Smaller icon for small devices
 
 interface MobileNavToggleProps {
   isOpen: boolean;
@@ -317,18 +326,36 @@ export const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
   onClick,
 }) => {
   const Icon = isOpen ? IconX : IconMenu2;
-  return <Icon className="text-yellow-400 hover:text-yellow-300 transition-colors duration-150 cursor-pointer mr-4" size={24} onClick={onClick} />;
+  return (
+    <Icon 
+      className={cn(
+        "text-yellow-400 hover:text-yellow-300 transition-colors duration-150 cursor-pointer mr-4",
+        // Smaller icon for small devices
+        "max-[400px]:mr-2"
+      )}
+      size={24}
+      onClick={onClick} 
+    />
+  );
 };
 
-// 8. NavbarLogo - No entrance animation
+// 8. NavbarLogo - Smaller logo for small devices
 
 export const NavbarLogo: React.FC = () => {
   return (
     <a
       href="#"
-      className="relative z-20 mr-6 flex items-center space-x-4 px-3 py-2 text-sm font-normal whitespace-nowrap"
+      className={cn(
+        "relative z-20 mr-6 flex items-center space-x-4 px-3 py-2 text-sm font-normal whitespace-nowrap",
+        // Small device adjustments
+        "max-[400px]:mr-2 max-[400px]:space-x-2 max-[400px]:px-2 max-[400px]:py-1"
+      )}
     >
-      <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
+      <div className={cn(
+        "w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300",
+        // Smaller logo for small devices
+        "max-[400px]:w-9 max-[400px]:h-9 max-[400px]:p-1.5"
+      )}>
         <img 
           src="./src/Assets/Images/logo/AL-BURAQ.png" 
           alt="Al Burak International Logo"
@@ -336,13 +363,26 @@ export const NavbarLogo: React.FC = () => {
         />
       </div>
       <span className="font-semibold text-white">
-        <span className="text-yellow-400 text-lg">Al Buraq</span>
-        <span className="text-gray-400 text-sm ml-2">International</span>
+        <span className={cn(
+          "text-yellow-400 text-lg",
+          // Smaller text for small devices
+          "max-[400px]:text-base"
+        )}>
+          Al Buraq
+        </span>
+        <span className={cn(
+          "text-gray-400 text-sm ml-2",
+          // Smaller text for small devices
+          "max-[400px]:text-xs max-[400px]:ml-1"
+        )}>
+          International
+        </span>
       </span>
     </a>
   );
 };
-// 9. NavbarButton - No entrance animation
+
+// 9. NavbarButton - Smaller button for small devices
 
 interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href?: string;
@@ -360,8 +400,11 @@ export const NavbarButton: React.FC<NavbarButtonProps> = ({
   variant = "primary",
   ...props
 }) => {
-  const baseStyles =
-    "px-6 py-2.5 rounded-lg text-sm font-semibold relative cursor-pointer transition-all duration-200 inline-block text-center whitespace-nowrap";
+  const baseStyles = cn(
+    "px-6 py-2.5 rounded-lg text-sm font-semibold relative cursor-pointer transition-all duration-200 inline-block text-center whitespace-nowrap",
+    // Smaller button for small devices
+    "max-[400px]:px-3 max-[400px]:py-1.5 max-[400px]:text-xs"
+  );
 
   const variantStyles: Record<string, string> = {
     primary: "bg-gradient-to-r from-yellow-500 to-yellow-400 text-black hover:from-yellow-600 hover:to-yellow-500 hover:shadow-lg hover:shadow-yellow-400/30 hover:scale-[1.02] font-bold tracking-wide",

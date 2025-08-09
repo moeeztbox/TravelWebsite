@@ -25,9 +25,9 @@ const HomeHeroSection = () => {
         const tl = gsap.timeline();
 
         tl
-            .to(overlayRef.current, { 
-                opacity: 0, 
-                duration: 1.2, 
+            .to(overlayRef.current, {
+                opacity: 0,
+                duration: 1.2,
                 ease: "power2.out",
                 pointerEvents: 'none'
             }, 0)
@@ -43,7 +43,7 @@ const HomeHeroSection = () => {
 
         if (pb) {
             pb.style.transformOrigin = 'center';
-            
+
             pb.addEventListener("mouseenter", () => {
                 gsap.to(pb, {
                     scale: 1.02,
@@ -53,7 +53,7 @@ const HomeHeroSection = () => {
                     ease: 'power2.out'
                 });
             });
-            
+
             pb.addEventListener("mouseleave", () => {
                 gsap.to(pb, {
                     scale: 1,
@@ -63,7 +63,7 @@ const HomeHeroSection = () => {
                     ease: 'power2.out'
                 });
             });
-            
+
             pb.addEventListener("mousedown", () => {
                 gsap.to(pb, {
                     scale: 0.98,
@@ -71,7 +71,7 @@ const HomeHeroSection = () => {
                     ease: 'power2.out'
                 });
             });
-            
+
             pb.addEventListener("mouseup", () => {
                 gsap.to(pb, {
                     scale: 1.02,
@@ -83,7 +83,7 @@ const HomeHeroSection = () => {
 
         if (sb) {
             sb.style.transformOrigin = 'center';
-            
+
             sb.addEventListener("mouseenter", () => {
                 gsap.to(sb, {
                     scale: 1.02,
@@ -93,7 +93,7 @@ const HomeHeroSection = () => {
                     ease: 'power2.out'
                 });
             });
-            
+
             sb.addEventListener("mouseleave", () => {
                 gsap.to(sb, {
                     scale: 1,
@@ -103,7 +103,7 @@ const HomeHeroSection = () => {
                     ease: 'power2.out'
                 });
             });
-            
+
             sb.addEventListener("mousedown", () => {
                 gsap.to(sb, {
                     scale: 0.98,
@@ -111,7 +111,7 @@ const HomeHeroSection = () => {
                     ease: 'power2.out'
                 });
             });
-            
+
             sb.addEventListener("mouseup", () => {
                 gsap.to(sb, {
                     scale: 1.02,
@@ -170,22 +170,22 @@ const HomeHeroSection = () => {
             {/* Blue and Gold Sparkles */}
             <div className="absolute inset-0 opacity-30">
                 {/* Blue sparkles on left side */}
-                <div className="absolute top-[18%] left-[14%] w-1 h-1 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.3s'}}></div>
-                <div className="absolute top-[31%] left-[27%] w-1.5 h-1.5 bg-blue-300 rounded-full animate-ping opacity-60" style={{animationDelay: '1.8s'}}></div>
-                <div className="absolute top-[47%] left-[8%] w-1 h-1 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '2.7s'}}></div>
-                <div className="absolute top-[64%] left-[23%] w-2 h-2 bg-blue-400 rounded-full animate-ping opacity-40" style={{animationDelay: '0.9s'}}></div>
-                <div className="absolute bottom-[22%] left-[11%] w-1.5 h-1.5 bg-blue-300 rounded-full animate-pulse" style={{animationDelay: '3.4s'}}></div>
-                <div className="absolute top-[71%] left-[19%] w-1 h-1 bg-blue-500 rounded-full animate-ping opacity-50" style={{animationDelay: '1.1s'}}></div>
-                <div className="absolute top-[39%] left-[6%] w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '2.2s'}}></div>
-                
+                <div className="absolute top-[18%] left-[14%] w-1 h-1 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                <div className="absolute top-[31%] left-[27%] w-1.5 h-1.5 bg-blue-300 rounded-full animate-ping opacity-60" style={{ animationDelay: '1.8s' }}></div>
+                <div className="absolute top-[47%] left-[8%] w-1 h-1 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '2.7s' }}></div>
+                <div className="absolute top-[64%] left-[23%] w-2 h-2 bg-blue-400 rounded-full animate-ping opacity-40" style={{ animationDelay: '0.9s' }}></div>
+                <div className="absolute bottom-[22%] left-[11%] w-1.5 h-1.5 bg-blue-300 rounded-full animate-pulse" style={{ animationDelay: '3.4s' }}></div>
+                <div className="absolute top-[71%] left-[19%] w-1 h-1 bg-blue-500 rounded-full animate-ping opacity-50" style={{ animationDelay: '1.1s' }}></div>
+                <div className="absolute top-[39%] left-[6%] w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '2.2s' }}></div>
+
                 {/* Gold sparkles on right side */}
-                <div className="absolute top-[26%] right-[19%] w-1 h-1 bg-yellow-400 rounded-full animate-pulse" style={{animationDelay: '0.7s'}}></div>
-                <div className="absolute top-[43%] right-[31%] w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-60" style={{animationDelay: '1.5s'}}></div>
-                <div className="absolute bottom-[28%] right-[17%] w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse" style={{animationDelay: '2.9s'}}></div>
-                <div className="absolute top-[13%] right-[9%] w-1 h-1 bg-yellow-400 rounded-full animate-ping opacity-50" style={{animationDelay: '0.4s'}}></div>
-                <div className="absolute bottom-[15%] right-[24%] w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse" style={{animationDelay: '3.1s'}}></div>
-                <div className="absolute top-[58%] right-[12%] w-1 h-1 bg-yellow-500 rounded-full animate-ping opacity-40" style={{animationDelay: '1.7s'}}></div>
-                <div className="absolute top-[81%] right-[28%] w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" style={{animationDelay: '2.5s'}}></div>
+                <div className="absolute top-[26%] right-[19%] w-1 h-1 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '0.7s' }}></div>
+                <div className="absolute top-[43%] right-[31%] w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-60" style={{ animationDelay: '1.5s' }}></div>
+                <div className="absolute bottom-[28%] right-[17%] w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse" style={{ animationDelay: '2.9s' }}></div>
+                <div className="absolute top-[13%] right-[9%] w-1 h-1 bg-yellow-400 rounded-full animate-ping opacity-50" style={{ animationDelay: '0.4s' }}></div>
+                <div className="absolute bottom-[15%] right-[24%] w-1.5 h-1.5 bg-yellow-300 rounded-full animate-pulse" style={{ animationDelay: '3.1s' }}></div>
+                <div className="absolute top-[58%] right-[12%] w-1 h-1 bg-yellow-500 rounded-full animate-ping opacity-40" style={{ animationDelay: '1.7s' }}></div>
+                <div className="absolute top-[81%] right-[28%] w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '2.5s' }}></div>
             </div>
 
             {/* Content Container */}

@@ -26,7 +26,7 @@ function App() {
         <Route path="/packages" element={<Packages />} />
       </Routes>
       <Footer />
-      <Copyright />
+      {/* <Copyright /> */}
     </Router>
   );
 }
