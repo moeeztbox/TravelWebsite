@@ -4,7 +4,6 @@ import TimelineSection from "../Components/Home/TimelineSection";
 import FeaturedPackages from "../Components/Home/FeaturedPackages";
 import WhyChooseUs from "../Components/Home/WhyChooseUs";
 import Index from "../Components/Home";
-import Reviews from "../Components/Home/Reviews"
 
 const HomePage = () => {
   return (
@@ -21,9 +20,8 @@ const HomePage = () => {
       {/* Why Choose Us Section*/}
       <WhyChooseUs />
 
+      {/* Reviews Section*/}
       <Index />
-
-      <Reviews />
 
       {/* Visas We Offer */}
       {/* <section className="py-12 px-6 md:px-20 bg-gray-50">
