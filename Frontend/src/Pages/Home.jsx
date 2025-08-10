@@ -3,7 +3,9 @@ import HomeHeroSection from "../Components/Home/HomeHeroSection";
 import TimelineSection from "../Components/Home/TimelineSection";
 import FeaturedPackages from "../Components/Home/FeaturedPackages";
 import WhyChooseUs from "../Components/Home/WhyChooseUs";
-import Index from "../Components/Home";
+import Reviews from "../Components/Home/Reviews";
+import WhatWeOffer from "../Components/Home/WhatWeOffer";
+import InquireNow from "../Components/Home/InquireNow";
 
 const HomePage = () => {
   return (
@@ -11,17 +13,27 @@ const HomePage = () => {
       {/* Hero Banner */}
       <HomeHeroSection />
 
-      {/* Timeline Section*/}
-      <TimelineSection />
+      {/* Why Choose Us Section*/}
+      <WhyChooseUs />
+
+      {/* What We Offer Section*/}
+      <WhatWeOffer />
 
       {/* Packages Section*/}
       <FeaturedPackages />
 
-      {/* Why Choose Us Section*/}
-      <WhyChooseUs />
-
       {/* Reviews Section*/}
-      <Index />
+      <Reviews />
+
+      {/* Timeline Section*/}
+      <TimelineSection />
+
+      {/* Inquire Section*/}
+      <InquireNow />
+
+
+
+
 
       {/* Visas We Offer */}
       {/* <section className="py-12 px-6 md:px-20 bg-gray-50">

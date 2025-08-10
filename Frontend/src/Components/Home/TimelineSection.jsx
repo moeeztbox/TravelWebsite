@@ -67,8 +67,8 @@ const Timeline = ({ data }) => {
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(135deg, 
-                      rgba(30, 58, 138, 0.08) 0%, 
+          background: `linear-gradient(165deg, 
+                      rgba(30, 58, 138, 0.2) 0%, 
                       rgba(59, 130, 246, 0.05) 15%, 
                       rgba(0, 0, 0, 0.02) 50%, 
                       rgba(251, 191, 36, 0.05) 85%, 

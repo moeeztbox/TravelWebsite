@@ -123,7 +123,7 @@ const HomeHeroSection = () => {
     }, []);
 
     return (
-        <section className="relative min-h-[90vh] md:min-h-screen flex items-end overflow-hidden">
+        <section className="relative min-h-[100vh] md:min-h-screen flex items-end overflow-hidden">
             {/* Dark overlay for fade-in */}
             <div
                 ref={overlayRef}

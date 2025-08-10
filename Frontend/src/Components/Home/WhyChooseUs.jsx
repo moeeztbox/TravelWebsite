@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { motion } from 'framer-motion';
 import {
     Shield,
     Clock,
@@ -145,7 +146,13 @@ export default function WhyChooseUs() {
                     <div className="grid gap-2 flex-1 lg:max-w-2xl">
 
                         {/* Mobile Heading - Shows only on small screens and only before first card */}
-                        <div className="block lg:hidden text-center py-8 sm:py-12 px-4 sm:px-6">
+                        <motion.div
+                            className="block lg:hidden text-center py-8 sm:py-12 px-4 sm:px-6"
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                            viewport={{ once: true, margin: "-50px" }}
+                        >
                             <h1 className="text-3xl xs:text-4xl sm:text-5xl font-bold tracking-tight leading-[110%] mb-4 sm:mb-6">
                                 Why Choose <br />
                                 <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent">
@@ -155,20 +162,52 @@ export default function WhyChooseUs() {
                             </h1>
 
                             {/* Decorative Elements */}
-                            <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                                <div className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-12 sm:w-16"></div>
-                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-400 rounded-full"></div>
-                                <div className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-12 sm:w-16"></div>
-                            </div>
+                            <motion.div
+                                className="flex items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+                                viewport={{ once: true }}
+                            >
+                                <motion.div
+                                    className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-12 sm:w-16"
+                                    initial={{ scaleX: 0, transformOrigin: "right" }}
+                                    whileInView={{ scaleX: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+                                    viewport={{ once: true }}
+                                />
+                                <motion.div
+                                    className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-400 rounded-full"
+                                    initial={{ scale: 0 }}
+                                    whileInView={{ scale: 1 }}
+                                    transition={{ duration: 0.4, delay: 0.6, ease: "easeOut" }}
+                                    viewport={{ once: true }}
+                                />
+                                <motion.div
+                                    className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-12 sm:w-16"
+                                    initial={{ scaleX: 0, transformOrigin: "left" }}
+                                    whileInView={{ scaleX: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+                                    viewport={{ once: true }}
+                                />
+                            </motion.div>
 
-                            <p className="text-base sm:text-lg text-gray-300 max-w-xs sm:max-w-md mx-auto leading-relaxed px-2">
+                            <motion.p
+                                className="text-base sm:text-lg text-gray-300 max-w-xs sm:max-w-md mx-auto leading-relaxed px-2"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.7, ease: "easeOut" }}
+                                viewport={{ once: true }}
+                            >
                                 Your trusted partner for sacred journeys to the Holy Land
-                            </p>
-                        </div>
+                            </motion.p>
+                        </motion.div>
+
                         {reasons.map((reason, index) => (
                             <figure key={reason.id} className="sticky top-0 h-screen grid place-content-center">
-                                <article className={`bg-gray-900/80 backdrop-blur-sm border border-yellow-500/30 min-h-[40vh] xs:min-h-[45vh] sm:min-h-[50vh] w-full max-w-[calc(100vw-24px)] xs:max-w-[calc(100vw-32px)] sm:max-w-[36rem] rounded-lg sm:rounded-xl ${reason.rotation} p-4 xs:p-6 sm:p-8 grid gap-4 sm:gap-6 shadow-2xl hover:border-yellow-400/60 hover:bg-gray-900/90 transition-all duration-500`}>
-
+                                <article
+                                    className={`bg-gray-900/80 backdrop-blur-sm border border-yellow-500/30 min-h-[40vh] xs:min-h-[45vh] sm:min-h-[50vh] w-full max-w-[calc(100vw-24px)] xs:max-w-[calc(100vw-32px)] sm:max-w-[36rem] rounded-lg sm:rounded-xl ${reason.rotation} p-4 xs:p-6 sm:p-8 grid gap-4 sm:gap-6 shadow-2xl hover:border-yellow-400/60 hover:bg-gray-900/90 transition-all duration-500`}
+                                >
                                     {/* Header with Icon */}
                                     <div className="flex items-start gap-3 sm:gap-4">
                                         <div className="bg-yellow-400/20 p-2.5 xs:p-3 sm:p-4 rounded-lg sm:rounded-xl border border-yellow-400/30 flex-shrink-0">
@@ -203,8 +242,13 @@ export default function WhyChooseUs() {
 
                     {/* Right Side - Sticky Heading (Desktop Only) */}
                     <div className="hidden lg:grid sticky top-0 h-screen place-content-center flex-1">
-
-                        <div className="text-center px-8">
+                        <motion.div
+                            className="text-center px-8"
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                            viewport={{ once: true, margin: "-50px" }}
+                        >
                             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-center tracking-tight leading-[110%] mb-6">
                                 Why Choose <br />
                                 <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent">
@@ -213,25 +257,66 @@ export default function WhyChooseUs() {
                                 <span className="text-yellow-400">?</span>
                             </h1>
 
-                            {/* Decorative Elements */}
-                            <div className="flex items-center justify-center gap-4 mb-6">
-                                <div className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-20"></div>
-                                <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                                <div className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-20"></div>
-                            </div>
+                            <motion.div
+                                className="flex items-center justify-center gap-4 mb-6"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+                                viewport={{ once: true }}
+                            >
+                                <motion.div
+                                    className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-20"
+                                    initial={{ scaleX: 0, transformOrigin: "right" }}
+                                    whileInView={{ scaleX: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+                                    viewport={{ once: true }}
+                                />
+                                <motion.div
+                                    className="w-2 h-2 bg-yellow-400 rounded-full"
+                                    initial={{ scale: 0 }}
+                                    whileInView={{ scale: 1 }}
+                                    transition={{ duration: 0.4, delay: 0.6, ease: "easeOut" }}
+                                    viewport={{ once: true }}
+                                />
+                                <motion.div
+                                    className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-20"
+                                    initial={{ scaleX: 0, transformOrigin: "left" }}
+                                    whileInView={{ scaleX: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+                                    viewport={{ once: true }}
+                                />
+                            </motion.div>
 
-                            <p className="text-xl text-gray-300 max-w-md mx-auto leading-relaxed">
+                            <motion.p
+                                className="text-xl text-gray-300 max-w-md mx-auto leading-relaxed"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.7, ease: "easeOut" }}
+                                viewport={{ once: true }}
+                            >
                                 Your trusted partner for sacred journeys to the Holy Land
-                            </p>
+                            </motion.p>
 
                             {/* Trust Badge */}
-                            <div className="mt-8 inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-6 py-3">
+                            <motion.div
+                                className="mt-8 inline-flex items-center gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-6 py-3"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.9, ease: "easeOut" }}
+                                viewport={{ once: true }}
+                            >
                                 <Shield className="w-5 h-5 text-yellow-400" />
                                 <span className="text-yellow-400 font-medium">Trusted by 15,000+ Pilgrims</span>
-                            </div>
+                            </motion.div>
 
                             {/* Additional Stats */}
-                            <div className="grid grid-cols-2 gap-4 mt-8 max-w-sm mx-auto">
+                            <motion.div
+                                className="grid grid-cols-2 gap-4 mt-8 max-w-sm mx-auto"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 1.1, ease: "easeOut" }}
+                                viewport={{ once: true }}
+                            >
                                 <div className="text-center p-4 bg-gray-900/50 rounded-lg border border-yellow-400/20">
                                     <div className="text-2xl font-bold text-yellow-400">4.9★</div>
                                     <div className="text-sm text-gray-400">Rating</div>
@@ -240,21 +325,11 @@ export default function WhyChooseUs() {
                                     <div className="text-2xl font-bold text-yellow-400">100%</div>
                                     <div className="text-sm text-gray-400">Visa Success</div>
                                 </div>
-                            </div>
-                        </div>
+                            </motion.div>
+                        </motion.div>
                     </div>
                 </div>
-            </section>
-
-            {/* Footer Section */}
-            {/* <footer className="group bg-slate-950">
-                <h1 className="text-[12vw] md:text-[10vw] translate-y-20 leading-[100%] uppercase font-bold text-center bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent transition-all ease-linear">
-                    Al-Noor Travels
-                </h1>
-                <div className="bg-black h-40 relative z-10 grid place-content-center text-2xl rounded-tr-full rounded-tl-full">
-                    <p className="text-gray-400 text-center">Your Sacred Journey Begins Here</p>
-                </div>
-            </footer> */}
+            </section>       
         </main>
     );
 }
