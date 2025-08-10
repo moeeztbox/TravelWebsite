@@ -2,6 +2,9 @@ import React from "react";
 import HomeHeroSection from "../Components/Home/HomeHeroSection";
 import TimelineSection from "../Components/Home/TimelineSection";
 import FeaturedPackages from "../Components/Home/FeaturedPackages";
+import WhyChooseUs from "../Components/Home/WhyChooseUs";
+import Index from "../Components/Home";
+import Reviews from "../Components/Home/Reviews"
 
 const HomePage = () => {
   return (
@@ -14,6 +17,13 @@ const HomePage = () => {
 
       {/* Packages Section*/}
       <FeaturedPackages />
+
+      {/* Why Choose Us Section*/}
+      <WhyChooseUs />
+
+      <Index />
+
+      <Reviews />
 
       {/* Visas We Offer */}
       {/* <section className="py-12 px-6 md:px-20 bg-gray-50">

@@ -307,16 +307,6 @@ const FeaturedPackages = () => {
                                             ))}
                                         </div>
 
-                                        {/* Features - Show only top 3 for compact */}
-                                        <div className="space-y-2 mb-4">
-                                            {pkg.features.slice(0, 3).map((feature, idx) => (
-                                                <div key={idx} className="flex items-start gap-2">
-                                                    <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0 mt-0.5" />
-                                                    <span className="text-gray-300 text-xs leading-tight">{feature}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-
                                         {/* CTA Button - Compact */}
                                         <motion.button
                                             className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold py-2 px-4 rounded-lg hover:from-yellow-400 hover:to-yellow-300 transition-all duration-300 flex items-center justify-center gap-2 group text-sm"
