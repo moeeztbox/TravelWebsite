@@ -1,38 +1,40 @@
 import React from "react";
+import AboutUsHeroSection from "../Components/AboutUs/AboutUsHeroSection";
 
 const AboutPage = () => {
   return (
     <div className="font-sans text-gray-800">
+      <AboutUsHeroSection />
       {/* Banner */}
-      <div className="relative bg-blue-900 text-white py-20 px-4 text-center">
+      {/* <div className="relative bg-blue-900 text-white py-20 px-4 text-center">
         <h1 className="text-4xl font-bold mb-2">About Us</h1>
         <p className="text-lg">
           Learn more about our mission, vision, team, and leadership.
         </p>
-      </div>
+      </div> */}
 
       {/* Our Mission */}
-      <section className="py-12 px-6 md:px-20 bg-gray-50">
+      {/* <section className="py-12 px-6 md:px-20 bg-gray-50">
         <h2 className="text-3xl font-semibold mb-4 text-center">Our Mission</h2>
         <p className="max-w-3xl mx-auto text-center text-gray-600">
           Our mission is to provide top-quality travel and religious tourism
           services, ensuring every journey is meaningful and seamless for our
           clients.
         </p>
-      </section>
+      </section> */}
 
       {/* Our Vision */}
-      <section className="py-12 px-6 md:px-20">
+      {/* <section className="py-12 px-6 md:px-20">
         <h2 className="text-3xl font-semibold mb-4 text-center">Our Vision</h2>
         <p className="max-w-3xl mx-auto text-center text-gray-600">
           We envision becoming the most trusted and respected name in the travel
           industry, especially in providing safe and spiritually enriching Umrah
           and Hajj experiences.
         </p>
-      </section>
+      </section> */}
 
       {/* Our Team */}
-      <section className="py-12 px-6 md:px-20 bg-gray-50">
+      {/* <section className="py-12 px-6 md:px-20 bg-gray-50">
         <h2 className="text-3xl font-semibold mb-10 text-center">Our Team</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {["Ali", "Fatima", "Usman"].map((name, index) => (
@@ -46,10 +48,10 @@ const AboutPage = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Affiliations */}
-      <section className="py-12 px-6 md:px-20">
+      {/* <section className="py-12 px-6 md:px-20">
         <h2 className="text-3xl font-semibold mb-6 text-center">
           Affiliations
         </h2>
@@ -67,10 +69,10 @@ const AboutPage = () => {
             IATA Certified Agency
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* About CEO */}
-      <section className="py-16 px-6 md:px-20 bg-gray-100">
+      {/* <section className="py-16 px-6 md:px-20 bg-gray-100">
         <h2 className="text-3xl font-semibold text-center mb-10">
           About Our CEO
         </h2>
@@ -90,7 +92,7 @@ const AboutPage = () => {
             </p>
           </div>
         </div>
-      </section>
+      </section>*/}
     </div>
   );
 };

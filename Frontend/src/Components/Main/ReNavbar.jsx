@@ -29,7 +29,7 @@ export default function NavbarDemo() {
     },
     {
       name: "About",
-      link: "/about",
+      link: "/about-us",
     },
     {
       name: "Services",
@@ -51,8 +51,12 @@ export default function NavbarDemo() {
           <NavbarLogo />
           <NavItems items={navItems} />
           <div className="flex items-center gap-4">
-            <NavbarButton variant="secondary" to="/login">Login</NavbarButton>
-            <NavbarButton variant="primary" to="/book-call">Book a call</NavbarButton>
+            <NavbarButton variant="secondary" to="/login">
+              Login
+            </NavbarButton>
+            <NavbarButton variant="primary" to="/book-call">
+              Book a call
+            </NavbarButton>
           </div>
         </NavBody>
 
@@ -62,16 +66,21 @@ export default function NavbarDemo() {
             <NavbarLogo />
             <MobileNavToggle
               isOpen={isMobileMenuOpen}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            />
           </MobileNavHeader>
 
-          <MobileNavMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)}>
+          <MobileNavMenu
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+          >
             {navItems.map((item, idx) => (
               <Link
                 key={`mobile-link-${idx}`}
                 to={item.link}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="relative text-gray-300 hover:text-yellow-400 transition-colors duration-200 py-2">
+                className="relative text-gray-300 hover:text-yellow-400 transition-colors duration-200 py-2"
+              >
                 <span className="block">{item.name}</span>
               </Link>
             ))}
@@ -80,14 +89,16 @@ export default function NavbarDemo() {
                 to="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
                 variant="secondary"
-                className="w-full">
+                className="w-full"
+              >
                 Login
               </NavbarButton>
               <NavbarButton
                 to="/book-call"
                 onClick={() => setIsMobileMenuOpen(false)}
                 variant="primary"
-                className="w-full">
+                className="w-full"
+              >
                 Book a call
               </NavbarButton>
             </div>
@@ -187,7 +198,8 @@ const DummyContent = () => {
         ].map((box) => (
           <div
             key={box.id}
-            className={`${box.width} ${box.height} ${box.bg} flex items-center justify-center rounded-lg p-4 shadow-sm`}>
+            className={`${box.width} ${box.height} ${box.bg} flex items-center justify-center rounded-lg p-4 shadow-sm`}
+          >
             <h2 className="text-xl font-medium">{box.title}</h2>
           </div>
         ))}
