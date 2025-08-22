@@ -15,8 +15,8 @@ import { gsap } from "gsap";
 
 interface NavbarProps {
   children:
-    | ReactElement<{ visible?: boolean }>
-    | Array<ReactElement<{ visible?: boolean }>>;
+  | ReactElement<{ visible?: boolean }>
+  | Array<ReactElement<{ visible?: boolean }>>;
   className?: string;
 }
 
@@ -69,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ children, className }) => {
   );
 };
 
-// 2. NavBody - Simplified animations
+// 2. NavBody - Fixed positioning and overflow issues
 
 interface NavBodyProps {
   children: ReactNode;
@@ -111,9 +111,9 @@ export const NavBody: React.FC<NavBodyProps> = ({
           }
         }
       };
-      
+
       window.addEventListener('resize', updateWidth);
-      
+
       return () => {
         window.removeEventListener('resize', updateWidth);
       };
@@ -122,7 +122,8 @@ export const NavBody: React.FC<NavBodyProps> = ({
 
   const getAnimatedWidth = () => {
     if (!isInitialized || naturalWidth === 0) return "auto";
-    return visible ? Math.max(naturalWidth * 0.85, Math.min(naturalWidth, 600)) : "auto";
+    // Ensure minimum width to prevent button overflow
+    return visible ? Math.max(naturalWidth * 0.9, Math.min(naturalWidth, 650)) : "auto";
   };
 
   return (
@@ -134,7 +135,7 @@ export const NavBody: React.FC<NavBodyProps> = ({
           ? "0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)"
           : "0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.02)",
         width: getAnimatedWidth(),
-        y: visible ? 15 : 0,
+        // REMOVED: y: visible ? 15 : 0, - This was causing the navbar to move down
       }}
       transition={{
         type: "tween",
@@ -149,7 +150,7 @@ export const NavBody: React.FC<NavBodyProps> = ({
         className
       )}
       style={{
-        background: visible 
+        background: visible
           ? "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,20,20,0.9) 50%, rgba(0,0,0,0.85) 100%)"
           : "linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(20,20,20,0.7) 50%, rgba(0,0,0,0.6) 100%)"
       }}
@@ -209,7 +210,7 @@ export const NavItems: React.FC<NavItemsProps> = ({
   );
 };
 
-// 4. MobileNav - Simplified animations with small device support
+// 4. MobileNav - Fixed positioning issue
 
 interface MobileNavProps {
   children: ReactNode;
@@ -233,7 +234,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         paddingRight: visible ? "12px" : "0px",
         paddingLeft: visible ? "12px" : "0px",
         borderRadius: visible ? "4px" : "2rem",
-        y: visible ? 15 : 0,
+        // REMOVED: y: visible ? 15 : 0, - This was causing the mobile nav to move down
       }}
       transition={{
         type: "tween",
@@ -327,14 +328,14 @@ export const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
 }) => {
   const Icon = isOpen ? IconX : IconMenu2;
   return (
-    <Icon 
+    <Icon
       className={cn(
         "text-yellow-400 hover:text-yellow-300 transition-colors duration-150 cursor-pointer mr-4",
         // Smaller icon for small devices
         "max-[400px]:mr-2"
       )}
       size={24}
-      onClick={onClick} 
+      onClick={onClick}
     />
   );
 };
@@ -346,7 +347,7 @@ export const NavbarLogo: React.FC = () => {
     <a
       href="#"
       className={cn(
-        "relative z-20 mr-6 flex items-center space-x-4 px-3 py-2 text-sm font-normal whitespace-nowrap",
+        "relative z-20 mr-6 flex items-center space-x-4 px-3 py-2 text-sm font-normal whitespace-nowrap flex-shrink-0",
         // Small device adjustments
         "max-[400px]:mr-2 max-[400px]:space-x-2 max-[400px]:px-2 max-[400px]:py-1"
       )}
@@ -356,8 +357,8 @@ export const NavbarLogo: React.FC = () => {
         // Smaller logo for small devices
         "max-[400px]:w-9 max-[400px]:h-9 max-[400px]:p-1.5"
       )}>
-        <img 
-          src="./src/Assets/Images/logo/AL-BURAQ.png" 
+        <img
+          src="./src/Assets/Images/logo/AL-BURAQ.png"
           alt="Al Burak International Logo"
           className="w-full h-full object-contain scale-125 drop-shadow-sm"
         />
@@ -382,7 +383,7 @@ export const NavbarLogo: React.FC = () => {
   );
 };
 
-// 9. NavbarButton - Smaller button for small devices
+// 9. NavbarButton - Fixed overflow and responsive sizing
 
 interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href?: string;
@@ -401,8 +402,9 @@ export const NavbarButton: React.FC<NavbarButtonProps> = ({
   ...props
 }) => {
   const baseStyles = cn(
-    "px-6 py-2.5 rounded-lg text-sm font-semibold relative cursor-pointer transition-all duration-200 inline-block text-center whitespace-nowrap",
-    // Smaller button for small devices
+    "px-4 py-2 rounded-lg text-sm font-semibold relative cursor-pointer transition-all duration-200 inline-block text-center whitespace-nowrap flex-shrink-0",
+    // Better responsive sizing to prevent overflow
+    "lg:px-6 lg:py-2.5",
     "max-[400px]:px-3 max-[400px]:py-1.5 max-[400px]:text-xs"
   );
 

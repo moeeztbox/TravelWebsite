@@ -36,8 +36,20 @@ export default function NavbarDemo() {
       link: "/services",
     },
     {
-      name: "Support",
-      link: "/support",
+      name: "FAQ",
+      link: "/faq",
+    },
+    {
+      name: "Guide",
+      link: "/journey-guide",
+    },
+    {
+      name: "About",
+      link: "/about",
+    },
+    {
+      name: "Contact",
+      link: "/contact",
     },
   ];
 
@@ -105,8 +117,6 @@ export default function NavbarDemo() {
           </MobileNavMenu>
         </MobileNav>
       </Navbar>
-      {/* <DummyContent /> */}
-      {/* Navbar */}
     </div>
   );
 }
