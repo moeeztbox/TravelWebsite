@@ -62,9 +62,9 @@ const AboutUsHeroSection = () => {
   };
 
   return (
-    <section className="relative h-[60vh] flex flex-col overflow-hidden">
+    <section className="relative h-[80vh] flex flex-col overflow-hidden">
       {/* Dark overlay for fade-in */}
-      <div ref={overlayRef} className="absolute inset-0 bg-black z-20"></div>
+      <div ref={overlayRef} className="absolute inset-0 z-20"></div>
 
       {/* Background Image with mosque */}
       <div
@@ -79,7 +79,7 @@ const AboutUsHeroSection = () => {
       ></div>
 
       {/* Additional dark overlay */}
-      <div className="absolute inset-0 bg-black/70"></div>
+      <div className="absolute inset-0"></div>
 
       {/* Golden sparkles */}
       <div className="absolute inset-0 opacity-40">
