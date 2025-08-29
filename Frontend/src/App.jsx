@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Home from "./Pages/Home";
 import AboutUs from "./Pages/AboutUs";
 import ContactUs from "./Pages/ContactUs";
@@ -14,6 +14,7 @@ import Copyright from "./Components/Main/CopyRight";
 import Navbar from "./Components/Main/ReNavbar";
 import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
+import Policies from "./Pages/Policies";
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -24,7 +25,7 @@ const ScrollToTop = () => {
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: 'smooth' // Use 'auto' for instant scroll
+      behavior: "smooth", // Use 'auto' for instant scroll
     });
   }, [pathname]);
 
@@ -45,6 +46,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/packages" element={<Packages />} />
+        <Route path="/policies" element={<Policies />} />
       </Routes>
       <Footer />
       {/* <Copyright /> */}

@@ -4,9 +4,9 @@ function CopyrightSection() {
   const year = new Date().getFullYear();
 
   const policyLinks = [
-    { to: "/privacy-policy", label: "Privacy Policy" },
-    { to: "/terms-conditions", label: "Terms & Conditions" },
-    { to: "/cookie-policy", label: "Cookie Policy" },
+    { to: "/policies#privacy-policy", label: "Privacy Policy" },
+    { to: "/policies#refund-policy", label: "Refund Policy" },
+    { to: "/policies#terms-conditions", label: "Terms & Conditions" },
   ];
 
   return (

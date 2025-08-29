@@ -7,12 +7,14 @@ import {
   MapPin,
   Phone,
   Mail,
-  ArrowUpRight
+  ArrowUpRight,
 } from "lucide-react";
 
 // Mock Link component for demo
 const Link = ({ to, children, className }) => (
-  <a href={to} className={className}>{children}</a>
+  <a href={to} className={className}>
+    {children}
+  </a>
 );
 
 export default function Footer() {
@@ -20,7 +22,7 @@ export default function Footer() {
     { icon: Facebook, href: "#", label: "Facebook" },
     { icon: Instagram, href: "#", label: "Instagram" },
     { icon: Linkedin, href: "#", label: "LinkedIn" },
-    { icon: Twitter, href: "#", label: "Twitter" }
+    { icon: Twitter, href: "#", label: "Twitter" },
   ];
 
   const quickLinks = [
@@ -28,7 +30,7 @@ export default function Footer() {
     { to: "/about-us", label: "About Us" },
     { to: "/contact-us", label: "Contact" },
     { to: "/packages", label: "Packages" },
-    { to: "/booking", label: "Booking" }
+    { to: "/booking", label: "Booking" },
   ];
 
   const services = [
@@ -36,7 +38,7 @@ export default function Footer() {
     { to: "/services/hajj", label: "Hajj Packages" },
     { to: "/services/visa", label: "Visa Processing" },
     { to: "/services/tours", label: "International Tours" },
-    { to: "/services/ticketing", label: "Air Ticketing" }
+    { to: "/services/ticketing", label: "Air Ticketing" },
   ];
 
   return (
@@ -47,7 +49,7 @@ export default function Footer() {
           className="absolute inset-0"
           style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0)`,
-            backgroundSize: '40px 40px'
+            backgroundSize: "40px 40px",
           }}
         />
       </div>
@@ -57,19 +59,34 @@ export default function Footer() {
 
       {/* Gentle sparkles */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-[15%] left-[10%] w-1 h-1 bg-blue-300 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-[35%] left-[80%] w-1 h-1 bg-yellow-300 rounded-full animate-pulse" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute top-[60%] left-[20%] w-1 h-1 bg-blue-300 rounded-full animate-pulse" style={{ animationDelay: '5s' }}></div>
-        <div className="absolute bottom-[25%] right-[15%] w-1 h-1 bg-yellow-300 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-[25%] right-[70%] w-1 h-1 bg-blue-300 rounded-full animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div
+          className="absolute top-[15%] left-[10%] w-1 h-1 bg-blue-300 rounded-full animate-pulse"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute top-[35%] left-[80%] w-1 h-1 bg-yellow-300 rounded-full animate-pulse"
+          style={{ animationDelay: "3s" }}
+        ></div>
+        <div
+          className="absolute top-[60%] left-[20%] w-1 h-1 bg-blue-300 rounded-full animate-pulse"
+          style={{ animationDelay: "5s" }}
+        ></div>
+        <div
+          className="absolute bottom-[25%] right-[15%] w-1 h-1 bg-yellow-300 rounded-full animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-[25%] right-[70%] w-1 h-1 bg-blue-300 rounded-full animate-pulse"
+          style={{ animationDelay: "4s" }}
+        ></div>
       </div>
 
       <div
         className="max-w-7xl mx-auto pt-16 px-6 pb-8 relative"
         style={{
           opacity: 1,
-          transform: 'translateY(0px)',
-          transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
+          transform: "translateY(0px)",
+          transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
         }}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12">
@@ -79,8 +96,8 @@ export default function Footer() {
               className="mb-6"
               style={{
                 opacity: 1,
-                transform: 'scale(1)',
-                transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
+                transform: "scale(1)",
+                transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
               }}
             >
               <div className="flex items-center space-x-4 mb-4">
@@ -92,10 +109,10 @@ export default function Footer() {
                   />
                 </div>
                 <span className="font-semibold text-white">
-                  <span className="text-yellow-400 text-md">Al  Buraq</span><br />
+                  <span className="text-yellow-400 text-md">Al Buraq</span>
+                  <br />
                   <span className="text-gray-400 text-sm">International</span>
                 </span>
-
               </div>
             </div>
 
@@ -103,11 +120,12 @@ export default function Footer() {
               className="text-sm text-gray-400 mb-6 leading-relaxed"
               style={{
                 opacity: 1,
-                transform: 'translateY(0px)',
-                transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
+                transform: "translateY(0px)",
+                transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
               }}
             >
-              Trusted travel partner for Hajj, Umrah, and international tours. Your journey to sacred places begins with us.
+              Trusted travel partner for Hajj, Umrah, and international tours.
+              Your journey to sacred places begins with us.
             </p>
 
             {/* Social Icons */}
@@ -115,8 +133,8 @@ export default function Footer() {
               className="flex gap-3 mb-6"
               style={{
                 opacity: 1,
-                transform: 'translateY(0px)',
-                transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
+                transform: "translateY(0px)",
+                transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
               }}
             >
               {socialLinks.map(({ icon: Icon, href, label }, index) => (
@@ -127,11 +145,16 @@ export default function Footer() {
                   aria-label={label}
                   style={{
                     opacity: 1,
-                    transform: 'scale(1)',
-                    transition: `opacity 0.4s ease-out ${index * 0.1}s, transform 0.4s ease-out ${index * 0.1}s`
+                    transform: "scale(1)",
+                    transition: `opacity 0.4s ease-out ${
+                      index * 0.1
+                    }s, transform 0.4s ease-out ${index * 0.1}s`,
                   }}
                 >
-                  <Icon size={16} className="text-gray-300 hover:text-white transition-colors duration-300" />
+                  <Icon
+                    size={16}
+                    className="text-gray-300 hover:text-white transition-colors duration-300"
+                  />
                 </a>
               ))}
             </div>
@@ -141,11 +164,11 @@ export default function Footer() {
               className="flex flex-wrap gap-2"
               style={{
                 opacity: 1,
-                transform: 'translateY(0px)',
-                transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
+                transform: "translateY(0px)",
+                transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
               }}
             >
-              {['VISA', 'MC', 'PayPal'].map((method) => (
+              {["VISA", "MC", "PayPal"].map((method) => (
                 <div
                   key={method}
                   className="px-3 py-1 bg-gray-700/30 border border-gray-600/30 rounded text-xs text-gray-400"
@@ -157,12 +180,16 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div style={{
-            opacity: 1,
-            transform: 'translateY(0px)',
-            transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
-          }}>
-            <h3 className="text-white font-semibold mb-6 text-lg">Quick Links</h3>
+          <div
+            style={{
+              opacity: 1,
+              transform: "translateY(0px)",
+              transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
+            }}
+          >
+            <h3 className="text-white font-semibold mb-6 text-lg">
+              Quick Links
+            </h3>
             <ul className="space-y-3">
               {quickLinks.map(({ to, label }) => (
                 <li
@@ -174,7 +201,10 @@ export default function Footer() {
                     className="text-sm text-gray-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"
                   >
                     {label}
-                    <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <ArrowUpRight
+                      size={14}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    />
                   </Link>
                 </li>
               ))}
@@ -182,12 +212,16 @@ export default function Footer() {
           </div>
 
           {/* Services */}
-          <div style={{
-            opacity: 1,
-            transform: 'translateY(0px)',
-            transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
-          }}>
-            <h3 className="text-white font-semibold mb-6 text-lg">Our Services</h3>
+          <div
+            style={{
+              opacity: 1,
+              transform: "translateY(0px)",
+              transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
+            }}
+          >
+            <h3 className="text-white font-semibold mb-6 text-lg">
+              Our Services
+            </h3>
             <ul className="space-y-3">
               {services.map(({ to, label }) => (
                 <li
@@ -199,7 +233,10 @@ export default function Footer() {
                     className="text-sm text-gray-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"
                   >
                     {label}
-                    <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <ArrowUpRight
+                      size={14}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    />
                   </Link>
                 </li>
               ))}
@@ -207,30 +244,35 @@ export default function Footer() {
           </div>
 
           {/* Contact Info */}
-          <div style={{
-            opacity: 1,
-            transform: 'translateY(0px)',
-            transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
-          }}>
-            <h3 className="text-white font-semibold mb-6 text-lg">Contact Us</h3>
+          <div
+            style={{
+              opacity: 1,
+              transform: "translateY(0px)",
+              transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
+            }}
+          >
+            <h3 className="text-white font-semibold mb-6 text-lg">
+              Contact Us
+            </h3>
             <div className="space-y-4">
-              <div
-                className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200"
-              >
-                <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                <span>Al Burak International<br />Karachi, Pakistan</span>
+              <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
+                <MapPin
+                  size={16}
+                  className="text-blue-400 mt-0.5 flex-shrink-0"
+                />
+                <span>
+                  Al Burak International
+                  <br />
+                  Karachi, Pakistan
+                </span>
               </div>
 
-              <div
-                className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200"
-              >
+              <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <Phone size={16} className="text-yellow-400 flex-shrink-0" />
                 <span>+92 316 4396658</span>
               </div>
 
-              <div
-                className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200"
-              >
+              <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <Mail size={16} className="text-blue-400 flex-shrink-0" />
                 <span>info@alburakinternational.com</span>
               </div>
@@ -238,15 +280,17 @@ export default function Footer() {
           </div>
 
           {/* Map */}
-          <div style={{
-            opacity: 1,
-            transform: 'translateY(0px)',
-            transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
-          }}>
-            <h3 className="text-white font-semibold mb-6 text-lg">Our Location</h3>
-            <div
-              className="w-full h-32 md:h-40 lg:h-44 overflow-hidden rounded-lg border border-gray-700/30 backdrop-blur-sm hover:scale-105 transition-transform duration-300"
-            >
+          <div
+            style={{
+              opacity: 1,
+              transform: "translateY(0px)",
+              transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
+            }}
+          >
+            <h3 className="text-white font-semibold mb-6 text-lg">
+              Our Location
+            </h3>
+            <div className="w-full h-32 md:h-40 lg:h-44 overflow-hidden rounded-lg border border-gray-700/30 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
               <iframe
                 title="Company Location"
                 src="https://maps.google.com/maps?q=karachi&t=&z=13&ie=UTF8&iwloc=&output=embed"
@@ -265,26 +309,38 @@ export default function Footer() {
           className="border-t border-gray-700/50 mt-16 pt-8 text-center"
           style={{
             opacity: 1,
-            transform: 'translateY(0px)',
-            transition: 'opacity 0.6s ease-out, transform 0.6s ease-out'
+            transform: "translateY(0px)",
+            transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
           }}
         >
           <div
             className="flex flex-col md:flex-row justify-between items-center gap-4"
             style={{
               opacity: 1,
-              transition: 'opacity 0.6s ease-out 0.3s'
+              transition: "opacity 0.6s ease-out 0.3s",
             }}
           >
             <p className="text-sm text-gray-400">
-              © 2024 Al Burak International. All rights reserved.
+              © 2025 Al Burak International. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <Link to="/privacy" className="hover:text-white transition-colors duration-300">
+              <Link
+                to="/policies#privacy"
+                className="hover:text-white transition-colors duration-300"
+              >
                 Privacy Policy
               </Link>
-              <Link to="/terms" className="hover:text-white transition-colors duration-300">
-                Terms of Service
+              <Link
+                to="/policies#refund"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Refund Policy
+              </Link>
+              <Link
+                to="/policies#terms"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Terms & Conditions
               </Link>
             </div>
           </div>
