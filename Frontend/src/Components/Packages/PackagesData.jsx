@@ -1,0 +1,37 @@
+const PackagesData = [
+  {
+    title: "Umrah Silver Package",
+    hotel: "5 Star Hotel",
+    ziyarat: "Included",
+    transport: "AC Bus",
+    visa: "Included",
+    price: "PKR 120,000",
+    days: "15 Days",
+    makkah: "7 Nights",
+    madinah: "8 Nights",
+  },
+  {
+    title: "Umrah Gold Package",
+    hotel: "Luxury Hotel",
+    ziyarat: "Included",
+    transport: "Private Car",
+    visa: "Included",
+    price: "PKR 200,000",
+    days: "10 Days",
+    makkah: "5 Nights",
+    madinah: "5 Nights",
+  },
+  {
+    title: "Umrah Economy Package",
+    hotel: "3 Star Hotel",
+    ziyarat: "Optional",
+    transport: "AC Bus",
+    visa: "Not Included",
+    price: "PKR 90,000",
+    days: "20 Days",
+    makkah: "10 Nights",
+    madinah: "10 Nights",
+  },
+];
+
+export default PackagesData;

@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import Home from "./Pages/Home";
 import AboutUs from "./Pages/AboutUs";
 import ContactUs from "./Pages/ContactUs";
-import Booking from "./Pages/Booking";
+import Offers from "./Pages/Offers";
 import Packages from "./Pages/Packages";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
@@ -44,7 +44,7 @@ function App() {
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/booking" element={<Booking />} />
+        <Route path="/offers" element={<Offers />} />
         <Route path="/packages" element={<Packages />} />
         <Route path="/policies" element={<Policies />} />
       </Routes>

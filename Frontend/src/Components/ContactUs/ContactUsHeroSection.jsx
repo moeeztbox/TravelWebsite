@@ -121,7 +121,8 @@ const ContactUsHeroSection = () => {
               className="text-base sm:text-lg md:text-xl text-yellow-300 drop-shadow-lg font-light leading-relaxed text-left"
               style={{ fontFamily: "Inter, sans-serif" }}
             >
-              The image and hero section is to be changed.
+              The image and hero section is to be changed. Also our team section
+              must be copied like as in tailwind css.
             </p>
           </div>
 
