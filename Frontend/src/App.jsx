@@ -11,7 +11,7 @@ import Login from "./Pages/Login";
 import Copyright from "./Components/Main/CopyRight";
 // import Navbar from "./Components/Main/Navbar";
 // import Navbar from "./Components/Main/Navbar - Copy";
-import Navbar from "./Components/Main/ReNavbar";
+import Navbar from "./Components/Main/Navbar";
 import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
 import Policies from "./Pages/Policies";
