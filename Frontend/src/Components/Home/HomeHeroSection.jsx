@@ -138,7 +138,7 @@ const HomeHeroSection = () => {
     rgba(15, 15, 15, 0.75) 0%, 
     rgba(0, 0, 0, 0.7) 50%, 
     rgba(10, 10, 10, 0.8) 100%), 
-    url('./src/Assets/Images/home images/home_hero.jpg')`
+    url('./src/Assets/Images/home images/kaaba3.jpg')`
 
                 }}
             ></div>

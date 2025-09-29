@@ -69,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ children, className }) => {
   );
 };
 
-// 2. NavBody - Fixed positioning and overflow issues
+// 2. NavBody - White theme with gold accents
 
 interface NavBodyProps {
   children: ReactNode;
@@ -130,12 +130,11 @@ export const NavBody: React.FC<NavBodyProps> = ({
     <motion.div
       ref={navRef}
       animate={{
-        backdropFilter: visible ? "blur(16px) saturate(120%)" : "blur(10px) saturate(100%)",
+        backdropFilter: visible ? "blur(20px) saturate(130%)" : "blur(12px) saturate(110%)",
         boxShadow: visible
-          ? "0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)"
-          : "0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.02)",
+          ? "0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(212, 175, 55, 0.2)"
+          : "0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(212, 175, 55, 0.15)",
         width: getAnimatedWidth(),
-        // REMOVED: y: visible ? 15 : 0, - This was causing the navbar to move down
       }}
       transition={{
         type: "tween",
@@ -144,15 +143,13 @@ export const NavBody: React.FC<NavBodyProps> = ({
       }}
       className={cn(
         "relative z-[60] mx-auto hidden max-w-7xl flex-row items-center justify-between self-start rounded-full px-4 py-2 lg:flex",
-        "bg-gradient-to-r from-black/60 via-black/70 to-black/60 border border-white/10",
-        visible && "bg-gradient-to-r from-black/80 via-black/85 to-black/80 border-white/15",
+        "bg-white border border-gold-300/30",
+        visible && "bg-white border-gold-400/40",
         !isInitialized && "w-auto",
         className
       )}
       style={{
-        background: visible
-          ? "linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,20,20,0.9) 50%, rgba(0,0,0,0.85) 100%)"
-          : "linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(20,20,20,0.7) 50%, rgba(0,0,0,0.6) 100%)"
+        background: "white"
       }}
     >
       {children}
@@ -160,7 +157,7 @@ export const NavBody: React.FC<NavBodyProps> = ({
   );
 };
 
-// 3. NavItems - Removed GSAP animations, simple static nav items
+// 3. NavItems - White theme with gold hover effects - Improved responsiveness
 
 interface NavItem {
   name: string;
@@ -185,6 +182,9 @@ export const NavItems: React.FC<NavItemsProps> = ({
       onMouseLeave={() => setHovered(null)}
       className={cn(
         "flex flex-1 flex-row items-center justify-center text-sm font-medium gap-2",
+        // Responsive adjustments for smaller screens
+        "max-[1300px]:gap-1 max-[1300px]:text-xs",
+        "max-[1100px]:gap-0.5",
         className
       )}
     >
@@ -194,12 +194,17 @@ export const NavItems: React.FC<NavItemsProps> = ({
           to={item.link}
           onClick={onItemClick}
           onMouseEnter={() => setHovered(idx)}
-          className="relative px-4 py-2 text-gray-200 hover:text-yellow-400 transition-colors duration-200 whitespace-nowrap flex-shrink-0 font-medium"
+          className={cn(
+            "relative px-4 py-2 text-gray-700 hover:text-yellow-700 transition-colors duration-200 whitespace-nowrap flex-shrink-0 font-medium",
+            // Responsive padding adjustments
+            "max-[1300px]:px-3",
+            "max-[1100px]:px-2",
+          )}
         >
           {hovered === idx && (
             <motion.div
               layoutId="hovered"
-              className="absolute inset-0 h-full w-full rounded-full bg-gradient-to-r from-yellow-400/15 to-yellow-300/15"
+              className="absolute inset-0 h-full w-full rounded-full bg-gradient-to-r from-yellow-400/20 to-yellow-500/25"
               transition={{ duration: 0.15 }}
             />
           )}
@@ -210,7 +215,7 @@ export const NavItems: React.FC<NavItemsProps> = ({
   );
 };
 
-// 4. MobileNav - Fixed positioning issue
+// 4. MobileNav - White theme mobile navigation
 
 interface MobileNavProps {
   children: ReactNode;
@@ -226,15 +231,14 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   return (
     <motion.div
       animate={{
-        backdropFilter: visible ? "blur(12px)" : "none",
+        backdropFilter: visible ? "blur(16px)" : "none",
         boxShadow: visible
-          ? "0 0 20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)"
+          ? "0 0 24px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(212, 175, 55, 0.2)"
           : "none",
         width: visible ? "90%" : "100%",
         paddingRight: visible ? "12px" : "0px",
         paddingLeft: visible ? "12px" : "0px",
         borderRadius: visible ? "4px" : "2rem",
-        // REMOVED: y: visible ? 15 : 0, - This was causing the mobile nav to move down
       }}
       transition={{
         type: "tween",
@@ -243,10 +247,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
       }}
       className={cn(
         "relative z-50 mx-auto flex w-full max-w-[calc(100vw-2rem)] flex-col items-center justify-between bg-transparent px-0 py-2 lg:hidden",
-        "bg-black/80 border border-white/10 rounded-2xl",
+        "bg-white/90 border border-gold-300/30 rounded-2xl",
         // Small device adjustments
         "max-[400px]:max-w-[calc(100vw-1rem)] max-[400px]:py-1.5",
-        visible && "bg-black/90 border-white/15",
+        visible && "bg-white/95 border-gold-400/40",
         className
       )}
     >
@@ -255,7 +259,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   );
 };
 
-// 5. MobileNavHeader - Smaller for small devices
+// 5. MobileNavHeader - White theme header
 
 interface MobileNavHeaderProps {
   children: ReactNode;
@@ -278,7 +282,7 @@ export const MobileNavHeader: React.FC<MobileNavHeaderProps> = ({
   );
 };
 
-// 6. MobileNavMenu
+// 6. MobileNavMenu - White theme dropdown menu
 
 interface MobileNavMenuProps {
   children: ReactNode;
@@ -302,7 +306,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
           transition={{ duration: 0.15, ease: "easeOut" }}
           className={cn(
             "absolute inset-x-0 top-16 z-50 flex w-full flex-col items-start justify-start gap-3 rounded-lg px-4 py-6",
-            "bg-black/95 border border-white/10 backdrop-blur-xl",
+            "bg-white/96 border border-gold-300/40 backdrop-blur-xl shadow-lg shadow-black/10",
             // Small device adjustments
             "max-[400px]:top-14 max-[400px]:px-3 max-[400px]:py-4 max-[400px]:gap-2",
             className
@@ -315,7 +319,7 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
   );
 };
 
-// 7. MobileNavToggle - Smaller icon for small devices
+// 7. MobileNavToggle - Gold colored toggle
 
 interface MobileNavToggleProps {
   isOpen: boolean;
@@ -330,7 +334,7 @@ export const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
   return (
     <Icon
       className={cn(
-        "text-yellow-400 hover:text-yellow-300 transition-colors duration-150 cursor-pointer mr-4",
+        "text-yellow-600 hover:text-yellow-700 transition-colors duration-150 cursor-pointer mr-4",
         // Smaller icon for small devices
         "max-[400px]:mr-2"
       )}
@@ -340,20 +344,20 @@ export const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
   );
 };
 
-// 8. NavbarLogo - Smaller logo for small devices
+// 8. NavbarLogo - Keep original layout and size
 
 export const NavbarLogo: React.FC = () => {
   return (
     <a
       href="#"
       className={cn(
-        "relative z-20 mr-6 flex items-center space-x-4 px-3 py-2 text-sm font-normal whitespace-nowrap flex-shrink-0",
+        "relative z-20 flex items-center space-x-4 px-3 py-2 text-sm font-normal whitespace-nowrap flex-shrink-0",
         // Small device adjustments
         "max-[400px]:mr-2 max-[400px]:space-x-2 max-[400px]:px-2 max-[400px]:py-1"
       )}
     >
       <div className={cn(
-        "w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300",
+        "w-12 h-12 flex items-center justify-center p-2",
         // Smaller logo for small devices
         "max-[400px]:w-9 max-[400px]:h-9 max-[400px]:p-1.5"
       )}>
@@ -363,27 +367,27 @@ export const NavbarLogo: React.FC = () => {
           className="w-full h-full object-contain scale-125 drop-shadow-sm"
         />
       </div>
-      <span className="font-semibold text-white">
+      <span className="font-semibold">
         <span className={cn(
-          "text-yellow-400 text-lg",
+          "text-yellow-600 text-lg font-bold",
           // Smaller text for small devices
           "max-[400px]:text-base"
         )}>
-          Al Buraq
+          AL BURAQ
         </span>
         <span className={cn(
-          "text-gray-400 text-sm ml-2",
+          "text-gray-600 text-lg ml-2 font-medium",
           // Smaller text for small devices
           "max-[400px]:text-xs max-[400px]:ml-1"
         )}>
-          International
+          INTERNATIONAL
         </span>
       </span>
     </a>
   );
 };
 
-// 9. NavbarButton - Fixed overflow and responsive sizing
+// 9. NavbarButton - Improved responsive buttons without changing layout
 
 interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href?: string;
@@ -404,15 +408,16 @@ export const NavbarButton: React.FC<NavbarButtonProps> = ({
   const baseStyles = cn(
     "px-4 py-2 rounded-lg text-sm font-semibold relative cursor-pointer transition-all duration-200 inline-block text-center whitespace-nowrap flex-shrink-0",
     // Better responsive sizing to prevent overflow
-    "lg:px-6 lg:py-2.5",
+    "max-[1300px]:px-3 max-[1300px]:py-1.5 max-[1300px]:text-xs",
+    "max-[1100px]:px-2 max-[1100px]:py-1 max-[1100px]:text-xs",
     "max-[400px]:px-3 max-[400px]:py-1.5 max-[400px]:text-xs"
   );
 
   const variantStyles: Record<string, string> = {
-    primary: "bg-gradient-to-r from-yellow-500 to-yellow-400 text-black hover:from-yellow-600 hover:to-yellow-500 hover:shadow-lg hover:shadow-yellow-400/30 hover:scale-[1.02] font-bold tracking-wide",
-    secondary: "border-2 border-yellow-400 text-yellow-400 bg-black/30 hover:bg-yellow-400/15 hover:text-yellow-300 hover:border-yellow-300 backdrop-blur-sm font-semibold",
-    dark: "bg-gray-900/80 text-white border border-gray-700/50 hover:bg-gray-800/80 hover:text-gray-100 hover:border-gray-600 backdrop-blur-sm",
-    gradient: "bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-400 text-black hover:from-yellow-500 hover:via-yellow-400 hover:to-yellow-300 shadow-lg hover:shadow-yellow-400/40 hover:scale-[1.02] font-bold",
+    primary: "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white hover:from-yellow-600 hover:to-yellow-700 hover:scale-[1.02] font-bold tracking-wide shadow-md",
+    secondary: "border-2 border-yellow-500 text-yellow-600 bg-white/70 backdrop-blur-md hover:bg-white/90 hover:text-yellow-700 hover:border-yellow-600 font-semibold shadow-sm",
+    dark: "bg-gray-700 text-white border border-gray-600 hover:bg-gray-800 hover:text-gray-100 hover:border-gray-500 backdrop-blur-sm shadow-md",
+    gradient: "bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-400 text-white hover:from-yellow-700 hover:via-yellow-600 hover:to-yellow-500 hover:scale-[1.02] font-bold",
   };
 
   return (
@@ -423,5 +428,29 @@ export const NavbarButton: React.FC<NavbarButtonProps> = ({
     >
       {children}
     </Tag>
+  );
+};
+
+// 10. NavbarActions - New component to handle button group responsiveness
+
+interface NavbarActionsProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export const NavbarActions: React.FC<NavbarActionsProps> = ({
+  children,
+  className,
+}) => {
+  return (
+    <div className={cn(
+      "flex items-center gap-3 flex-shrink-0",
+      // Responsive gap adjustments
+      "max-[1300px]:gap-2",
+      "max-[1100px]:gap-1.5",
+      className
+    )}>
+      {children}
+    </div>
   );
 };

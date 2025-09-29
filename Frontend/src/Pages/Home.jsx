@@ -13,14 +13,14 @@ const HomePage = () => {
       {/* Hero Banner */}
       <HomeHeroSection />
 
+      {/* What We Offer Section*/}
+      <WhatWeOffer />
+      {/* Packages Section*/}
+      <FeaturedPackages />
       {/* Why Choose Us Section*/}
       <WhyChooseUs />
 
-      {/* What We Offer Section*/}
-      <WhatWeOffer />
-
-      {/* Packages Section*/}
-      <FeaturedPackages />
+      
 
       {/* Reviews Section*/}
       <Reviews />
