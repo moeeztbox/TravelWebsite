@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
-/* Add this to your global CSS file (e.g., globals.css or index.css) */
-
+/* ✅ Your existing code */
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -36,4 +35,10 @@
 /* Animation direction reverse support */
 .\[animation-direction\:reverse\] {
   animation-direction: reverse;
+}
+
+/* ✅ Hide horizontal scroll on entire website */
+html,
+body {
+  overflow-x: hidden;
 }
