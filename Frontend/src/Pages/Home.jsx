@@ -15,18 +15,15 @@ const HomePage = () => {
 
       {/* What We Offer Section*/}
       <WhatWeOffer />
+
       {/* Packages Section*/}
       <FeaturedPackages />
+
       {/* Why Choose Us Section*/}
       <WhyChooseUs />
 
-      
-
       {/* Reviews Section*/}
       <Reviews />
-
-      {/* Timeline Section*/}
-      <TimelineSection />
 
       {/* Inquire Section*/}
       <InquireNow />
