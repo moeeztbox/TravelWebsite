@@ -14,7 +14,7 @@ import Copyright from "./Components/Main/CopyRight";
 import Navbar from "./Components/Main/Navbar";
 import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
-import Policies from "./Pages/Policies";
+import Guide from "./Pages/Guide";
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -46,7 +46,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/offers" element={<Offers />} />
         <Route path="/packages" element={<Packages />} />
-        <Route path="/policies" element={<Policies />} />
+        <Route path="/journey-guide" element={<Guide />} />
       </Routes>
       <Footer />
       {/* <Copyright /> */}

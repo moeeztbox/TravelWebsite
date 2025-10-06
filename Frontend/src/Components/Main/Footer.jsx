@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Facebook,
   Instagram,
@@ -8,6 +8,7 @@ import {
   Phone,
   Mail,
   ArrowUpRight,
+  Send
 } from "lucide-react";
 
 // Mock Link component for demo
@@ -18,6 +19,20 @@ const Link = ({ to, children, className }) => (
 );
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (email) {
+      setSubscribed(true);
+      setTimeout(() => {
+        setSubscribed(false);
+        setEmail("");
+      }, 3000);
+    }
+  };
+
   const socialLinks = [
     { icon: Facebook, href: "#", label: "Facebook" },
     { icon: Instagram, href: "#", label: "Instagram" },
@@ -81,93 +96,92 @@ export default function Footer() {
         ></div>
       </div>
 
-      <div
-        className="max-w-7xl mx-auto pt-16 px-6 pb-8 relative"
-        style={{
-          opacity: 1,
-          transform: "translateY(0px)",
-          transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-        }}
-      >
+      {/* Newsletter Section */}
+      <div className="relative border-b border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            {/* Left side - Stay Connected */}
+            <div className="flex-1">
+              <h3 className="text-white font-semibold text-xl mb-4">Stay Connected to Al Buraq</h3>
+              <p className="text-gray-400 text-sm">Get the latest updates on packages, offers, and travel tips.</p>
+
+              {/* Social Icons */}
+              <div className="flex gap-3 mt-6">
+                {socialLinks.map(({ icon: Icon, href, label }, index) => (
+                  <a
+                    key={label}
+                    href={href}
+                    className="w-10 h-10 bg-gray-700/50 backdrop-blur-sm border border-gray-600/30 rounded-full flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-600/20 hover:to-yellow-500/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-110"
+                    aria-label={label}
+                  >
+                    <Icon size={16} className="text-gray-300 hover:text-white transition-colors duration-300" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Right side - Newsletter Subscribe */}
+            <div className="flex-1 w-full md:max-w-xl">
+              <h3 className="text-white font-semibold text-xl mb-4">Subscribe to Our Newsletter</h3>
+              <div className="relative">
+                <div className="relative group">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full px-6 py-3.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white placeholder-gray-500 focus:outline-none focus:bg-white/10 focus:border-blue-400/50 transition-all duration-300 pr-36"
+                  />
+                  <button
+                    onClick={handleSubscribe}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors duration-200 flex items-center gap-2"
+                  >
+                    {subscribed ? (
+                      <span>Subscribed!</span>
+                    ) : (
+                      <>
+                        <span>Subscribe</span>
+                        <Send size={14} />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <p className="text-gray-500 text-xs mt-3 px-1">
+                We respect your privacy. Unsubscribe at any time.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto pt-16 px-6 pb-8 relative">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12">
-          {/* Company Info + Socials + Payment */}
+          {/* Company Info + Payment */}
           <div className="lg:col-span-1">
-            <div
-              className="mb-6"
-              style={{
-                opacity: 1,
-                transform: "scale(1)",
-                transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-              }}
-            >
+            <div className="mb-6">
               <div className="flex items-center space-x-4 mb-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
                   <img
-                    src="./src/Assets/Images/logo/AL-BURAQ.png"
-                    alt="Al Burak International Logo"
-                    className="w-full h-full object-contain scale-125 drop-shadow-sm"
+                    src="https://placehold.co/48x48/FCD34D/000000?text=AB"
+                    alt="Al Buraq International Logo"
+                    className="w-full h-full object-contain scale-125 drop-shadow-sm rounded-full"
                   />
                 </div>
                 <span className="font-semibold text-white">
-                  <span className="text-yellow-400 text-md">Al Buraq</span>
-                  <br />
+                  <span className="text-yellow-400 text-md">Al Buraq</span><br />
                   <span className="text-gray-400 text-sm">International</span>
                 </span>
               </div>
             </div>
 
-            <p
-              className="text-sm text-gray-400 mb-6 leading-relaxed"
-              style={{
-                opacity: 1,
-                transform: "translateY(0px)",
-                transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-              }}
-            >
-              Trusted travel partner for Hajj, Umrah, and international tours.
-              Your journey to sacred places begins with us.
+            <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+              Trusted travel partner for Hajj, Umrah, and international tours. Your journey to sacred places begins with us.
             </p>
 
-            {/* Social Icons */}
-            <div
-              className="flex gap-3 mb-6"
-              style={{
-                opacity: 1,
-                transform: "translateY(0px)",
-                transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-              }}
-            >
-              {socialLinks.map(({ icon: Icon, href, label }, index) => (
-                <a
-                  key={label}
-                  href={href}
-                  className="w-10 h-10 bg-gray-700/50 backdrop-blur-sm border border-gray-600/30 rounded-full flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-600/20 hover:to-yellow-500/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-110 hover:-translate-y-0.5"
-                  aria-label={label}
-                  style={{
-                    opacity: 1,
-                    transform: "scale(1)",
-                    transition: `opacity 0.4s ease-out ${index * 0.1
-                      }s, transform 0.4s ease-out ${index * 0.1}s`,
-                  }}
-                >
-                  <Icon
-                    size={16}
-                    className="text-gray-300 hover:text-white transition-colors duration-300"
-                  />
-                </a>
-              ))}
-            </div>
-
             {/* Payment Methods */}
-            <div
-              className="flex flex-wrap gap-2"
-              style={{
-                opacity: 1,
-                transform: "translateY(0px)",
-                transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-              }}
-            >
-              {["VISA", "MC", "PayPal"].map((method) => (
+            <div className="flex flex-wrap gap-2">
+              {['VISA', 'MC', 'PayPal'].map((method) => (
                 <div
                   key={method}
                   className="px-3 py-1 bg-gray-700/30 border border-gray-600/30 rounded text-xs text-gray-400"
@@ -179,16 +193,8 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div
-            style={{
-              opacity: 1,
-              transform: "translateY(0px)",
-              transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-            }}
-          >
-            <h3 className="text-white font-semibold mb-6 text-lg">
-              Quick Links
-            </h3>
+          <div>
+            <h3 className="text-white font-semibold mb-6 text-lg">Quick Links</h3>
             <ul className="space-y-3">
               {quickLinks.map(({ to, label }) => (
                 <li
@@ -211,16 +217,8 @@ export default function Footer() {
           </div>
 
           {/* Services */}
-          <div
-            style={{
-              opacity: 1,
-              transform: "translateY(0px)",
-              transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-            }}
-          >
-            <h3 className="text-white font-semibold mb-6 text-lg">
-              Our Services
-            </h3>
+          <div>
+            <h3 className="text-white font-semibold mb-6 text-lg">Our Services</h3>
             <ul className="space-y-3">
               {services.map(({ to, label }) => (
                 <li
@@ -243,27 +241,12 @@ export default function Footer() {
           </div>
 
           {/* Contact Info */}
-          <div
-            style={{
-              opacity: 1,
-              transform: "translateY(0px)",
-              transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-            }}
-          >
-            <h3 className="text-white font-semibold mb-6 text-lg">
-              Contact Us
-            </h3>
+          <div>
+            <h3 className="text-white font-semibold mb-6 text-lg">Contact Us</h3>
             <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
-                <MapPin
-                  size={16}
-                  className="text-blue-400 mt-0.5 flex-shrink-0"
-                />
-                <span>
-                  Al Burak International
-                  <br />
-                  Karachi, Pakistan
-                </span>
+                <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
+                <span>Al Buraq International<br />Karachi, Pakistan</span>
               </div>
 
               <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
@@ -279,16 +262,8 @@ export default function Footer() {
           </div>
 
           {/* Map */}
-          <div
-            style={{
-              opacity: 1,
-              transform: "translateY(0px)",
-              transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-            }}
-          >
-            <h3 className="text-white font-semibold mb-6 text-lg">
-              Our Location
-            </h3>
+          <div>
+            <h3 className="text-white font-semibold mb-6 text-lg">Our Location</h3>
             <div className="w-full h-32 md:h-40 lg:h-44 overflow-hidden rounded-lg border border-gray-700/30 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
               <iframe
                 title="Company Location"
@@ -304,23 +279,10 @@ export default function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div
-          className="border-t border-gray-700/50 mt-16 pt-8 text-center"
-          style={{
-            opacity: 1,
-            transform: "translateY(0px)",
-            transition: "opacity 0.6s ease-out, transform 0.6s ease-out",
-          }}
-        >
-          <div
-            className="flex flex-col md:flex-row justify-between items-center gap-4"
-            style={{
-              opacity: 1,
-              transition: "opacity 0.6s ease-out 0.3s",
-            }}
-          >
+        <div className="border-t border-gray-700/50 mt-16 pt-8 text-center">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-400">
-              © 2025 Al Burak International. All rights reserved.
+              © 2024 Al Buraq International. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
               <Link
