@@ -15,6 +15,7 @@ import Navbar from "./Components/Main/Navbar";
 import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
 import Policies from "./Pages/Policies";
+import Services from "./Pages/Services";
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -47,6 +48,7 @@ function App() {
         <Route path="/offers" element={<Offers />} />
         <Route path="/packages" element={<Packages />} />
         <Route path="/policies" element={<Policies />} />
+        <Route path="/services" element={<Services />} />
       </Routes>
       <Footer />
       {/* <Copyright /> */}
