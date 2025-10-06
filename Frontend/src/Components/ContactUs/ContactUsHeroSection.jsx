@@ -1,172 +1,108 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
+import { Mail } from "lucide-react";
+import gsap from "gsap";
 import AboutHeroImage from "../../Assets/Images/aboutus images/about-hero.jpg";
 
+
 const ContactUsHeroSection = () => {
+  const containerRef = useRef(null);
+  const iconSectionRef = useRef(null);
+  const leftLineRef = useRef(null);
+  const rightLineRef = useRef(null);
+  const iconRef = useRef(null);
   const titleRef = useRef(null);
-  const welcomeRef = useRef(null);
-  const bookingRef = useRef(null);
-  const buttonRef = useRef(null);
-  const overlayRef = useRef(null);
-  const [animationStarted, setAnimationStarted] = useState(false);
+  const subtitleRef = useRef(null);
 
   useEffect(() => {
-    const animateElement = (element, delay, duration, targetOpacity = 1) => {
-      if (!element) return;
+    const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+    // Initial state
+    gsap.set(
+      [containerRef.current, iconSectionRef.current, titleRef.current],
+      { opacity: 0, y: 30 }
+    );
+    gsap.set([leftLineRef.current, rightLineRef.current], { scaleX: 0 });
+    gsap.set(leftLineRef.current, { transformOrigin: "right center" });
+    gsap.set(rightLineRef.current, { transformOrigin: "left center" });
+    gsap.set(iconRef.current, { scale: 0, rotation: 180, opacity: 0 });
 
-      setTimeout(() => {
-        element.style.transition = `opacity ${duration}ms ease-out, transform ${duration}ms ease-out`;
-        element.style.opacity = targetOpacity;
-        element.style.transform = "translateY(0px)";
-      }, delay);
-    };
-
-    // Set initial states
-    [
-      titleRef.current,
-      welcomeRef.current,
-      bookingRef.current,
-      buttonRef.current,
-    ].forEach((el) => {
-      if (el) {
-        el.style.opacity = "0";
-        el.style.transform = "translateY(30px)";
-      }
-    });
-
-    if (overlayRef.current) {
-      overlayRef.current.style.opacity = "1";
-      overlayRef.current.style.pointerEvents = "auto";
-    }
-
-    // Start animations
-    setAnimationStarted(true);
-
-    // Overlay fade out
-    animateElement(overlayRef.current, 0, 1000, 0);
-    setTimeout(() => {
-      if (overlayRef.current) {
-        overlayRef.current.style.pointerEvents = "none";
-      }
-    }, 1000);
-
-    // Content animations
-    animateElement(titleRef.current, 200, 600);
-    animateElement(welcomeRef.current, 500, 600);
-    animateElement(bookingRef.current, 800, 600);
-    animateElement(buttonRef.current, 1100, 600);
+    tl.to(containerRef.current, { opacity: 1, y: 0, duration: 0.5 }, 0)
+      .to(iconSectionRef.current, { opacity: 1, y: 0, duration: 0.45 }, 0.15)
+      .to(leftLineRef.current, { scaleX: 1, duration: 0.5 }, 0.3)
+      .to(rightLineRef.current, { scaleX: 1, duration: 0.5 }, 0.3)
+      .to(
+        iconRef.current,
+        { opacity: 1, scale: 1, rotation: 0, duration: 0.45, ease: "back.out(1.8)" },
+        0.75
+      )
+      .to(titleRef.current, { opacity: 1, y: 0, duration: 0.5 }, 1.05);
   }, []);
 
-  const handleBookNow = () => {
-    // Add your booking logic here
-    console.log("Book Now clicked");
-  };
-
   return (
-    <section className="relative h-[80vh] flex flex-col overflow-hidden">
-      {/* Dark overlay for fade-in */}
-      <div ref={overlayRef} className="absolute inset-0 z-20"></div>
-
-      {/* Background Image with mosque */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `linear-gradient(135deg, 
-      rgba(0, 0, 0, 0.85) 0%, 
-      rgba(0, 0, 0, 0.75) 50%, 
-      rgba(0, 0, 0, 0.9) 100%), 
-      url(${AboutHeroImage})`,
-        }}
-      ></div>
-
-      {/* Additional dark overlay */}
-      <div className="absolute inset-0"></div>
-
-      {/* Golden sparkles */}
-      <div className="absolute inset-0 opacity-40">
-        {[...Array(12)].map((_, i) => (
+    <section
+      style={{
+        backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.9) 100%), url(${AboutHeroImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+  className="h-[65vh] flex items-center justify-center relative overflow-hidden"
+    >
+      {/* Black overlay */}
+      <div className="absolute inset-0 bg-black/30 z-1" />
+      {/* Sparkles */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none z-2">
+        {Array.from({ length: 18 }).map((_, i) => (
           <div
             key={i}
-            className={`absolute w-1 h-1 bg-yellow-400 rounded-full animate-pulse`}
+            className="absolute w-1 h-1 bg-yellow-400 rounded-full animate-pulse"
             style={{
-              top: `${Math.random() * 80 + 10}%`,
-              left: `${Math.random() * 80 + 10}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
+              top: `${Math.random() * 90 + 5}%`,
+              left: `${Math.random() * 90 + 5}%`,
+              animationDuration: `${1.5 + Math.random() * 2}s`,
+              animationDelay: `${Math.random()}s`,
+              boxShadow: `0 0 6px rgba(217, 119, 6, 0.6), 0 0 12px rgba(217, 119, 6, 0.4)`,
             }}
-          ></div>
+          />
         ))}
       </div>
-
-      {/* Top Center - About Us Title */}
-      <div className="relative z-10 flex-1 flex flex-col justify-center">
-        <div className="text-center mb-8">
-          <h1
-            ref={titleRef}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 drop-shadow-2xl"
-            style={{ fontFamily: "Inter, sans-serif" }}
+      {/* Main Content */}
+      <div
+        ref={containerRef}
+        className="relative z-10 px-3 xs:px-4 sm:px-6 md:px-8 lg:px-16 py-6 sm:py-8 w-full"
+        style={{ opacity: 0, transform: 'translateY(30px)' }}
+      >
+        <div className="text-center max-w-5xl mx-auto">
+          {/* Icon and Lines */}
+          <div
+            ref={iconSectionRef}
+            className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6"
+            style={{ opacity: 0, transform: 'translateY(30px)' }}
           >
-            <span className="text-white">Contact </span>
-            <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent">
-              Us
-            </span>
-          </h1>
-        </div>
-
-        {/* Content - All Left Aligned */}
-        <div className="flex flex-col items-start justify-center px-8 md:px-16 lg:px-20 space-y-6">
-          {/* Welcome Text - Left Aligned */}
-          <div className="max-w-2xl">
-            <p
-              ref={welcomeRef}
-              className="text-base sm:text-lg md:text-xl text-yellow-300 drop-shadow-lg font-light leading-relaxed text-left"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              The image and hero section is to be changed. Also our team section
-              must be copied like as in tailwind css.
-            </p>
-          </div>
-
-          {/* Booking Section - Left Aligned */}
-          <div className="flex flex-col items-start space-y-3">
-            <h2
-              ref={bookingRef}
-              className="text-xl sm:text-2xl md:text-2xl font-semibold text-white drop-shadow-lg"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              Want to Book a Journey?
-            </h2>
-
-            <div ref={buttonRef}>
-              <button
-                onClick={handleBookNow}
-                className="group px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-md text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-400/25 active:scale-95 cursor-pointer"
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-                }}
-              >
-                <span className="flex items-center gap-2">
-                  Book Now
-                  <svg
-                    className="w-4 h-4 transition-transform group-hover:translate-x-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </span>
-              </button>
+            {/* Left line */}
+            <div
+              ref={leftLineRef}
+              className="h-px bg-gradient-to-r from-transparent via-yellow-600 to-transparent w-10 sm:w-16 md:w-24"
+              style={{ transform: 'scaleX(0)' }}
+            />
+            {/* Icon */}
+            <div ref={iconRef} style={{ opacity: 0, transform: 'scale(0) rotate(180deg)' }}>
+              <Mail className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-yellow-600 flex-shrink-0" />
             </div>
+            {/* Right line */}
+            <div
+              ref={rightLineRef}
+              className="h-px bg-gradient-to-r from-transparent via-yellow-600 to-transparent w-10 sm:w-16 md:w-24"
+              style={{ transform: 'scaleX(0)' }}
+            />
+          </div>
+          {/* Title */}
+          <div ref={titleRef} style={{ opacity: 0, transform: 'translateY(30px)' }}>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[110%] mb-4 sm:mb-6 px-2 text-white">
+              <span className="text-white ">Get in </span>
+              <span className="text-yellow-600">Touch</span>
+            </h1>
           </div>
         </div>
       </div>
-
       {/* Bottom accent line */}
       <div className="absolute bottom-0 left-0 right-0">
         <div className="h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-transparent opacity-60"></div>
