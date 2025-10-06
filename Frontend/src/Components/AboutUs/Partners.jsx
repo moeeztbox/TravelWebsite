@@ -2,15 +2,7 @@ import React from "react";
 import Marquee from "react-fast-marquee";
 import img from "../../Assets/Images/aboutus images/about-hero.jpg";
 
-const airlines = [
-  { img: img },
-  { img: img },
-  { img: img },
-  { img: img },
-  { img: img },
-];
-
-const airlines2 = [
+const partners = [
   { img: img },
   { img: img },
   { img: img },
@@ -20,29 +12,29 @@ const airlines2 = [
 
 const Partners = () => {
   return (
-    <section className="py-12 bg-gray-50">
-      <h2 className="text-2xl font-bold text-center mb-6">Partners</h2>
+    <section className="py-16 bg-gray-50">
+      {/* Section Title */}
+      <div className="text-center mb-10">
+        <h2 className="text-3xl font-extrabold text-gray-900 relative inline-block">
+          Our <span className="text-yellow-600">Partners</span>
+        </h2>
+        <p className="mt-3 text-gray-600 text-sm">
+          Trusted by leading airlines and travel brands worldwide.
+        </p>
+      </div>
 
-      {/* First row → right to left */}
-      <Marquee gradient={false} speed={50}>
-        {[...airlines, ...airlines].map((airline, idx) => (
+      {/* First Row → Right to Left */}
+      <Marquee gradient={false} speed={30} pauseOnHover={true}>
+        {[...partners, ...partners].map((partner, idx) => (
           <div
             key={idx}
-            className="flex flex-col items-center mx-8 w-28 text-center"
+            className="flex flex-col items-center mx-12 w-40 text-center"
           >
-            <img src={airline.img} className="h-12 object-contain mb-2" />
-          </div>
-        ))}
-      </Marquee>
-
-      {/* Second row → left to right */}
-      <Marquee gradient={false} speed={50} direction="right" className="mt-6">
-        {[...airlines2, ...airlines2].map((airline, idx) => (
-          <div
-            key={idx}
-            className="flex flex-col items-center mx-8 w-28 text-center"
-          >
-            <img src={airline.img} className="h-12 object-contain mb-2" />
+            <img
+              src={partner.img}
+              alt={`Partner ${idx + 1}`}
+              className="h-20 w-auto object-contain grayscale hover:grayscale-0 transition duration-300"
+            />
           </div>
         ))}
       </Marquee>
