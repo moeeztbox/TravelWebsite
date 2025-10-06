@@ -162,8 +162,8 @@ const HomeHeroSection = () => {
     rgba(10, 10, 10, 0.8) 100%), 
     url('./src/Assets/Images/home images/kaaba3.jpg')`
 
-                }}
-            ></div>
+        }}
+      ></div>
 
       {/* Blueish and Gold Gradient Overlay with narrowed stops */}
       <div

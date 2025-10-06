@@ -1,5 +1,6 @@
 import React from "react";
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react"; // icons
+import { Phone, Mail, MapPin } from "lucide-react"; // icons
+import { FaWhatsapp } from "react-icons/fa";
 
 function UrgentContact() {
   return (
@@ -14,22 +15,22 @@ function UrgentContact() {
         <div className="flex flex-col gap-6 text-gray-700">
           {/* WhatsApp */}
           <div className="flex items-center gap-3">
-            <MessageCircle className="text-yellow-600" size={20} />
+            <FaWhatsapp className="text-yellow-600" size={22} />
             <a
-              href="https://wa.me/923001234567"
+              href="https://wa.me/923273276060"
               target="_blank"
               rel="noopener noreferrer"
               className="text-md lg:text-[14px] hover:underline"
             >
-              +92 300 1234567 (WhatsApp)
+              +92 327 3276060
             </a>
           </div>
 
           {/* Phone */}
           <div className="flex items-center gap-3">
             <Phone className="text-yellow-600" size={20} />
-            <a href="tel:+923001234567" className="text-md lg:text-[14px] hover:underline">
-              +92 300 1234567
+            <a href="tel:+923212340008" className="text-md lg:text-[14px] hover:underline">
+              +92 321 2340008
             </a>
           </div>
 
@@ -37,10 +38,10 @@ function UrgentContact() {
           <div className="flex items-center gap-3">
             <Mail className="text-yellow-600" size={20} />
             <a
-              href="mailto:support@example.com"
+              href="mailto:info@alburaqtours.com"
               className="text-md hover:underline"
             >
-              support@example.com
+              info@alburaqtours.com
             </a>
           </div>
 
@@ -48,7 +49,7 @@ function UrgentContact() {
           <div className="flex items-center gap-3">
             <MapPin className="text-yellow-600" size={28} />
             <span className="text-md lg:text-[14px]">
-              Office #12, Main Boulevard, Lahore, Pakistan
+              347-E Salamat Pura Stop, Main G.T Road,  Lahore, Pakistan
             </span>
           </div>
         </div>

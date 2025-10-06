@@ -146,9 +146,8 @@ export default function Footer() {
                   style={{
                     opacity: 1,
                     transform: "scale(1)",
-                    transition: `opacity 0.4s ease-out ${
-                      index * 0.1
-                    }s, transform 0.4s ease-out ${index * 0.1}s`,
+                    transition: `opacity 0.4s ease-out ${index * 0.1
+                      }s, transform 0.4s ease-out ${index * 0.1}s`,
                   }}
                 >
                   <Icon
@@ -293,7 +292,7 @@ export default function Footer() {
             <div className="w-full h-32 md:h-40 lg:h-44 overflow-hidden rounded-lg border border-gray-700/30 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
               <iframe
                 title="Company Location"
-                src="https://maps.google.com/maps?q=karachi&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3398.672664687032!2d74.41268219999999!3d31.5880231!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39190fe1a1fea88d%3A0x5eaa9ea9c6d3fb17!2sEhsan%20Traders!5e0!3m2!1sen!2s!4v1759326513829!5m2!1sen!2s"
                 width="100%"
                 height="100%"
                 allowFullScreen=""
