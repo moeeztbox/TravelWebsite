@@ -6,43 +6,25 @@ const AboutCEO = () => {
     <div className="bg-gray-50 py-16 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3 }}
-          viewport={{ once: true }}
-        >
+        <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-yellow-600 mb-4">
-            Message From Our CEO
+            Message From CEO
           </h2>
-        </motion.div>
+        </div>
 
         {/* CEO Section */}
         <div className="flex flex-col lg:flex-row items-center gap-12 mb-20">
           {/* CEO Image - Left Side */}
-          <motion.div
-            className="lg:w-2/5 mr-20"
-            initial={{ x: -120, opacity: 0 }}
-            whileInView={{ x: 0, opacity: 1 }}
-            transition={{ duration: 1, delay: 0.4 }}
-            viewport={{ once: true }}
-          >
+          <div className="lg:w-2/5 mr-20">
             <img
               src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80"
               alt="Sarah Johnson - CEO"
               className="w-full h-96 lg:h-[500px] object-cover"
             />
-          </motion.div>
+          </div>
 
           {/* CEO Message - Right Side */}
-          <motion.div
-            className="lg:w-3/5 flex flex-col justify-center"
-            initial={{ x: 120, opacity: 0 }}
-            whileInView={{ x: 0, opacity: 1 }}
-            transition={{ duration: 1, delay: 0.6 }}
-            viewport={{ once: true }}
-          >
+          <div className="lg:w-3/5 flex flex-col justify-center">
             <div className="space-y-6">
               <div className="text-yellow-500 mb-4 text-center">
                 <svg
@@ -89,7 +71,7 @@ const AboutCEO = () => {
                 <div className="text-yellow-600">Director Operations</div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>
