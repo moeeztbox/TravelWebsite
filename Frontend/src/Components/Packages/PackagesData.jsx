@@ -32,6 +32,17 @@ const PackagesData = [
     makkah: "10 Nights",
     madinah: "10 Nights",
   },
+  {
+    title: "Umrah Economy Package",
+    hotel: "3 Star Hotel",
+    ziyarat: "Optional",
+    transport: "AC Bus",
+    visa: "Not Included",
+    price: "PKR 90,000",
+    days: "20 Days",
+    makkah: "10 Nights",
+    madinah: "10 Nights",
+  },
 ];
 
 export default PackagesData;

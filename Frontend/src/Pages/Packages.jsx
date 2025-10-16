@@ -10,11 +10,11 @@ function Packages() {
       <PackagesHeroSection />
 
       {/* Packages Grid */}
-      <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        {packagesData.map((pkg, index) => (
-          <PackagesCard key={index} packageData={pkg} />
+      <PackagesCard/>
+        {/* {packagesData.map((pkg, index) => (
         ))}
-      </div>
+      <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      </div> */}
 
       <CustomizePackage />
     </div>
