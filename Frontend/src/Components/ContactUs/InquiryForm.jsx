@@ -25,7 +25,13 @@ function InquiryForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Inquiry Submitted:", formData);
-  setFormData({ firstName: "", lastName: "", email: "", phone: "", inquiry: "" });
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      inquiry: "",
+    });
   };
 
   const handleFocus = (field) => {
@@ -37,10 +43,10 @@ function InquiryForm() {
   };
 
   return (
-  <div className="w-full max-w-3xl lg:max-w-4xl mx-auto py-6 px-2 sm:px-4">
+    <div className="w-full max-w-3xl lg:max-w-4xl mx-auto py-6 px-2 sm:px-4">
       {/* Form Container */}
-  <div className="relative z-10 w-full flex flex-col items-stretch">
-  <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 space-y-6 w-full">
+      <div className="relative z-10 w-full flex flex-col items-stretch">
+        <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 space-y-6 w-full">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center bg-yellow-600 p-3 rounded-xl mb-4">
@@ -54,7 +60,6 @@ function InquiryForm() {
             </p>
           </div>
 
-
           {/* First Row: First Name & Last Name */}
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             {/* First Name */}
@@ -63,17 +68,21 @@ function InquiryForm() {
                 <User className="w-4 h-4 text-yellow-600" />
                 First Name <span className="text-red-500">*</span>
               </label>
-              <div className={`relative transition-all duration-300 ${focused.firstName ? 'transform scale-[1.01]' : ''}`}>
+              <div
+                className={`relative transition-all duration-300 ${
+                  focused.firstName ? "transform scale-[1.01]" : ""
+                }`}
+              >
                 <input
                   type="text"
                   name="firstName"
                   placeholder="Write your First Name"
                   value={formData.firstName}
                   onChange={handleChange}
-                  onFocus={() => handleFocus('firstName')}
-                  onBlur={() => handleBlur('firstName')}
+                  onFocus={() => handleFocus("firstName")}
+                  onBlur={() => handleBlur("firstName")}
                   className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${
-                    focused.firstName ? 'border-yellow-600' : 'border-gray-200'
+                    focused.firstName ? "border-yellow-600" : "border-gray-200"
                   } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
                   required
                 />
@@ -85,17 +94,21 @@ function InquiryForm() {
                 <User className="w-4 h-4 text-yellow-600" />
                 Last Name <span className="text-red-500">*</span>
               </label>
-              <div className={`relative transition-all duration-300 ${focused.lastName ? 'transform scale-[1.01]' : ''}`}>
+              <div
+                className={`relative transition-all duration-300 ${
+                  focused.lastName ? "transform scale-[1.01]" : ""
+                }`}
+              >
                 <input
                   type="text"
                   name="lastName"
                   placeholder="Write your Last Name"
                   value={formData.lastName}
                   onChange={handleChange}
-                  onFocus={() => handleFocus('lastName')}
-                  onBlur={() => handleBlur('lastName')}
+                  onFocus={() => handleFocus("lastName")}
+                  onBlur={() => handleBlur("lastName")}
                   className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${
-                    focused.lastName ? 'border-yellow-600' : 'border-gray-200'
+                    focused.lastName ? "border-yellow-600" : "border-gray-200"
                   } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
                   required
                 />
@@ -111,17 +124,21 @@ function InquiryForm() {
                 <Mail className="w-4 h-4 text-yellow-600" />
                 E-mail <span className="text-red-500">*</span>
               </label>
-              <div className={`relative transition-all duration-300 ${focused.email ? 'transform scale-[1.01]' : ''}`}>
+              <div
+                className={`relative transition-all duration-300 ${
+                  focused.email ? "transform scale-[1.01]" : ""
+                }`}
+              >
                 <input
                   type="email"
                   name="email"
                   placeholder="Write Your E-mail"
                   value={formData.email}
                   onChange={handleChange}
-                  onFocus={() => handleFocus('email')}
-                  onBlur={() => handleBlur('email')}
+                  onFocus={() => handleFocus("email")}
+                  onBlur={() => handleBlur("email")}
                   className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${
-                    focused.email ? 'border-yellow-600' : 'border-gray-200'
+                    focused.email ? "border-yellow-600" : "border-gray-200"
                   } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white`}
                   required
                 />
@@ -133,17 +150,21 @@ function InquiryForm() {
                 <Phone className="w-4 h-4 text-yellow-600" />
                 Phone
               </label>
-              <div className={`relative transition-all duration-300 ${focused.phone ? 'transform scale-[1.01]' : ''}`}>
+              <div
+                className={`relative transition-all duration-300 ${
+                  focused.phone ? "transform scale-[1.01]" : ""
+                }`}
+              >
                 <input
                   type="text"
                   name="phone"
                   placeholder="Ex. 055 xxxxx"
                   value={formData.phone}
                   onChange={handleChange}
-                  onFocus={() => handleFocus('phone')}
-                  onBlur={() => handleBlur('phone')}
+                  onFocus={() => handleFocus("phone")}
+                  onBlur={() => handleBlur("phone")}
                   className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${
-                    focused.phone ? 'border-yellow-600' : 'border-gray-200'
+                    focused.phone ? "border-yellow-600" : "border-gray-200"
                   } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white`}
                 />
               </div>
@@ -156,16 +177,20 @@ function InquiryForm() {
               <MessageSquare className="w-4 h-4 text-yellow-600" />
               Your Message
             </label>
-            <div className={`relative transition-all duration-300 ${focused.inquiry ? 'transform scale-[1.01]' : ''}`}>
+            <div
+              className={`relative transition-all duration-300 ${
+                focused.inquiry ? "transform scale-[1.01]" : ""
+              }`}
+            >
               <textarea
                 name="inquiry"
                 placeholder="Tell us about your inquiry or questions..."
                 value={formData.inquiry}
                 onChange={handleChange}
-                onFocus={() => handleFocus('inquiry')}
-                onBlur={() => handleBlur('inquiry')}
+                onFocus={() => handleFocus("inquiry")}
+                onBlur={() => handleBlur("inquiry")}
                 className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${
-                  focused.inquiry ? 'border-yellow-600' : 'border-gray-200'
+                  focused.inquiry ? "border-yellow-600" : "border-gray-200"
                 } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white resize-none`}
                 rows="5"
                 required

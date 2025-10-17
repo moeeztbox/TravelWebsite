@@ -2,14 +2,25 @@ import React from "react";
 
 function OurMission() {
   return (
-    <div className="w-full h-full flex flex-col justify-center items-center p-10 bg-white rounded-2xl">
-      <h2 className="text-3xl font-bold mb-4 text-blue-700">Our Mission</h2>
-      <p className="text-lg leading-relaxed text-gray-700 text-center">
-        Our mission is to create hassle-free journeys that inspire confidence,
-        connect cultures, and bring people closer to their dreams and
-        destinations.
-      </p>
-    </div>
+    <section className="w-full py-12 px-6 ">
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-4xl font-bold text-center mb-6 text-yellow-600">
+          Our Mission
+        </h2>
+        <p className="text-xl leading-relaxed text-gray-700">
+          Our mission is to ensure that every Hajj and Umrah journey is a
+          meaningful and stress-free experience for all pilgrims. We are
+          dedicated to providing exceptional guidance, transparent services, and
+          personalized care that upholds the sacred values of these holy
+          journeys. By blending modern travel solutions with deep respect for
+          Islamic traditions, we aim to create an environment where pilgrims can
+          focus on their faith while we handle the logistics. Through our work,
+          we strive to inspire unity, strengthen connections between cultures,
+          and bring people closer to their spiritual goals with sincerity and
+          compassion.
+        </p>
+      </div>
+    </section>
   );
 }
 

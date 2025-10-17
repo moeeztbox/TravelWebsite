@@ -40,52 +40,30 @@ export default function FAQHeroSection() {
             .to(badgeRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.4 }, 1.75);
     }, []);
 
-
-
-
     return (
-        <div className="bg-black h-[80vh] flex items-center justify-center">
-            <div className="text-white w-full h-full relative flex items-center justify-center">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-3">
-                    <div
-                        className="absolute inset-0 animate-pulse"
-                        style={{
-                            backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,215,0,0.2) 1px, transparent 0)`,
-                            backgroundSize: "60px 60px",
-                            animationDuration: "3s",
-                        }}
-                    />
-                </div>
-
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-10" />
-
-                {/* Blue and Gold Gradient Overlay */}
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        background: `linear-gradient(135deg, 
-              rgba(30, 58, 138, 0.2) 0%, 
-              rgba(59, 130, 246, 0.05) 15%, 
-              rgba(0, 0, 0, 0.02) 50%, 
-              rgba(251, 191, 36, 0.05) 85%, 
-              rgba(245, 158, 11, 0.1) 100%)`,
-                    }}
-                />
-
+        <div
+            style={{
+                backgroundImage: "url('/saim.png')",
+                backgroundSize: "100%",
+                backgroundPosition: "50% 40%",
+            }}
+            className="h-[85vh] flex items-center justify-center relative"
+        >
+            {/* Black overlay */}
+            <div style={{position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1}} />
+            <div className="text-gray-800 w-full h-full relative flex items-center justify-center" style={{zIndex: 2}}>
                 {/* Sparkles - CSS animated, no GSAP */}
                 <div className="absolute inset-0 opacity-8 sm:opacity-12 pointer-events-none">
                     {Array.from({ length: 25 }).map((_, i) => (
                         <div
                             key={i}
-                            className="absolute w-1 h-1 bg-yellow-300 rounded-full animate-ping"
+                            className="absolute w-1 h-1 bg-yellow-600 rounded-full animate-ping"
                             style={{
                                 top: `${Math.random() * 100}%`,
                                 left: `${Math.random() * 100}%`,
                                 animationDuration: `${1.5 + Math.random() * 2}s`,
                                 animationDelay: `${Math.random()}s`,
-                                boxShadow: `0 0 6px rgba(255, 215, 0, 0.6), 0 0 12px rgba(255, 215, 0, 0.4)`,
+                                boxShadow: `0 0 6px rgba(217, 119, 6, 0.6), 0 0 12px rgba(217, 119, 6, 0.4)`,
                             }}
                         />
                     ))}
@@ -105,50 +83,48 @@ export default function FAQHeroSection() {
                             {/* Left line */}
                             <div
                                 ref={leftLineRef}
-                                className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-8 xs:w-12 sm:w-16 md:w-20"
+                                className="h-px bg-gradient-to-r from-transparent via-yellow-600 to-transparent w-8 xs:w-12 sm:w-16 md:w-20"
                             />
                             {/* Icon */}
                             <div ref={iconRef}>
-                                <HelpCircle className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-yellow-400 flex-shrink-0" />
+                                <HelpCircle className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-yellow-600 flex-shrink-0" />
                             </div>
                             {/* Right line */}
                             <div
                                 ref={rightLineRef}
-                                className="h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent w-8 xs:w-12 sm:w-16 md:w-20"
+                                className="h-px bg-gradient-to-r from-transparent via-yellow-600 to-transparent w-8 xs:w-12 sm:w-16 md:w-20"
                             />
                         </div>
 
                         {/* Title */}
                         <div ref={titleRef}>
-                            <h1 className="text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold tracking-tight leading-[110%] mb-3 xs:mb-4 sm:mb-6 px-2">
-                                Frequently Asked{" "}
-                                <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent block xs:inline">
-                                    Questions
-                                </span>
+                            <h1 className="text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold tracking-tight leading-[110%] mb-3 xs:mb-4 sm:mb-6 px-2 text-white">
+                                <span className="text-white">Frequently Asked </span>
+                                <span className="text-yellow-600 block xs:inline">Questions</span>
                             </h1>
                         </div>
 
                         {/* Subtitle */}
-                        <div ref={subtitleRef}>
-                            <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-xs xs:max-w-md sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-4 xs:px-2 sm:px-0">
+                        {/* <div ref={subtitleRef}>
+                            <p className="text-xs xs:text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-xs xs:max-w-md sm:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-4 xs:px-2 sm:px-0">
                                 Find answers to common questions about your sacred journey to
                                 the Holy Land
                             </p>
-                        </div>
+                        </div> */}
 
                         {/* Badge */}
-                        <div
+                        {/* <div
                             ref={badgeRef}
                             className="mt-4 xs:mt-6 sm:mt-8"
                             style={{ transform: "translateY(20px) scale(0.9)" }}
                         >
-                            <div className="inline-flex items-center gap-1.5 xs:gap-2 bg-yellow-400/10 border border-yellow-400/30 rounded-full px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 hover:bg-yellow-400/20 transition-colors duration-300 text-center">
-                                <Shield className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-yellow-400 flex-shrink-0" />
-                                <span className="text-yellow-400 font-medium text-xs xs:text-sm sm:text-base whitespace-nowrap">
+                            <div className="inline-flex items-center gap-1.5 xs:gap-2 bg-yellow-600/10 border border-yellow-600/30 rounded-full px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 hover:bg-yellow-600/20 transition-colors duration-300 text-center">
+                                <Shield className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 text-yellow-600 flex-shrink-0" />
+                                <span className="text-yellow-600 font-medium text-xs xs:text-sm sm:text-base whitespace-nowrap">
                                     Expert Guidance Available 24/7
                                 </span>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>

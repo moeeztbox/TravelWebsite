@@ -1,95 +1,153 @@
-// src/pages/Signup.jsx
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+// import React, { useEffect, useRef } from "react";
+// import RegisterBg from "../Assets/Images/RegisterImage/register.png";
+// import RegistrationForm from "../Components/Register/RegistrationForm";
+// import RegistrationText from "../Components/Register/RegistrationText";
+
+// function Register() {
+//   const overlayRef = useRef(null);
+
+//   useEffect(() => {
+//     // Smooth fade-in overlay animation
+//     if (overlayRef.current) {
+//       overlayRef.current.style.opacity = "0";
+//       setTimeout(() => {
+//         overlayRef.current.style.transition = "opacity 1s ease-in-out";
+//         overlayRef.current.style.opacity = "1";
+//       }, 100);
+//     }
+//   }, []);
+
+//   return (
+//     <section className="relative min-h-screen flex flex-col overflow-hidden">
+//       {/* Overlay for fade-in */}
+//       <div ref={overlayRef} className="absolute inset-0 z-20 pointer-events-none"></div>
+
+
+//       {/* 🌄 Background Image + Gradient */}
+//       <div
+//         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+//         style={{
+//           backgroundImage: `linear-gradient(135deg, 
+//             rgba(0, 0, 0, 0.85) 0%, 
+//             rgba(0, 0, 0, 0.75) 50%, 
+//             rgba(0, 0, 0, 0.9) 100%), 
+//             url(${RegisterBg})`,
+//         }}
+//       ></div>
+
+//       {/* ✨ Golden sparkles animation */}
+//       <div className="absolute inset-0 opacity-40">
+//         {[...Array(10)].map((_, i) => (
+//           <div
+//             key={i}
+//             className="absolute w-1 h-1 bg-yellow-400 rounded-full animate-pulse"
+//             style={{
+//               top: `${Math.random() * 80 + 10}%`,
+//               left: `${Math.random() * 80 + 10}%`,
+//               animationDelay: `${Math.random() * 3}s`,
+//               animationDuration: `${2 + Math.random() * 2}s`,
+//             }}
+//           ></div>
+//         ))}
+//       </div>
+
+//       {/* 🔹 Main Content */}
+//       <div className="relative z-10 flex flex-col md:flex-row items-center justify-between w-full px-6 md:px-16 py-10">
+//         {/* Left Side Text */}
+//         <div className="hidden md:flex w-full md:w-[45%] justify-center">
+//           <RegistrationText />
+//         </div>
+
+//         {/* Right Side Form */}
+//         <div className="w-full md:w-[50%] lg:w-[40%]">
+//           <RegistrationForm />
+//         </div>
+//       </div>
+
+//       {/* ✨ Bottom Gold Accent Line */}
+//       <div className="absolute bottom-0 left-0 right-0">
+//         <div className="h-1 bg-gradient-to-r from-yellow-600 via-yellow-500 to-transparent opacity-70"></div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// export default Register;
+import React, { useEffect, useRef } from "react";
+import RegisterBg from "../Assets/Images/RegisterImage/register.png";
+import RegistrationForm from "../Components/Register/RegistrationForm";
+import RegistrationText from "../Components/Register/RegistrationText";
 
 function Register() {
-  const [showPassword, setShowPassword] = useState(false);
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    // Smooth fade-in overlay animation
+    if (overlayRef.current) {
+      overlayRef.current.style.opacity = "0";
+      setTimeout(() => {
+        overlayRef.current.style.transition = "opacity 1s ease-in-out";
+        overlayRef.current.style.opacity = "1";
+      }, 100);
+    }
+  }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 dark:from-blue-300 dark:via-blue-400 dark:to-blue-500">
-      <div className="bg-white shadow-2xl rounded-2xl w-full max-w-2xl p-8">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Create Account
-        </h2>
+    <section className="relative min-h-screen flex flex-col overflow-hidden">
+      {/* Overlay for fade-in */}
+      <div
+        ref={overlayRef}
+        className="absolute inset-0 z-20 pointer-events-none"
+      ></div>
 
-        <form className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="First Name"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-            <input
-              type="text"
-              placeholder="Last Name"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-          </div>
+      {/* 🌄 Background Image + Gradient */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `linear-gradient(135deg, 
+            rgba(0, 0, 0, 0.85) 0%, 
+            rgba(0, 0, 0, 0.75) 50%, 
+            rgba(0, 0, 0, 0.9) 100%), 
+            url(${RegisterBg})`,
+        }}
+      ></div>
 
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          />
-
-          <textarea
-            placeholder="Address"
-            rows="2"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-          ></textarea>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input
-              type="text"
-              placeholder="Country"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-            <input
-              type="text"
-              placeholder="City"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-            <input
-              type="text"
-              placeholder="Postal Code"
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-          </div>
-
-          <div className="flex items-center border rounded-lg px-4">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              className="flex-1 py-2 focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="ml-2 text-gray-500"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-lg font-semibold shadow-lg hover:from-yellow-500 hover:to-yellow-600 transition"
-          >
-            Register{" "}
-          </button>
-        </form>
-
-        <p className="text-center text-gray-600 mt-6">
-          Already have an account?{" "}
-          <a
-            href="/login"
-            className="text-yellow-500 font-semibold hover:underline"
-          >
-            Login
-          </a>
-        </p>
+      {/* ✨ Golden sparkles animation */}
+      <div className="absolute inset-0 opacity-40">
+        {[...Array(10)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-yellow-400 rounded-full animate-pulse"
+            style={{
+              top: `${Math.random() * 80 + 10}%`,
+              left: `${Math.random() * 80 + 10}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${2 + Math.random() * 2}s`,
+            }}
+          ></div>
+        ))}
       </div>
-    </div>
+
+      {/* 🔹 Main Content */}
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-between w-full px-4 sm:px-8 md:px-16 py-10 gap-10 md:gap-0">
+
+        {/* Left Side Text */}
+        <div className="w-full md:w-[45%] flex justify-center mb-10 md:mb-0">
+          <RegistrationText />
+        </div>
+
+        {/* Right Side Form */}
+        <div className="w-full md:w-[50%] lg:w-[40%]">
+          <RegistrationForm />
+        </div>
+      </div>
+
+      {/* ✨ Bottom Gold Accent Line */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <div className="h-1 bg-gradient-to-r from-yellow-600 via-yellow-500 to-transparent opacity-70"></div>
+      </div>
+    </section>
   );
 }
+
 export default Register;
