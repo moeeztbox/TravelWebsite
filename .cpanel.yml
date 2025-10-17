@@ -1,4 +1,4 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home1/alburaqtours/public_html
-    - /bin/cp -R frontend/dist/* $DEPLOYPATH
+    - /bin/cp -R Frontend/dist/* $DEPLOYPATH
