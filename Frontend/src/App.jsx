@@ -4,7 +4,6 @@ import { useLocation } from "react-router-dom";
 import Home from "./Pages/Home";
 import AboutUs from "./Pages/AboutUs";
 import ContactUs from "./Pages/ContactUs";
-import Offers from "./Pages/Offers";
 import Packages from "./Pages/Packages";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
@@ -17,6 +16,7 @@ import FAQ from "./Pages/FAQ";
 import Policies from "./Pages/Policies";
 import Services from "./Pages/Services";
 import NotFound from "./Pages/NotFound";
+import Guide from "./Pages/Guide";
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -41,16 +41,16 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/packages" element={<Packages />} />
+        <Route path="/services" element={<Services />} />
         <Route path="/faq" element={<FAQ />} />
+        <Route path="/guidance" element={<Guide />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/offers" element={<Offers />} />
-        <Route path="/packages" element={<Packages />} />
         <Route path="/policies" element={<Policies />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/notfound" element={<NotFound />} />
+        <Route path="/*" element={<NotFound />} />
       </Routes>
       <Footer />
       {/* <Copyright /> */}
