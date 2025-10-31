@@ -144,7 +144,7 @@ const SectionHeader = () => (
         </div>
 
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Carefully curated packages for every pilgrim's sacred journey
+            Elite Umrah Packages for every pilgrim's for their sacred journey
         </p>
     </motion.div>
 );
