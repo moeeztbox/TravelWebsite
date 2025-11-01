@@ -17,7 +17,7 @@ import {
 const PACKAGES = [
     {
         id: 1,
-        title: "Essential Umrah",
+        title: "Economy Umrah",
         subtitle: "Perfect for First-Time Pilgrims",
         price: "PKR 185,000",
         duration: "10 Days",
@@ -32,7 +32,7 @@ const PACKAGES = [
     },
     {
         id: 2,
-        title: "Premium Hajj",
+        title: "Economy Plus Umrah",
         subtitle: "Luxury Experience for Sacred Journey",
         price: "PKR 750,000",
         duration: "21 Days",
@@ -47,7 +47,7 @@ const PACKAGES = [
     },
     {
         id: 3,
-        title: "Family Umrah",
+        title: "3 Star Umrah",
         subtitle: "Designed for Families with Children",
         price: "PKR 320,000",
         duration: "12 Days",
@@ -62,7 +62,7 @@ const PACKAGES = [
     },
     {
         id: 3,
-        title: "Family Umrah",
+        title: "4 Star Umrah",
         subtitle: "Designed for Families with Children",
         price: "PKR 320,000",
         duration: "12 Days",
@@ -77,7 +77,7 @@ const PACKAGES = [
     },
     {
         id: 3,
-        title: "Family Umrah",
+        title: "5 Star Umrah",
         subtitle: "Designed for Families with Children",
         price: "PKR 320,000",
         duration: "12 Days",
@@ -92,7 +92,7 @@ const PACKAGES = [
     },
     {
         id: 3,
-        title: "Family Umrah",
+        title: "Ramadan Special Umrah",
         subtitle: "Designed for Families with Children",
         price: "PKR 320,000",
         duration: "12 Days",
@@ -144,7 +144,7 @@ const SectionHeader = () => (
         </div>
 
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Elite Umrah Packages for every pilgrim's for their sacred journey
+            Elite Umrah Packages for every pilgrim's sacred journey
         </p>
     </motion.div>
 );
@@ -241,14 +241,14 @@ const CustomPackageCTA = () => (
         viewport={{ once: true }}
     >
         <p className="text-gray-600 mb-6 text-lg">
-            Need a custom package? We're here to help create your perfect journey.
+            Need a Customize Package? We're here to help create your Perfect Journey.
         </p>
         <motion.button
             className="bg-gradient-to-r from-white to-[#C9A227]/10 border-2 border-[#C9A227] text-[#C9A227] hover:bg-gradient-to-r hover:from-[#C9A227] hover:to-[#DAB83D] hover:text-white hover:border-[#DAB83D] px-8 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
         >
-            Request Custom Package
+            Request Customize Package
         </motion.button>
     </motion.div>
 );
