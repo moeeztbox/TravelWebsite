@@ -1,13 +1,13 @@
 import React from 'react'
 import HeroSection from '../Components/Guide/HeroSection'
-import GuideSection from '../Components/Guide/GuideSection'
+import UmrahPage from '../Components/Guide/UmrahPage'
 import LinearCard from '../Components/Guide/LinearCard'
 
 function Guide() {
   return (
     <div>
       <HeroSection /> 
-      <GuideSection />
+      <UmrahPage />
       {/* <LinearCard /> */}
     </div>
   )

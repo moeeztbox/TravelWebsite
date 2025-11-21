@@ -16,6 +16,7 @@ import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
 import Policies from "./Pages/Policies";
 import Services from "./Pages/Services";
+import Guide from "./Pages/Guide";
 import NotFoundPageAlternative from "./Pages/NotFound";
 
 // ScrollToTop component
@@ -44,6 +45,7 @@ function App() {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/journey-guide" element={<Guide />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/offers" element={<Offers />} />
