@@ -15,13 +15,12 @@ import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
 import Policies from "./Pages/Policies";
 import Services from "./Pages/Services";
-<<<<<<< HEAD
-import Guide from "./Pages/Guide";
-import NotFoundPageAlternative from "./Pages/NotFound";
-=======
+
 import NotFound from "./Pages/NotFound";
 import Guide from "./Pages/Guide";
->>>>>>> b4cf28228759efd94e9a7dac72f2d15f4d13a6c9
+import UmrahPage from "./Components/Guide/UmrahPage";
+import TravelPage from "./Components/Guide/TravelPage";
+import ZiyaratPage from "./Components/Guide/ZiyaratPage";
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -43,7 +42,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
-      <Navbar />
+      {/* <Navbar /> */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<Packages />} />
@@ -52,7 +51,9 @@ function App() {
         <Route path="/guidance" element={<Guide />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/contact-us" element={<ContactUs />} />
-        <Route path="/journey-guide" element={<Guide />} />
+        <Route path="/umrah-guide" element={<UmrahPage />} />
+        <Route path="/travel-guide" element={<TravelPage />} />
+        <Route path="/ziyarat-guide" element={<ZiyaratPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/policies" element={<Policies />} />

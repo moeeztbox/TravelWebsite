@@ -1,8 +1,8 @@
 "use client";
 import { cn } from "../lib/utils";
-import { IconMenu2, IconX } from "@tabler/icons-react";
+import { IconMenu2, IconX, IconChevronDown } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useRef, useEffect } from "react";
 
 // 1. Simple Navbar Container
 interface NavbarProps {
@@ -46,6 +46,7 @@ export const NavBody: React.FC<NavBodyProps> = ({
 interface NavItem {
   name: string;
   link: string;
+  subItems?: NavItem[];
 }
 
 interface NavItemsProps {
@@ -61,6 +62,63 @@ export const NavItems: React.FC<NavItemsProps> = ({
   onItemClick,
   isMobile = false,
 }) => {
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [isHoveringDropdown, setIsHoveringDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        parentRef.current &&
+        !parentRef.current.contains(event.target as Node)
+      ) {
+        setHoveredItem(null);
+        setIsHoveringDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleMouseEnter = (itemName: string) => {
+    if (!isMobile) {
+      setHoveredItem(itemName);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isMobile && !isHoveringDropdown) {
+      // Small delay to allow moving to dropdown
+      setTimeout(() => {
+        if (!isHoveringDropdown) {
+          setHoveredItem(null);
+        }
+      }, 100);
+    }
+  };
+
+  const handleDropdownMouseEnter = () => {
+    setIsHoveringDropdown(true);
+  };
+
+  const handleDropdownMouseLeave = () => {
+    setIsHoveringDropdown(false);
+    setHoveredItem(null);
+  };
+
+  const handleItemClick = () => {
+    setHoveredItem(null);
+    setIsHoveringDropdown(false);
+    onItemClick?.();
+  };
+
   const baseClasses = isMobile
     ? "flex flex-col divide-y divide-gray-100 w-full"
     : "flex items-center space-x-4 md:space-x-5 lg:space-x-6 xl:space-x-8 2xl:space-x-10 text-sm md:text-base font-semibold";
@@ -68,23 +126,83 @@ export const NavItems: React.FC<NavItemsProps> = ({
   return (
     <div className={cn(baseClasses, className)}>
       {items.map((item, idx) => (
-        <Link
-          key={`link-${idx}`}
-          to={item.link}
-          onClick={onItemClick}
-          className={cn(
-            "transition-all duration-300 whitespace-nowrap relative group",
-            isMobile 
-              ? "block px-6 py-5 text-lg font-semibold text-black hover:text-yellow-600 hover:bg-gray-50 first:pt-4 last:pb-4 w-full"
-              : "text-gray-700 hover:text-yellow-600"
-          )}
+        <div
+          key={`nav-item-${idx}`}
+          className="relative"
+          ref={idx === items.findIndex(i => i.name === "Guide") ? parentRef : undefined}
+          onMouseEnter={() => handleMouseEnter(item.name)}
+          onMouseLeave={handleMouseLeave}
         >
-          {item.name}
-          {/* Underline animation for desktop */}
-          {!isMobile && (
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-600 transition-all duration-300 group-hover:w-full"></span>
+          <Link
+            to={item.link}
+            onClick={handleItemClick}
+            className={cn(
+              "transition-all duration-300 whitespace-nowrap relative group flex items-center",
+              isMobile
+                ? "block px-6 py-5 text-lg font-semibold text-black hover:text-yellow-600 hover:bg-gray-50 first:pt-4 last:pb-4 w-full"
+                : "text-gray-700 hover:text-yellow-600"
+            )}
+          >
+            {item.name}
+            {!isMobile && item.subItems && item.subItems.length > 0 && (
+              <IconChevronDown
+                size={16}
+                className={cn(
+                  "ml-1 transition-transform duration-200",
+                  (hoveredItem === item.name || isHoveringDropdown) && "rotate-180"
+                )}
+              />
+            )}
+            {!isMobile && (
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-600 transition-all duration-300 group-hover:w-full"></span>
+            )}
+          </Link>
+
+          {/* Desktop Dropdown */}
+          {!isMobile && item.subItems && item.subItems.length > 0 && (
+            <div
+              ref={idx === items.findIndex(i => i.name === "Guide") ? dropdownRef : undefined}
+              className={cn(
+                "absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 transition-all duration-200 transform origin-top",
+                (hoveredItem === item.name || isHoveringDropdown)
+                  ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+              )}
+              onMouseEnter={handleDropdownMouseEnter}
+              onMouseLeave={handleDropdownMouseLeave}
+              style={{
+                transition: 'opacity 200ms ease, transform 200ms ease'
+              }}
+            >
+              {item.subItems.map((subItem, subIdx) => (
+                <Link
+                  key={`subitem-${subIdx}`}
+                  to={subItem.link}
+                  className="block px-4 py-3 text-sm text-gray-700 hover:text-yellow-600 hover:bg-yellow-50 transition-all duration-200 font-medium"
+                  onClick={handleItemClick}
+                >
+                  {subItem.name}
+                </Link>
+              ))}
+            </div>
           )}
-        </Link>
+
+          {/* Mobile Sub-items */}
+          {isMobile && item.subItems && item.subItems.length > 0 && (
+            <div className="pl-6 bg-gray-50">
+              {item.subItems.map((subItem, subIdx) => (
+                <Link
+                  key={`mobile-subitem-${subIdx}`}
+                  to={subItem.link}
+                  onClick={handleItemClick}
+                  className="block px-6 py-4 text-base font-medium text-gray-600 hover:text-yellow-600 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 transition-all duration-200"
+                >
+                  {subItem.name}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       ))}
     </div>
   );
@@ -147,20 +265,20 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
   if (!isOpen) return null;
 
   return (
-    <>  
+    <>
       {/* Backdrop overlay - full width */}
-      <div 
+      <div
         className="fixed inset-0 top-16 lg:top-20 bg-black/20 z-40"
         onClick={onClose}
       />
-      
+
       {/* Menu content - Full width design */}
       <div className={cn(
         "fixed left-0 right-0 z-50",
         "bg-white border-b border-gray-200 shadow-xl",
         className
       )}>
-        
+
         {/* Menu items container */}
         <div className="w-full py-4 max-h-[70vh] overflow-y-auto text-black">
           {children}

@@ -20,7 +20,15 @@ export default function NavbarDemo() {
     { name: "Packages", link: "/packages" },
     { name: "Services", link: "/services" },
     { name: "FAQ", link: "/faq" },
-    { name: "Guide", link: "/guidance" },
+    { 
+      name: "Guide", 
+      link: "/guidance",
+      subItems: [
+        { name: "Umrah", link: "/umrah-guide" },
+        { name: "Travel", link: "/travel-guide" },
+        { name: "Ziyarat", link: "/ziyarat-guide" },
+      ]
+    },
     { name: "About", link: "/about-us" },
     { name: "Contact", link: "/contact-us" },
   ];
@@ -71,17 +79,11 @@ export default function NavbarDemo() {
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
           >
-            {navItems.map((item, idx) => (
-              <Link
-                key={`mobile-link-${idx}`}
-                to={item.link}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-4 sm:px-6 py-4 text-base font-semibold text-black border-b border-gray-200 last:border-b-0 hover:text-yellow-600 hover:bg-yellow-50 transition-all duration-200 relative group"
-              >
-                {item.name}
-                <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-yellow-600 transform scale-x-0 transition-transform duration-200 group-hover:scale-x-100"></span>
-              </Link>
-            ))}
+            <NavItems 
+              items={navItems} 
+              isMobile={true}
+              onItemClick={() => setIsMobileMenuOpen(false)}
+            />
 
             <div className="flex w-full flex-col gap-3 pt-4 border-t border-white/10">
               <div className="px-4 sm:px-6 py-3">

@@ -1,10 +1,52 @@
 // pages/UmrahPage.js
 import React, { useState, useEffect, useRef } from 'react'
+import { HelpCircle } from "lucide-react";
+import gsap from "gsap";
 
 function UmrahPage() {
     const [selectedCard, setSelectedCard] = useState(null)
     const scrollPositionRef = useRef(0)
 
+    // Hero Section Refs
+    const containerRef = useRef(null);
+    const iconSectionRef = useRef(null);
+    const leftLineRef = useRef(null);
+    const rightLineRef = useRef(null);
+    const iconRef = useRef(null);
+    const titleRef = useRef(null);
+    const subtitleRef = useRef(null);
+    const badgeRef = useRef(null);
+
+    // Hero Section Animation
+    useEffect(() => {
+        const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
+
+        // Initial state
+        gsap.set(
+            [containerRef.current, iconSectionRef.current, titleRef.current, subtitleRef.current, badgeRef.current],
+            { opacity: 0, y: 30 }
+        );
+        gsap.set([leftLineRef.current, rightLineRef.current], { scaleX: 0 });
+        gsap.set(leftLineRef.current, { transformOrigin: "right center" });
+        gsap.set(rightLineRef.current, { transformOrigin: "left center" });
+        gsap.set(iconRef.current, { scale: 0, rotation: 180, opacity: 0 });
+
+        // Faster GSAP sequence
+        tl.to(containerRef.current, { opacity: 1, y: 0, duration: 0.5 }, 0)
+            .to(iconSectionRef.current, { opacity: 1, y: 0, duration: 0.45 }, 0.15)
+            .to(leftLineRef.current, { scaleX: 1, duration: 0.5 }, 0.3)
+            .to(rightLineRef.current, { scaleX: 1, duration: 0.5 }, 0.3)
+            .to(
+                iconRef.current,
+                { opacity: 1, scale: 1, rotation: 0, duration: 0.45, ease: "back.out(1.8)" },
+                0.75
+            )
+            .to(titleRef.current, { opacity: 1, y: 0, duration: 0.5 }, 1.05)
+            .to(subtitleRef.current, { opacity: 1, y: 0, duration: 0.4 }, 1.4)
+            .to(badgeRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.4 }, 1.75);
+    }, []);
+
+    // Modal scroll handling
     useEffect(() => {
         if (selectedCard) {
             scrollPositionRef.current = window.pageYOffset || document.documentElement.scrollTop
@@ -47,6 +89,87 @@ function UmrahPage() {
             document.removeEventListener('scroll', preventScroll)
         }
     }, [selectedCard])
+
+    const HeroSection = () => {
+        return (
+            <div
+                style={{
+                    backgroundImage: `linear-gradient(135deg, 
+                                        rgba(15, 15, 15, 0.75) 0%, 
+                                        rgba(0, 0, 0, 0.7) 50%, 
+                                        rgba(10, 10, 10, 0.8) 100%), 
+                                        url('./src/Assets/Images/Guide Images/guide-2.jpg')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                }}
+                className="h-[85vh] flex items-center justify-center relative"
+            >
+
+                <div className="text-gray-800 w-full h-full relative flex items-center justify-center" style={{ zIndex: 2 }}>
+                    {/* Sparkles - CSS animated, no GSAP */}
+                    <div className="absolute inset-0 opacity-8 sm:opacity-12 pointer-events-none">
+                        {Array.from({ length: 25 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="absolute w-1 h-1 bg-yellow-600 rounded-full animate-ping"
+                                style={{
+                                    top: `${Math.random() * 100}%`,
+                                    left: `${Math.random() * 100}%`,
+                                    animationDuration: `${1.5 + Math.random() * 2}s`,
+                                    animationDelay: `${Math.random()}s`,
+                                    boxShadow: `0 0 6px rgba(217, 119, 6, 0.6), 0 0 12px rgba(217, 119, 6, 0.4)`,
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Main Content */}
+                    <div
+                        ref={containerRef}
+                        className="relative z-10 px-3 xs:px-4 sm:px-6 md:px-8 lg:px-16 py-6 sm:py-8"
+                    >
+                        <div className="text-center max-w-6xl mx-auto">
+                            {/* Icon and Lines */}
+                            <div
+                                ref={iconSectionRef}
+                                className="flex items-center justify-center gap-1 xs:gap-2 sm:gap-3 mb-3 xs:mb-4 sm:mb-6"
+                            >
+                                {/* Left line */}
+                                <div
+                                    ref={leftLineRef}
+                                    className="h-px bg-gradient-to-r from-transparent via-yellow-600 to-transparent w-8 xs:w-12 sm:w-16 md:w-20"
+                                />
+                                {/* Icon */}
+                                <div ref={iconRef}>
+                                    <HelpCircle className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-yellow-600 flex-shrink-0" />
+                                </div>
+                                {/* Right line */}
+                                <div
+                                    ref={rightLineRef}
+                                    className="h-px bg-gradient-to-r from-transparent via-yellow-600 to-transparent w-8 xs:w-12 sm:w-16 md:w-20"
+                                />
+                            </div>
+
+                            {/* Title - Changed for Umrah Page */}
+                            <div ref={titleRef}>
+                                <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 text-white">
+                                    The Sacred <span className="text-yellow-600">Umrah</span> Pilgrimage
+                                </h1>
+                            </div>
+
+                            {/* Subtitle */}
+                            <div ref={subtitleRef}>
+                                <p className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-4 xs:mb-6 sm:mb-8 leading-relaxed">
+                                    Complete guide to performing Umrah with spiritual significance and step-by-step instructions
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     const umrahCards = [
         {
@@ -218,17 +341,17 @@ function UmrahPage() {
 
     const Modal = ({ card, onClose }) => {
         if (!card) return null
-    
+
         const handleBackdropClick = (e) => {
             if (e.target === e.currentTarget) {
                 onClose()
             }
         }
-    
+
         const handleModalScroll = (e) => {
             e.stopPropagation()
         }
-    
+
         return (
             <div
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
@@ -245,7 +368,7 @@ function UmrahPage() {
                             alt={card.title}
                             className="w-full h-full object-cover"
                         />
-    
+
                         <button
                             onClick={onClose}
                             className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-all duration-200 shadow-lg"
@@ -254,7 +377,7 @@ function UmrahPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
-    
+
                         <div className="absolute bottom-6 left-6 right-6">
                             <h2 className="text-2xl font-bold text-white drop-shadow-lg">
                                 {card.title}
@@ -264,15 +387,15 @@ function UmrahPage() {
                             </p>
                         </div>
                     </div>
-    
+
                     <div
                         className="p-8 max-h-[calc(85vh-12rem)] overflow-y-auto"
                         onWheel={handleModalScroll}
                         onTouchMove={handleModalScroll}
                     >
-                        <div 
+                        <div
                             className="text-lg leading-relaxed space-y-6"
-                            dangerouslySetInnerHTML={{ 
+                            dangerouslySetInnerHTML={{
                                 __html: card.detailedContent
                                     .replace(/<h3>/g, '<h3 class="text-2xl font-bold text-amber-600 mb-3">')
                                     .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-4">')
@@ -280,7 +403,7 @@ function UmrahPage() {
                                     .replace(/<ol>/g, '<ol class="list-decimal list-inside space-y-2 text-gray-700 mb-4">')
                                     .replace(/<li>/g, '<li class="mb-1">')
                                     .replace(/<strong>/g, '<strong class="text-gray-800 font-semibold">')
-                            }} 
+                            }}
                         />
                     </div>
                 </div>
@@ -389,28 +512,34 @@ function UmrahPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white py-8 px-4">
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 mb-4">
-                        Sacred <span className="text-amber-600">Umrah</span> Guide
-                    </h1>
-                    <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto">
-                        Learn the steps and significance of performing Umrah, the lesser pilgrimage that can be undertaken anytime.
-                    </p>
-                </div>
+        <div className="min-h-screen bg-white">
+            {/* Hero Section */}
+            <HeroSection />
 
-                <div className="mt-8">
-                    <div className="animate-fade-in">
-                        {renderCards(umrahCards)}
-                        <Modal card={selectedCard} onClose={() => setSelectedCard(null)} />
+            {/* Content Section */}
+            <div className="py-8 px-4">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-12">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 mb-4">
+                            Sacred <span className="text-amber-600">Umrah</span> Guide
+                        </h1>
+                        <p className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto">
+                            Learn the steps and significance of performing Umrah, the lesser pilgrimage that can be undertaken anytime.
+                        </p>
                     </div>
-                </div>
 
-                <div className="mt-12 text-center">
-                    <p className="text-gray-500 text-sm">
-                        May your pilgrimage be accepted and your journey blessed
-                    </p>
+                    <div className="mt-8">
+                        <div className="animate-fade-in">
+                            {renderCards(umrahCards)}
+                            <Modal card={selectedCard} onClose={() => setSelectedCard(null)} />
+                        </div>
+                    </div>
+
+                    <div className="mt-12 text-center">
+                        <p className="text-gray-500 text-sm">
+                            May your pilgrimage be accepted and your journey blessed
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
