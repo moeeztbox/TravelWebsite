@@ -54,14 +54,14 @@ export default function InquiryCTA() {
                                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            First Name *
+                                            Full Name *
                                         </label>
                                         <input
                                             type="text"
                                             value={formData.firstName}
                                             onChange={(e) => handleChange('firstName', e.target.value)}
                                             className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-300"
-                                            placeholder="Enter your first name"
+                                            placeholder="Enter your full name"
                                         />
                                     </div>
                                     <div>
@@ -144,8 +144,8 @@ export default function InquiryCTA() {
                                     Quick Contact
                                 </h3>
                                 <div className="space-y-2 text-gray-700 mb-4">
-                                    <div className="text-yellow-600 font-medium">info@alburaq.com</div>
-                                    <div className="text-yellow-600 font-medium">WhatsApp: +92-301-2345678</div>
+                                    <div className="text-yellow-600 font-medium">info@alburaqtours.com</div>
+                                    <div className="text-yellow-600 font-medium">WhatsApp: +92-327-3276060</div>
                                     <div className="text-gray-600 text-sm">Available 24/7 for your convenience</div>
                                 </div>
                                 

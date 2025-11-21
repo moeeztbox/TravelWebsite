@@ -252,7 +252,7 @@ const HomeHeroSection = () => {
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 w-full px-12 pb-24 md:px-20 md:pb-32">
+      <div className="relative z-10 w-full px-12 pb-24 mb-16 md:px-20 md:pb-32">
         <div className="max-w-5xl -ml-2 md:ml-16">
           {/* Company Name - All in one line */}
           <h1
@@ -269,7 +269,7 @@ const HomeHeroSection = () => {
               className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold text-white tracking-wide align-baseline"
               style={{ fontWeight: "600" }}
             >
-              International
+              Global
             </span>
           </h1>
 
@@ -298,13 +298,10 @@ const HomeHeroSection = () => {
             style={{ fontFamily: "Inter, sans-serif", fontWeight: "400" }}
           >
             <span className="sm:hidden">
-              Ancient traditions meet modern comfort for every pilgrim's sacred
-              calling.
+            We offer trusted and hassle-free Umrah Packages, ensuring your comfort. Our team ensures complete guidance from departure to return.
             </span>
             <span className="hidden sm:inline">
-              Journey with us through the paths of faith, where ancient
-              traditions meet modern comfort and every pilgrim finds their
-              sacred calling.
+            We offer trusted and hassle-free Umrah Packages, ensuring your comfort. Our team ensures complete guidance from departure to return.
             </span>
           </p>
 
@@ -319,15 +316,9 @@ const HomeHeroSection = () => {
               className="px-6 py-3 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-lg tracking-wide drop-shadow-lg text-sm sm:text-base cursor-pointer"
               style={{ fontWeight: "600" }}
             >
-              Start Registration
+              Book Now
             </button>
-            <button
-              ref={secondaryButtonRef}
-              className="px-6 py-3 sm:px-8 sm:py-3 md:px-10 md:py-4 border-2 border-yellow-400 text-yellow-400 font-semibold backdrop-blur-sm tracking-wide rounded-lg text-sm sm:text-base cursor-pointer"
-              style={{ fontWeight: "600" }}
-            >
-              Registration Assistance
-            </button>
+            
           </div>
         </div>
       </div>

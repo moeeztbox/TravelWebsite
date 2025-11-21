@@ -45,12 +45,12 @@ export default function Footer() {
     { to: "/about-us", label: "About Us" },
     { to: "/contact-us", label: "Contact" },
     { to: "/packages", label: "Packages" },
-    { to: "/booking", label: "Booking" },
+    { to: "/faq", label: "FAQ's" },
   ];
 
   const services = [
     { to: "/services/umrah", label: "Umrah Packages" },
-    { to: "/services/hajj", label: "Hajj Packages" },
+    { to: "/services/hajj", label: "Transportation" },
     { to: "/services/visa", label: "Visa Processing" },
     { to: "/services/tours", label: "International Tours" },
     { to: "/services/ticketing", label: "Air Ticketing" },
@@ -170,18 +170,18 @@ export default function Footer() {
                 </div>
                 <span className="font-semibold text-white">
                   <span className="text-yellow-400 text-md">Al Buraq</span><br />
-                  <span className="text-gray-400 text-sm">International</span>
+                  <span className="text-gray-400 text-sm">Global</span>
                 </span>
               </div>
             </div>
 
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Trusted travel partner for Hajj, Umrah, and international tours. Your journey to sacred places begins with us.
+              Your trusted partner for Hajj, Umrah, and Global Travel Services. Experience a journey rich with comfort, care, and excellence.
             </p>
 
             {/* Payment Methods */}
             <div className="flex flex-wrap gap-2">
-              {['VISA', 'MC', 'PayPal'].map((method) => (
+              {['VISA', 'MC', 'MEEZAN'].map((method) => (
                 <div
                   key={method}
                   className="px-3 py-1 bg-gray-700/30 border border-gray-600/30 rounded text-xs text-gray-400"
@@ -246,17 +246,17 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                <span>Al Buraq International<br />Karachi, Pakistan</span>
+                <span>Al Buraq Global Travel & Tours pvt ltd.<br />Lahore, Pakistan</span>
               </div>
 
               <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <Phone size={16} className="text-yellow-400 flex-shrink-0" />
-                <span>+92 316 4396658</span>
+                <span>+92 327 3276060</span>
               </div>
 
               <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <Mail size={16} className="text-blue-400 flex-shrink-0" />
-                <span>info@alburakinternational.com</span>
+                <span>info@alburaqtours.com</span>
               </div>
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function Footer() {
         <div className="border-t border-gray-700/50 mt-16 pt-8 text-center">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-400">
-              © 2024 Al Buraq International. All rights reserved.
+              © 2025 Al Buraq Global. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
               <Link

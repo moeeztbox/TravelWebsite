@@ -82,18 +82,18 @@ const MarqueeDemo = () => {
     <div className="relative flex h-[80vh] w-full flex-col items-center justify-center overflow-hidden bg-gray-50 font-sans">
       {/* Header Section */}
       <div className="text-center space-y-4 mb-12 px-4 z-10 relative">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">
-          Pilgrims' <span className="text-amber-500">Testimonies</span>
-        </h2>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">       
+          Traveller <span className="text-amber-500">Reviews</span>
+        </h2>   
 
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-3">             
           <div className="h-px bg-amber-500 w-16"></div>
           <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
           <div className="h-px bg-amber-500 w-16"></div>
         </div>
 
         <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
-          Hear from fellow believers who have walked this blessed path before you
+          Voices of Traveller's who choose a superior Umrah Experience
         </p>
       </div>
 

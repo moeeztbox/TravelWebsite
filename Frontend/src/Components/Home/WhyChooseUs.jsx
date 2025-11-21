@@ -16,17 +16,17 @@ export default function WhyChooseUs() {
         {
             icon: Award,
             title: "Government Certified",
-            subtitle: "Licensed by Ministry of Religious Affairs"
+            subtitle: "Fully Authorized Agency"
         },
         {
             icon: Shield,
-            title: "100% Visa Guarantee",
-            subtitle: "Saudi Arabia approved agents"
+            title: "Umrah Visa Issuer",
+            subtitle: "100% Visa Guarantee"
         },
         {
             icon: Users,
             title: "Expert Team",
-            subtitle: "15+ years of experience"
+            subtitle: "10+ Years Experience"
         },
         {
             icon: Clock,
@@ -36,7 +36,7 @@ export default function WhyChooseUs() {
         {
             icon: Star,
             title: "Premium Service",
-            subtitle: "Quality accommodations"
+            subtitle: "Exclusive Benefits"
         }
     ];
 
@@ -73,7 +73,7 @@ export default function WhyChooseUs() {
                     </motion.div>
 
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                        Your trusted partner for sacred journeys to the Holy Land
+                        Complete Umrah Services under one roof, Blessed Journey to the House of Allah
                     </p>
                 </motion.div>
 
@@ -129,16 +129,16 @@ export default function WhyChooseUs() {
                         {
                             icon: CheckCircle,
                             title: "Ministry Approved",
-                            subtitle: "Licensed organizer"
+                            subtitle: "Licensed holder"
                         },
                         {
                             icon: CheckCircle,
-                            title: "Near Haram",
-                            subtitle: "Premium locations"
+                            title: "Licensed Agency",
+                            subtitle: "SECP Registered"
                         },
                         {
                             icon: CheckCircle,
-                            title: "Full Support",
+                            title: "End To End Help",
                             subtitle: "Complete assistance"
                         }
                     ].map((item, index) => (

@@ -1,54 +1,76 @@
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import React, { useEffect, useRef } from "react";
+import RegisterBg from "../Assets/Images/RegisterImage/register.png";
+import LoginForm from "../Components/Login/LoginForm";
+import LoginText from "../Components/Login/LoginText";
 
 function Login() {
-  const [showPassword, setShowPassword] = useState(false);
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    // Smooth fade-in overlay animation
+    if (overlayRef.current) {
+      overlayRef.current.style.opacity = "0";
+      setTimeout(() => {
+        overlayRef.current.style.transition = "opacity 1s ease-in-out";
+        overlayRef.current.style.opacity = "1";
+      }, 100);
+    }
+  }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-300 to-blue-500">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
-          Login
-        </h2>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Overlay for fade-in */}
+      <div
+        ref={overlayRef}
+        className="absolute inset-0 z-20 pointer-events-none"
+      ></div>
 
-        <form className="space-y-4">
-          {/* Email */}
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
-          />
+      {/* 🌄 Background Image + Gradient */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `linear-gradient(135deg, 
+            rgba(0, 0, 0, 0.85) 0%, 
+            rgba(0, 0, 0, 0.75) 50%, 
+            rgba(0, 0, 0, 0.9) 100%), 
+            url(${RegisterBg})`,
+        }}
+      ></div>
 
-          {/* Password with eye toggle */}
-          <div className="flex items-center border rounded-lg px-4">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              className="flex-1 py-2 focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="ml-2 text-gray-500"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-
-          {/* Submit Button */}
-          <button className="w-full py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition">
-            Login
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-gray-600">
-          Don’t have an account?{" "}
-          <a href="/register" className="text-blue-600 font-semibold">
-            Register
-          </a>
-        </p>
+      {/* ✨ Golden sparkles animation */}
+      <div className="absolute inset-0 opacity-40">
+        {[...Array(10)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-yellow-400 rounded-full animate-pulse"
+            style={{
+              top: `${Math.random() * 80 + 10}%`,
+              left: `${Math.random() * 80 + 10}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${2 + Math.random() * 2}s`,
+            }}
+          ></div>
+        ))}
       </div>
-    </div>
+
+      {/* 🔹 Centered Two-Column Layout */}
+      <div className="relative z-10 flex flex-col md:flex-row items-center justify-center w-full max-w-7xl px-4 sm:px-8 md:px-16 py-10 gap-10">
+        {/* Left Side Text */}
+        <div className="w-full md:w-[45%] flex justify-center md:justify-end">
+          <LoginText />
+        </div>
+
+        {/* Right Side Form */}
+        <div className="w-full md:w-[45%] flex justify-center md:justify-start">
+          <LoginForm />
+        </div>
+      </div>
+
+      {/* ✨ Bottom Gold Accent Line */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <div className="h-1 bg-gradient-to-r from-yellow-600 via-yellow-500 to-transparent opacity-70"></div>
+      </div>
+    </section>
   );
 }
 

@@ -42,3 +42,31 @@ html,
 body {
   overflow-x: hidden;
 }
+
+/* === Hide Google Translate UI elements === */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame,
+.goog-te-banner,
+.goog-logo-link,
+.goog-te-gadget span,
+.goog-te-balloon-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.goog-te-gadget {
+  font-size: 0 !important;
+  color: transparent !important;
+}
+
+iframe.goog-te-menu-frame {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+
+
