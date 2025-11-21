@@ -108,7 +108,11 @@ export default function FAQHeroSection() {
 
                     </div>
                 </div>
+                <div className="absolute bottom-0 left-0 right-0">
+          <div className="h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-transparent opacity-60"></div>
+        </div>
             </div>
         </div>
+        
     );
 }
