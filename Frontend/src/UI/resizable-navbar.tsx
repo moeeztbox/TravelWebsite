@@ -334,9 +334,10 @@ export const NavbarLogo: React.FC = () => {
   );
 };
 
-// 9. Responsive Buttons
+// 9. Responsive Buttons - UPDATED VERSION
 interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href?: string;
+  to?: string; // Add 'to' prop for React Router
   as?: React.ElementType;
   children: ReactNode;
   className?: string;
@@ -345,22 +346,28 @@ interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement
 
 export const NavbarButton: React.FC<NavbarButtonProps> = ({
   href,
-  as: Tag = "a",
+  to,
+  as: Tag = to ? Link : "a", // Use Link if 'to' prop is provided
   children,
   className,
   variant = "primary",
   ...props
 }) => {
-  const baseStyles = "px-4 py-2 lg:px-6 lg:py-2.5 xl:px-8 xl:py-3.5 rounded-lg text-sm lg:text-base xl:text-lg font-semibold transition-colors duration-200 whitespace-nowrap";
+  const baseStyles = "px-4 py-2 lg:px-6 lg:py-2.5 xl:px-8 xl:py-3.5 rounded-lg text-sm lg:text-base xl:text-lg font-semibold transition-colors duration-200 whitespace-nowrap cursor-pointer";
 
   const variantStyles = {
     primary: "bg-yellow-500 text-white hover:bg-yellow-600",
     secondary: "border lg:border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50",
   };
 
+  // Determine the props to pass based on component type
+  const linkProps = to 
+    ? { to } // For React Router Link
+    : { href }; // For regular anchor tag
+
   return (
     <Tag
-      href={href}
+      {...linkProps}
       className={cn(baseStyles, variantStyles[variant], className)}
       {...props}
     >
