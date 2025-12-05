@@ -42,7 +42,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
-      {/* <Navbar /> */}
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<Packages />} />

@@ -409,29 +409,6 @@ function ZiyaratPage() {
             {/* Hero Section */}
             <HeroSection />
 
-            {/* Main Navigation Bar */}
-            <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-                <div className="max-w-7xl mx-auto">
-                    {/* Sub Navigation Bar - Sticks under main navbar */}
-                    <div className="sticky top-0 z-50 border-t border-gray-200 bg-white/90 backdrop-blur-sm">
-                        <div className="px-4 sm:px-6 lg:px-8">
-                            <div className="flex justify-center space-x-1 py-3 overflow-x-auto">
-                                {ziyaratSites.map((site) => (
-                                    <a
-                                        key={site.id}
-                                        href={`#ziyarat-${site.id}`}
-                                        className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 whitespace-nowrap border border-transparent hover:border-green-200"
-                                    >
-                                        <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                                        {site.title.split(' ')[0]}
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
             {/* Ziyarat Sections */}
             <main className="pt-4">
                 {ziyaratSites.map((site, index) => (
