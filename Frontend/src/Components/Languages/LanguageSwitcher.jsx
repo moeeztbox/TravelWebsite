@@ -89,10 +89,9 @@ export default function LanguageSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen((s) => !s)}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 hover:border-yellow-500 transition-all duration-200"
+        className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-yellow-600 cursor-pointer transition-all duration-200"
       >
-        <Globe size={18} />
-        <span className="hidden md:inline">Language</span>
+        <Globe size={25} />
       </button>
 
       {open && (
@@ -101,7 +100,11 @@ export default function LanguageSwitcher() {
           onMouseLeave={() => setOpen(false)}
         >
           {/* Container where we will move the real google select (if available) */}
-          <div id="google_translate_container" ref={containerRef} className="w-full mb-2" />
+          <div
+            id="google_translate_container"
+            ref={containerRef}
+            className="w-full mb-2"
+          />
 
           {/* Fallback manual language buttons */}
           <div className="flex flex-col gap-1">

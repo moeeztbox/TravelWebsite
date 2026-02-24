@@ -1,19 +1,18 @@
 import React from "react";
+import { useState } from "react";
+import StripeWrapper from "../Components/PaymentIntegration/StripeWrapper"; //this is temporary
+
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home } from "lucide-react";
 
 function NotFoundPage() {
+  const [showPayment, setShowPayment] = useState(false); //stripe this is temporary
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200 p-6">
       <div className="text-center max-w-4xl mx-auto relative">
-        {/* Minimalist top bar with yellow-400 */}
-        <div className="mb-12">
-          <div className="w-16 h-0.5 bg-yellow-400 mx-auto"></div>
-        </div>
-
         {/* 404 Text - black with yellow-400 zero */}
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -30,7 +29,7 @@ function NotFoundPage() {
         </div>
 
         {/* Page Not Found - in yellow-400 */}
-        <motion.h2 
+        <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -38,9 +37,9 @@ function NotFoundPage() {
         >
           Page Not Found
         </motion.h2>
-        
+
         {/* Description - in a single line */}
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
@@ -79,6 +78,23 @@ function NotFoundPage() {
         >
           ●
         </motion.div>
+        {/* payment stripe temporary for now  */}
+
+        <div>
+          {/* Existing content */}
+          <button
+            onClick={() => setShowPayment(true)}
+            className="px-6 py-2 bg-yellow-500 text-black font-bold rounded mt-4"
+          >
+            Pay Online
+          </button>
+
+          {showPayment && (
+            <div className="mt-6 p-6 border rounded shadow">
+              <StripeWrapper />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ export default function NavbarDemo() {
       link: "/guidance",
       subItems: [
         { name: "Umrah", link: "/umrah-guide" },
+        { name: "Hajj", link: "/coming-soon" },
         { name: "Travel", link: "/travel-guide" },
         { name: "Ziyarat", link: "/ziyarat-guide" },
       ],

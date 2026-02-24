@@ -23,47 +23,55 @@ function Policies() {
     { id: "terms", label: "Terms & Conditions", component: TermsAndConditions },
     { id: "refund", label: "Refund Policy", component: RefundPolicy },
     { id: "booking", label: "Booking Policy", component: BookingPolicy },
-    { id: "cancellation", label: "Cancellation Policy", component: CancellationPolicy },
+    {
+      id: "cancellation",
+      label: "Cancellation Policy",
+      component: CancellationPolicy,
+    },
     { id: "payment", label: "Payment Policy", component: PaymentPolicy },
-    { id: "responsibilities", label: "User Responsibilities", component: UserResponsibilities },
+    {
+      id: "responsibilities",
+      label: "User Responsibilities",
+      component: UserResponsibilities,
+    },
     { id: "disclaimer", label: "Disclaimer", component: Disclaimer },
   ];
 
   const getPolicyIndex = (policyId) => {
-    return policies.findIndex(policy => policy.id === policyId);
+    return policies.findIndex((policy) => policy.id === policyId);
   };
 
   const scrollToPolicy = (policyId) => {
     const element = policyRefs.current[policyId];
-    if (element) {
-      const container = contentRef.current;
-      const elementTop = element.offsetTop;
-      const containerHeight = container.clientHeight;
-      const scrollPosition = elementTop - (containerHeight / 2) + (element.clientHeight / 2);
-      
+    const container = contentRef.current;
+
+    if (element && container) {
+      const elementPosition = element.getBoundingClientRect().top;
+      const containerPosition = container.getBoundingClientRect().top;
+
+      const offset = elementPosition - containerPosition + container.scrollTop;
+
       container.scrollTo({
-        top: scrollPosition,
-        behavior: 'smooth'
+        top: offset - 20,
+        behavior: "smooth",
       });
     }
   };
-
   const handlePolicyChange = (policyId) => {
     if (policyId === activePolicy || isAnimating) return;
-    
+
     const currentIndex = getPolicyIndex(activePolicy);
     const newIndex = getPolicyIndex(policyId);
     const direction = newIndex < currentIndex ? "up" : "down";
-    
+
     setAnimationDirection(direction);
     setIsAnimating(true);
     setActivePolicy(policyId);
-    
-    // Scroll to the selected policy
+
     setTimeout(() => {
       scrollToPolicy(policyId);
     }, 50);
-    
+
     setTimeout(() => {
       setIsAnimating(false);
     }, 300);
@@ -87,10 +95,10 @@ function Policies() {
 
   const getAnimationClasses = (policyId) => {
     if (policyId !== activePolicy) return "";
-    
+
     if (isAnimating) {
-      return animationDirection === "up" 
-        ? "opacity-0 -translate-y-8 scale-95" 
+      return animationDirection === "up"
+        ? "opacity-0 -translate-y-8 scale-95"
         : "opacity-0 translate-y-8 scale-95";
     }
     return "opacity-100 translate-y-0 scale-100";
@@ -106,14 +114,16 @@ function Policies() {
           <nav className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 sticky top-8">
               <div className="px-6 py-4 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900">Our Policies</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Our Policies
+                </h3>
               </div>
               <ul className="p-4 space-y-1">
                 {policies.map((policy, index) => {
                   const currentIndex = getPolicyIndex(activePolicy);
                   const isAbove = index < currentIndex;
                   const isBelow = index > currentIndex;
-                  
+
                   return (
                     <li key={policy.id} className="relative">
                       <button
@@ -129,19 +139,39 @@ function Policies() {
                           {activePolicy === policy.id && (
                             <div className="flex items-center space-x-1">
                               {isAbove && (
-                                <svg className="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                <svg
+                                  className="w-3 h-3 text-amber-500"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 15l7-7 7 7"
+                                  />
                                 </svg>
                               )}
                               {isBelow && (
-                                <svg className="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                <svg
+                                  className="w-3 h-3 text-amber-500"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                  />
                                 </svg>
                               )}
                             </div>
                           )}
                         </div>
-                        
+
                         <span
                           className={`absolute bottom-0 left-0 h-[2px] bg-amber-500 transition-all duration-300 ease-in-out ${
                             activePolicy === policy.id
@@ -162,38 +192,48 @@ function Policies() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div
                 ref={contentRef}
-                className="p-8 max-h-[80vh] overflow-y-auto scroll-smooth"
+                onWheel={(e) => {
+                  const el = contentRef.current;
+                  if (!el) return;
+
+                  const isScrollingDown = e.deltaY > 0;
+                  const isAtBottom =
+                    el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+                  const isAtTop = el.scrollTop <= 0;
+
+                  if (
+                    (isScrollingDown && !isAtBottom) ||
+                    (!isScrollingDown && !isAtTop)
+                  ) {
+                    e.stopPropagation();
+                  }
+                }}
+                className="p-8 h-[70vh] overflow-y-auto scroll-smooth"
               >
-                <div className="space-y-12">
+                <div className="space-y-8">
                   {policies.map((policy) => {
                     const PolicyComponent = policy.component;
                     return (
                       <div
                         key={policy.id}
                         ref={(el) => setPolicyRef(policy.id, el)}
-                        className={`transition-all duration-300 transform ${getAnimationClasses(policy.id)}`}
+                        className={`scroll-mt-4 transition-all duration-300 transform ${
+                          policy.id === activePolicy
+                            ? getAnimationClasses(policy.id)
+                            : ""
+                        }`}
                       >
-                        {policy.id === activePolicy && (
-                          <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900 border-l-4 border-amber-500 pl-4">
-                              {policy.label}
-                            </h2>
-                            <div className="w-16 h-1 bg-amber-500 mt-2 ml-4"></div>
-                          </div>
-                        )}
-                        <PolicyComponent />
-                        {policy.id !== activePolicy && (
-                          <div className="text-center py-8 opacity-60">
-                            <div className="inline-flex items-center space-x-2 text-gray-500">
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                              <span className="text-sm">Scroll down for more policies</span>
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </div>
-                          </div>
+                        <div className="mb-4">
+                          <h2 className="text-2xl font-bold text-gray-900 border-l-4 border-amber-500 pl-4">
+                            {policy.label}
+                          </h2>
+                          <div className="w-16 h-1 bg-amber-500 mt-2 ml-4"></div>
+                        </div>
+                        <div className="prose max-w-none">
+                          <PolicyComponent />
+                        </div>
+                        {policy.id !== policies[policies.length - 1].id && (
+                          <div className="mt-8 pt-8 border-b border-gray-200"></div>
                         )}
                       </div>
                     );

@@ -105,9 +105,8 @@ function PolicyHeroSection() {
             className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 drop-shadow-2xl"
             style={{ fontFamily: "Inter, sans-serif" }}
           >
-            <span className="text-white">About </span>
             <span className="bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500 bg-clip-text text-transparent">
-              Us
+              Policies
             </span>
           </h1>
         </div>
