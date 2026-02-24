@@ -21,6 +21,7 @@ import Guide from "./Pages/Guide";
 import UmrahPage from "./Components/Guide/UmrahPage";
 import TravelPage from "./Components/Guide/TravelPage";
 import ZiyaratPage from "./Components/Guide/ZiyaratPage";
+import ComingSoon from "./Pages/ComingSoon";
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -57,6 +58,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/policies" element={<Policies />} />
+        <Route path="/coming-soon" element={<ComingSoon />} />
         <Route path="/*" element={<NotFound />} />
       </Routes>
       <Footer />
