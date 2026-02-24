@@ -67,7 +67,7 @@ function LoginForm() {
           <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
             Don’t have an account?{" "}
             <Link
-              to="/registration"
+              to="/register"
               className="text-yellow-600 font-semibold hover:underline"
             >
               Register

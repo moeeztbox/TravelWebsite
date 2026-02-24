@@ -20,14 +20,14 @@ export default function NavbarDemo() {
     { name: "Packages", link: "/packages" },
     { name: "Services", link: "/services" },
     { name: "FAQ", link: "/faq" },
-    { 
-      name: "Guide", 
+    {
+      name: "Guide",
       link: "/guidance",
       subItems: [
         { name: "Umrah", link: "/umrah-guide" },
         { name: "Travel", link: "/travel-guide" },
         { name: "Ziyarat", link: "/ziyarat-guide" },
-      ]
+      ],
     },
     { name: "About", link: "/about-us" },
     { name: "Contact", link: "/contact-us" },
@@ -57,7 +57,7 @@ export default function NavbarDemo() {
 
             <NavbarButton
               variant="primary"
-              to="/registration"
+              to="/register"
               className="px-4 lg:px-6 xl:px-8 py-2 lg:py-2.5 xl:py-3.5 text-sm lg:text-base xl:text-lg"
             >
               Get Started
@@ -79,8 +79,8 @@ export default function NavbarDemo() {
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
           >
-            <NavItems 
-              items={navItems} 
+            <NavItems
+              items={navItems}
               isMobile={true}
               onItemClick={() => setIsMobileMenuOpen(false)}
             />
