@@ -7,21 +7,18 @@ import ContactUs from "./Pages/ContactUs";
 import Packages from "./Pages/Packages";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
-import Copyright from "./Components/Main/CopyRight";
-// import Navbar from "./Components/Main/Navbar";
-// import Navbar from "./Components/Main/Navbar - Copy";
 import Navbar from "./Components/Main/Navbar";
 import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
 import Policies from "./Pages/Policies";
 import Services from "./Pages/Services";
-
 import NotFound from "./Pages/NotFound";
 import Guide from "./Pages/Guide";
 import UmrahPage from "./Components/Guide/UmrahPage";
 import TravelPage from "./Components/Guide/TravelPage";
 import ZiyaratPage from "./Components/Guide/ZiyaratPage";
 import ComingSoon from "./Pages/ComingSoon";
+import Booking from "./Pages/Booking";
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -59,6 +56,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/coming-soon" element={<ComingSoon />} />
+        <Route path="/booking" element={<Booking />} />
         <Route path="/*" element={<NotFound />} />
       </Routes>
       <Footer />

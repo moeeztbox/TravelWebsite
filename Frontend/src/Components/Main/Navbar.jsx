@@ -12,12 +12,13 @@ import {
 } from "../../UI/resizable-navbar";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import LanguageSwitcher from "../Languages/LanguageSwitcher";
+import LanguageSwitcher from "../../Services/Languages/LanguageSwitcher";
 
 export default function NavbarDemo() {
   const navItems = [
     { name: "Home", link: "/" },
     { name: "Packages", link: "/packages" },
+    { name: "Booking", link: "/booking" },
     { name: "Services", link: "/services" },
     { name: "FAQ", link: "/faq" },
     {

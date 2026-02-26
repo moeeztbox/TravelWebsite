@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import StripeWrapper from "../Components/PaymentIntegration/StripeWrapper"; //this is temporary
+import StripeWrapper from "../Services/PaymentIntegration/StripeWrapper"; //this is temporary
 
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
