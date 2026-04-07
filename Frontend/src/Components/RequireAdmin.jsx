@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { getStoredAdminToken } from "../Services/AdminApi/AdminService";
+import { getStoredAdminToken } from "../Services/adminService";
 
 export default function RequireAdmin({ children }) {
   const location = useLocation();

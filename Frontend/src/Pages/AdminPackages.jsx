@@ -14,7 +14,7 @@ import {
   adminCreatePackage,
   adminUpdatePackage,
   adminDeletePackage,
-} from "../Services/AdminApi/AdminService";
+} from "../Services/adminService";
 import { HIGHLIGHT_ICON_MAP } from "../constants/packageHighlightIcons";
 
 const ICON_OPTIONS = Object.keys(HIGHLIGHT_ICON_MAP);
