@@ -19,6 +19,7 @@ import TravelPage from "./Components/Guide/TravelPage";
 import ZiyaratPage from "./Components/Guide/ZiyaratPage";
 import ComingSoon from "./Pages/ComingSoon";
 import Booking from "./Pages/Booking";
+import Chatbot from "./Components/Main/Chatbot";
 
 // ScrollToTop component
 const ScrollToTop = () => {
@@ -59,6 +60,7 @@ function App() {
         <Route path="/booking" element={<Booking />} />
         <Route path="/*" element={<NotFound />} />
       </Routes>
+      <Chatbot />
       <Footer />
       {/* <Copyright /> */}
     </Router>
