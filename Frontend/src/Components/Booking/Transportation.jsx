@@ -20,7 +20,6 @@ function Transportation() {
     flighttrack: false,
   });
 
-  // Validation states
   const [touched, setTouched] = useState({
     serviceType: false,
     vehicleType: false,
@@ -110,7 +109,6 @@ function Transportation() {
     <div>
       <SectionTitle icon="🚌" title="Transportation" />
 
-      {/* Service Type */}
       <div className="mb-5">
         <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
           Service Type <span className="text-amber-500">*</span>
@@ -142,7 +140,6 @@ function Transportation() {
         )}
       </div>
 
-      {/* Vehicle and Trip Type */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
           <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
@@ -221,7 +218,6 @@ function Transportation() {
         </div>
       </div>
 
-      {/* Pickup/Dropoff */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
           <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
@@ -259,7 +255,6 @@ function Transportation() {
         </div>
       </div>
 
-      {/* Date, Time, Passengers */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div>
           <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
@@ -309,7 +304,6 @@ function Transportation() {
 
       <div className="h-px bg-gradient-to-r from-amber-100 via-stone-200 to-transparent my-5" />
 
-      {/* Special Requirements */}
       <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
         Special Requirements
       </label>
@@ -337,7 +331,6 @@ function Transportation() {
         ))}
       </div>
 
-      {/* Validation Summary */}
       {touched.serviceType &&
         touched.vehicleType &&
         touched.tripType &&
@@ -354,7 +347,6 @@ function Transportation() {
           </div>
         )}
 
-      {/* Search Button */}
       <button
         disabled={!isFormValid()}
         className={`w-full mt-6 py-4 text-white font-bold text-sm uppercase tracking-widest rounded-xl shadow-lg transition-all duration-200 ${

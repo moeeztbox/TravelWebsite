@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import AboutHeroImage from "../../Assets/Images/aboutus images/about-hero.jpg";
+import { usePackageBooking } from "../../hooks/usePackageBooking";
 
 function PackagesHeroSection() {
+  const { goToPackagesOrPromptLogin } = usePackageBooking();
   const titleRef = useRef(null);
   const welcomeRef = useRef(null);
   const bookingRef = useRef(null);
@@ -51,10 +53,8 @@ function PackagesHeroSection() {
 
   return (
     <section className="relative h-[80vh] flex flex-col overflow-hidden mb-12">
-      {/* Dark overlay */}
       <div ref={overlayRef} className="absolute inset-0 z-20"></div>
 
-      {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
@@ -66,7 +66,6 @@ function PackagesHeroSection() {
         }}
       ></div>
 
-      {/* Sparkles */}
       <div className="absolute inset-0 opacity-40">
         {[...Array(12)].map((_, i) => (
           <div
@@ -82,7 +81,6 @@ function PackagesHeroSection() {
         ))}
       </div>
 
-      {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col justify-center">
         <div className="text-center mb-8">
           <h1
@@ -113,14 +111,17 @@ function PackagesHeroSection() {
           </h2>
 
           <div ref={buttonRef}>
-            <button className="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-md text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-400/25 active:scale-95">
+            <button
+              type="button"
+              onClick={goToPackagesOrPromptLogin}
+              className="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-md text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-400/25 active:scale-95"
+            >
               Book Now
             </button>
           </div>
         </div>
       </div>
 
-      {/* Bottom Line */}
       <div className="absolute bottom-0 left-0 right-0">
         <div className="h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-transparent opacity-60"></div>
       </div>

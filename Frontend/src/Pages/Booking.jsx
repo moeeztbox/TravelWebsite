@@ -50,7 +50,6 @@ export default function BookingApp() {
           ))}
         </div>
 
-        {/* Active Section Card */}
         <div className="bg-white rounded-2xl shadow-md border border-stone-200 p-6 md:p-8">
           {renderActiveSection()}
         </div>

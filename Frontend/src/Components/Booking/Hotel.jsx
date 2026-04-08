@@ -1,4 +1,3 @@
-// pages/Hotel/Hotel.jsx
 import React, { useState, useEffect } from "react";
 import useHotels from "../../Hooks/useHotel";
 
@@ -22,22 +21,18 @@ const Hotel = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
 
-  // Load countries on mount
   useEffect(() => {
     loadCountries();
-    // Load recent searches from localStorage
     const saved = localStorage.getItem("recentSearches");
     if (saved) {
       setRecentSearches(JSON.parse(saved).slice(0, 5));
     }
   }, []);
 
-  // Country code mapping for popular cities
   const getCountryCode = (city) => {
     const cityLower = city.toLowerCase().trim();
 
     const countryMap = {
-      // Saudi Arabia 🇸🇦
       makkah: "SA",
       mecca: "SA",
       makka: "SA",
@@ -53,43 +48,27 @@ const Hotel = () => {
       taif: "SA",
       tabuk: "SA",
       abha: "SA",
-
-      // UAE 🇦🇪
       dubai: "AE",
       "abu dhabi": "AE",
       sharjah: "AE",
       ajman: "AE",
-
-      // Qatar 🇶🇦
       doha: "QA",
-
-      // Kuwait 🇰🇼
       kuwait: "KW",
       "kuwait city": "KW",
-
-      // Bahrain 🇧🇭
       manama: "BH",
-
-      // Oman 🇴🇲
       muscat: "OM",
       salalah: "OM",
-
-      // Egypt 🇪🇬
       cairo: "EG",
       giza: "EG",
       sharm: "EG",
       "sharm el sheikh": "EG",
       hurghada: "EG",
       luxor: "EG",
-
-      // Turkey 🇹🇷
       istanbul: "TR",
       ankara: "TR",
       antalya: "TR",
       izmir: "TR",
       bodrum: "TR",
-
-      // Europe
       london: "GB",
       paris: "FR",
       rome: "IT",
@@ -109,8 +88,6 @@ const Hotel = () => {
       dublin: "IE",
       lisbon: "PT",
       athens: "GR",
-
-      // USA
       "new york": "US",
       nyc: "US",
       "los angeles": "US",
@@ -123,8 +100,6 @@ const Hotel = () => {
       orlando: "US",
       seattle: "US",
       washington: "US",
-
-      // Asia
       tokyo: "JP",
       osaka: "JP",
       kyoto: "JP",
@@ -147,8 +122,6 @@ const Hotel = () => {
       delhi: "IN",
       bangalore: "IN",
       goa: "IN",
-
-      // Australia
       sydney: "AU",
       melbourne: "AU",
       brisbane: "AU",
@@ -156,7 +129,7 @@ const Hotel = () => {
       "gold coast": "AU",
     };
 
-    return countryMap[cityLower] || null; // Return null if city not found
+    return countryMap[cityLower] || null;
   };
 
   const handleSearch = (e) => {
@@ -175,7 +148,6 @@ const Hotel = () => {
         `🔍 Searching ${searchInput} with country code: ${countryCode}`,
       );
 
-      // Save to recent searches
       const updatedSearches = [
         searchInput,
         ...recentSearches.filter((s) => s !== searchInput),
@@ -183,7 +155,6 @@ const Hotel = () => {
       setRecentSearches(updatedSearches);
       localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
 
-      // Pass both city and country code to hook
       searchHotels(searchInput, countryCode);
     }
   };
@@ -192,10 +163,8 @@ const Hotel = () => {
     const value = e.target.value;
     setSearchInput(value);
 
-    // Clear error when user types
     if (error) setError(null);
 
-    // Search places for autocomplete
     if (value.length >= 2) {
       searchPlaces(value);
     }
@@ -206,7 +175,6 @@ const Hotel = () => {
     setShowDetails(true);
   };
 
-  // Popular cities with flags
   const popularCities = [
     { name: "Makkah", country: "SA", flag: "🇸🇦" },
     { name: "Madinah", country: "SA", flag: "🇸🇦" },
@@ -230,7 +198,6 @@ const Hotel = () => {
         fontFamily: "Arial, sans-serif",
       }}
     >
-      {/* Search Header */}
       <div style={{ textAlign: "center", marginBottom: "3rem" }}>
         <h1
           style={{ fontSize: "2.5rem", color: "#333", marginBottom: "0.5rem" }}
@@ -280,7 +247,6 @@ const Hotel = () => {
             </button>
           </div>
 
-          {/* Autocomplete dropdown */}
           {places.length > 0 && (
             <div
               style={{
@@ -332,7 +298,6 @@ const Hotel = () => {
           )}
         </form>
 
-        {/* Recent Searches */}
         {recentSearches.length > 0 && (
           <div style={{ marginTop: "1rem" }}>
             <span style={{ color: "#666", marginRight: "0.5rem" }}>
@@ -364,7 +329,6 @@ const Hotel = () => {
           </div>
         )}
 
-        {/* Popular Cities with Flags */}
         <div style={{ marginTop: "2rem" }}>
           <p style={{ color: "#666", marginBottom: "0.5rem" }}>
             Popular destinations:
@@ -415,7 +379,6 @@ const Hotel = () => {
         </div>
       </div>
 
-      {/* Error/Warning Message */}
       {error && (
         <div
           style={{
@@ -432,7 +395,6 @@ const Hotel = () => {
         </div>
       )}
 
-      {/* Loading Spinner */}
       {loading && (
         <div style={{ textAlign: "center", padding: "3rem" }}>
           <div
@@ -450,7 +412,6 @@ const Hotel = () => {
         </div>
       )}
 
-      {/* Hotel Results */}
       {!loading && hotels.length > 0 && (
         <div>
           <div
@@ -639,7 +600,6 @@ const Hotel = () => {
         </div>
       )}
 
-      {/* No Results */}
       {!loading && searchInput && hotels.length === 0 && !error && (
         <div style={{ textAlign: "center", padding: "3rem", color: "#666" }}>
           <h3 style={{ color: "#333" }}>No hotels found in {searchInput}</h3>
@@ -651,7 +611,6 @@ const Hotel = () => {
         </div>
       )}
 
-      {/* Hotel Details Modal */}
       {showDetails && selectedHotel && (
         <div
           style={{
@@ -830,7 +789,6 @@ const Hotel = () => {
         </div>
       )}
 
-      {/* Add animation style */}
       <style>{`
                 @keyframes spin {
                     0% { transform: rotate(0deg); }

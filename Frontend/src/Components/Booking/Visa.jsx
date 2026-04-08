@@ -15,7 +15,6 @@ export default function VisaSection() {
   const [massar, setMassar] = useState("");
   const [showResults, setShowResults] = useState(false);
 
-  // Validation states
   const [touched, setTouched] = useState({
     visaType: false,
     nationality: false,
@@ -146,7 +145,6 @@ export default function VisaSection() {
       : visaFees[visaType]?.withoutMassar || 0;
   const totalPrice = feePerPerson * totalPax;
 
-  // Passenger summary for display
   const passengerSummary = () => {
     const parts = [];
     if (adults > 0) parts.push(`${adults} Adult${adults > 1 ? "s" : ""}`);
@@ -162,7 +160,6 @@ export default function VisaSection() {
     <div>
       <SectionTitle icon="📋" title="Visa Application" />
 
-      {/* Visa Type / Nationality / Duration */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
           <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
@@ -247,7 +244,6 @@ export default function VisaSection() {
 
       <div className="h-px bg-gradient-to-r from-amber-100 via-stone-200 to-transparent my-5" />
 
-      {/* Passenger Counters - Now with validation */}
       <div className="mb-2">
         <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
           Passengers <span className="text-amber-500">*</span>
@@ -267,7 +263,6 @@ export default function VisaSection() {
 
       <div className="h-px bg-gradient-to-r from-amber-100 via-stone-200 to-transparent my-5" />
 
-      {/* Massar Selection */}
       <div className="mb-5">
         <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-3">
           Massar Registration <span className="text-amber-500">*</span>
@@ -309,7 +304,6 @@ export default function VisaSection() {
         </div>
       </div>
 
-      {/* Validation Summary */}
       {touched.visaType &&
         touched.nationality &&
         touched.duration &&
@@ -324,7 +318,6 @@ export default function VisaSection() {
           </div>
         )}
 
-      {/* Search Button */}
       <button
         onClick={handleSearch}
         disabled={!isFormValid()}
@@ -337,7 +330,6 @@ export default function VisaSection() {
         🔍 Search Visa Options
       </button>
 
-      {/* Visa Results - Only shown after search when form is valid */}
       {showResults && isFormValid() && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
@@ -349,7 +341,6 @@ export default function VisaSection() {
             </span>
           </div>
 
-          {/* Standard Visa Option */}
           <ResultCard
             title={`${visaNames[visaType]} - Standard`}
             description={`For ${nationality} travelers · ${duration} stay · ${totalPax} passenger${totalPax > 1 ? "s" : ""}`}
@@ -357,7 +348,6 @@ export default function VisaSection() {
             price={`$${visaFees[visaType][massar === "with" ? "withMassar" : "withoutMassar"] * totalPax}`}
           />
 
-          {/* Premium Visa Option */}
           <ResultCard
             title={`${visaNames[visaType]} - Premium`}
             description={`Fast track processing · Priority support · ${duration} stay`}
@@ -369,7 +359,6 @@ export default function VisaSection() {
             price={`$${(visaFees[visaType][massar === "with" ? "withMassar" : "withoutMassar"] + 30) * totalPax}`}
           />
 
-          {/* Summary Note */}
           <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-4">
             <p className="text-sm text-blue-800 flex items-center gap-2">
               <span>ℹ️</span>

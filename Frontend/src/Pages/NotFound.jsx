@@ -1,13 +1,9 @@
 import React from "react";
-import { useState } from "react";
-import StripeWrapper from "../Services/PaymentIntegration/StripeWrapper"; //this is temporary
-
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home } from "lucide-react";
 
 function NotFoundPage() {
-  const [showPayment, setShowPayment] = useState(false); //stripe this is temporary
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200 p-6">
       <div className="text-center max-w-4xl mx-auto relative">
@@ -78,23 +74,6 @@ function NotFoundPage() {
         >
           ●
         </motion.div>
-        {/* payment stripe temporary for now  */}
-
-        <div>
-          {/* Existing content */}
-          <button
-            onClick={() => setShowPayment(true)}
-            className="px-6 py-2 bg-yellow-500 text-black font-bold rounded mt-4"
-          >
-            Pay Online
-          </button>
-
-          {showPayment && (
-            <div className="mt-6 p-6 border rounded shadow">
-              <StripeWrapper />
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

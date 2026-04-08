@@ -7,6 +7,19 @@ export default defineConfig({
   plugins: [tailwindcss(), react()],
   server: {
     host: "0.0.0.0",
+    // Used when VITE_API_URL=/api — forwards browser /api/* to Express on :5000
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/uploads": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   define: {
     // Provide a global process.env object for libraries like Amadeus that expect it

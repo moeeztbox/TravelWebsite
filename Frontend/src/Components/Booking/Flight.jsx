@@ -19,7 +19,6 @@ export default function FlightsSection() {
   const [cabinClass, setCabinClass] = useState("");
   const [airline, setAirline] = useState("");
 
-  // Use the custom hook for API integration
   const {
     flights,
     loading,
@@ -30,7 +29,6 @@ export default function FlightsSection() {
     clearResults,
   } = useFlightSearch();
 
-  // Validation states
   const [touched, setTouched] = useState({
     from: false,
     to: false,
@@ -41,11 +39,9 @@ export default function FlightsSection() {
     passengers: false,
   });
 
-  // Passenger dropdown state
   const [passengerOpen, setPassengerOpen] = useState(false);
   const passengerRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (passengerRef.current && !passengerRef.current.contains(e.target)) {
@@ -59,7 +55,7 @@ export default function FlightsSection() {
   const swapCities = () => {
     setFrom(to);
     setTo(from);
-    clearResults(); // Clear results when cities change
+    clearResults();
   };
 
   const handleBlur = (field) => {
@@ -80,10 +76,9 @@ export default function FlightsSection() {
   const handleSearch = async () => {
     if (!isFormValid()) return;
 
-    // Extract IATA codes from the formatted strings
     const extractCode = (locationString) => {
       const match = locationString.match(/\(([^)]+)\)/);
-      return match ? match[1] : locationString; // Return code if found, otherwise the string
+      return match ? match[1] : locationString;
     };
 
     await searchFlights({
@@ -110,7 +105,6 @@ export default function FlightsSection() {
     </div>
   );
 
-  // Passenger summary text
   const passengerSummary = () => {
     const parts = [];
     if (adults > 0) parts.push(`${adults} Adult${adults > 1 ? "s" : ""}`);
@@ -122,7 +116,6 @@ export default function FlightsSection() {
     return parts.join(", ");
   };
 
-  // Flight Result Card Component
   const ResultCard = ({ flight, selected, onSelect }) => (
     <div
       onClick={() => onSelect(flight)}
@@ -134,7 +127,6 @@ export default function FlightsSection() {
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex-1">
-          {/* Airline Info */}
           <div className="flex items-center gap-3 mb-3">
             <img
               src={flight.airline.logo}
@@ -153,7 +145,6 @@ export default function FlightsSection() {
             </div>
           </div>
 
-          {/* Flight Route */}
           <div className="flex items-center gap-4 mb-3">
             <div className="text-center">
               <p className="text-lg font-bold text-stone-700">
@@ -197,7 +188,6 @@ export default function FlightsSection() {
             </div>
           </div>
 
-          {/* Flight Details */}
           <div className="flex flex-wrap gap-3 mt-2">
             <span className="text-xs bg-stone-100 px-2 py-1 rounded-full">
               {flight.cabinClass}
@@ -208,7 +198,6 @@ export default function FlightsSection() {
           </div>
         </div>
 
-        {/* Price */}
         <div className="text-right min-w-[120px]">
           <p className="text-xs text-stone-400">Starting from</p>
           <p className="text-2xl font-bold text-amber-600">
@@ -217,7 +206,6 @@ export default function FlightsSection() {
           <p className="text-xs text-stone-400">per person</p>
         </div>
 
-        {/* Select Button */}
         <button
           className={`px-5 py-2 rounded-lg text-sm font-semibold border transition ${
             selected
@@ -235,7 +223,6 @@ export default function FlightsSection() {
     <div>
       <SectionTitle icon="✈️" title="Flight Search" />
 
-      {/* Trip Type */}
       <div className="flex gap-6 mb-5">
         {[
           { val: "round", label: "Round Trip" },
@@ -267,9 +254,7 @@ export default function FlightsSection() {
         ))}
       </div>
 
-      {/* Form Fields */}
       <div className="space-y-4">
-        {/* From/To Row */}
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <LocationInput
@@ -322,7 +307,6 @@ export default function FlightsSection() {
           </div>
         </div>
 
-        {/* Dates Row */}
         <div className="flex flex-wrap gap-3">
           <div className="flex-1 min-w-[180px]">
             <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
@@ -369,9 +353,7 @@ export default function FlightsSection() {
           )}
         </div>
 
-        {/* Passengers Dropdown, Cabin, Airline */}
         <div className="flex flex-wrap gap-3">
-          {/* Passengers Dropdown */}
           <div className="flex-1 min-w-[200px] relative" ref={passengerRef}>
             <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
               Passengers <span className="text-amber-500">*</span>
@@ -403,10 +385,8 @@ export default function FlightsSection() {
               </p>
             )}
 
-            {/* Passenger Dropdown Panel */}
             {passengerOpen && (
               <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-stone-200 rounded-2xl shadow-2xl z-50 p-4">
-                {/* Adults */}
                 <div className="flex items-center justify-between py-3 border-b border-stone-100">
                   <div>
                     <p className="text-sm font-semibold text-stone-700">
@@ -433,7 +413,6 @@ export default function FlightsSection() {
                   </div>
                 </div>
 
-                {/* Children */}
                 <div className="flex items-center justify-between py-3 border-b border-stone-100">
                   <div>
                     <p className="text-sm font-semibold text-stone-700">
@@ -460,7 +439,6 @@ export default function FlightsSection() {
                   </div>
                 </div>
 
-                {/* Infants */}
                 <div className="flex items-center justify-between py-3">
                   <div>
                     <p className="text-sm font-semibold text-stone-700">
@@ -487,7 +465,6 @@ export default function FlightsSection() {
                   </div>
                 </div>
 
-                {/* Done Button */}
                 <button
                   onClick={() => setPassengerOpen(false)}
                   className="w-full mt-3 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition"
@@ -499,7 +476,6 @@ export default function FlightsSection() {
             )}
           </div>
 
-          {/* Cabin Class */}
           <div className="flex-1 min-w-[150px]">
             <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
               Cabin Class <span className="text-amber-500">*</span>
@@ -529,7 +505,6 @@ export default function FlightsSection() {
             )}
           </div>
 
-          {/* Airline */}
           <div className="flex-1 min-w-[150px]">
             <label className="block text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
               Airline <span className="text-amber-500">*</span>
@@ -566,7 +541,6 @@ export default function FlightsSection() {
         </div>
       </div>
 
-      {/* Validation Summary */}
       {touched.from &&
         touched.to &&
         touched.depDate &&
@@ -582,7 +556,6 @@ export default function FlightsSection() {
           </div>
         )}
 
-      {/* Search Button with Loading State */}
       <button
         onClick={handleSearch}
         disabled={!isFormValid() || loading}
@@ -602,7 +575,6 @@ export default function FlightsSection() {
         )}
       </button>
 
-      {/* Error Message */}
       {error && (
         <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
           <p className="text-sm text-red-600 flex items-center gap-2">
@@ -612,7 +584,6 @@ export default function FlightsSection() {
         </div>
       )}
 
-      {/* Results */}
       {flights.length > 0 && !loading && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
@@ -635,7 +606,6 @@ export default function FlightsSection() {
         </div>
       )}
 
-      {/* No Results Message */}
       {flights.length === 0 &&
         !loading &&
         !error &&

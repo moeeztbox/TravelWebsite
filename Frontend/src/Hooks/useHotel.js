@@ -1,4 +1,3 @@
-// hooks/useHotels.js
 import { useState, useCallback } from "react";
 import hotelService from "../Services/HotelApi/HotelService";
 
@@ -11,7 +10,6 @@ const useHotels = () => {
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
 
-  // Search hotels by city
   const searchHotels = useCallback(async (city, countryCode) => {
     if (!city) return;
 
@@ -39,7 +37,6 @@ const useHotels = () => {
     }
   }, []);
 
-  // Get hotel details by ID
   const getHotelDetails = useCallback(async (hotelId) => {
     if (!hotelId) return;
 
@@ -65,7 +62,6 @@ const useHotels = () => {
     }
   }, []);
 
-  // Search places for autocomplete
   const searchPlaces = useCallback(async (query) => {
     if (!query || query.length < 2) {
       setPlaces([]);
@@ -82,7 +78,6 @@ const useHotels = () => {
     }
   }, []);
 
-  // Load countries
   const loadCountries = useCallback(async () => {
     try {
       const response = await hotelService.getCountries();
@@ -94,7 +89,6 @@ const useHotels = () => {
     }
   }, []);
 
-  // Load cities by country
   const loadCitiesByCountry = useCallback(async (countryCode) => {
     try {
       const response = await hotelService.getCitiesByCountry(countryCode);
@@ -106,7 +100,6 @@ const useHotels = () => {
     }
   }, []);
 
-  // Clear search
   const clearSearch = useCallback(() => {
     setHotels([]);
     setSelectedHotel(null);
@@ -115,7 +108,6 @@ const useHotels = () => {
   }, []);
 
   return {
-    // State
     hotels,
     loading,
     error,
@@ -124,10 +116,8 @@ const useHotels = () => {
     countries,
     cities,
 
-    // Setters
     setSelectedHotel,
 
-    // Actions
     searchHotels,
     getHotelDetails,
     searchPlaces,
