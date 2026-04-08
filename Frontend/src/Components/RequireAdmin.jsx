@@ -1,12 +1,21 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { getStoredAdminToken } from "../Services/adminService";
+import { useAuth } from "../context/AuthContext";
 
 export default function RequireAdmin({ children }) {
   const location = useLocation();
-  if (!getStoredAdminToken()) {
+  const { ready, isAuthenticated, user } = useAuth();
+
+  if (!ready) return null;
+
+  if (!isAuthenticated) {
     return (
-      <Navigate to="/admin/login" replace state={{ from: location.pathname }} />
+      <Navigate to="/login" replace state={{ from: location.pathname }} />
     );
   }
+
+  if (user?.role !== "isAdmin") {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 }

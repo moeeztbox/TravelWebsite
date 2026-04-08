@@ -28,7 +28,6 @@ import ZiyaratPage from "./Components/Guide/ZiyaratPage";
 import ComingSoon from "./Pages/ComingSoon";
 import Booking from "./Pages/Booking";
 import UserDashboard from "./Pages/UserDashboard";
-import AdminLogin from "./Pages/AdminLogin";
 import AdminPackages from "./Pages/AdminPackages";
 import AdminBookings from "./Pages/AdminBookings";
 import AdminUserStatuses from "./Pages/AdminUserStatuses";
@@ -99,7 +98,6 @@ function AppRoutes() {
               </RequireAuth>
             }
           />
-          <Route path="/admin/login" element={<AdminLogin />} />
           <Route
             path="/admin/packages"
             element={

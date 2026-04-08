@@ -101,7 +101,7 @@ export function formatAxiosError(error) {
   }
   const status = error.response.status;
   if (status === 404) {
-    return "Login API not found (404). Check VITE_API_URL ends with /api and the backend exposes POST /api/admin/login.";
+    return "Login API not found (404). Check VITE_API_URL ends with /api and the backend exposes POST /api/auth/login.";
   }
   if (status === 401) {
     return "Invalid email or password.";

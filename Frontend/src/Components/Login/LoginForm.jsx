@@ -17,7 +17,7 @@ function getErrorMessage(error) {
 function LoginForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isAuthenticated, ready } = useAuth();
+  const { signIn, isAuthenticated, ready, user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [focused, setFocused] = useState({});
   const [email, setEmail] = useState(() => location.state?.email ?? "");
@@ -31,13 +31,17 @@ function LoginForm() {
 
   useEffect(() => {
     if (!ready || !isAuthenticated) return;
+    if (user?.role === "isAdmin") {
+      navigate("/admin/packages", { replace: true });
+      return;
+    }
     const from = location.state?.from;
     const target =
       from && typeof from === "object" && from.pathname
         ? from.pathname
         : "/";
     navigate(target, { replace: true });
-  }, [ready, isAuthenticated, navigate, location.state?.from]);
+  }, [ready, isAuthenticated, user?.role, navigate, location.state?.from]);
 
   const handleFocus = (field) => setFocused({ ...focused, [field]: true });
   const handleBlur = (field) => setFocused({ ...focused, [field]: false });

@@ -8,7 +8,7 @@ export const protectAdmin = (req, res, next) => {
   const token = auth.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (decoded.role !== "admin") {
+    if (decoded.role !== "isAdmin") {
       return res.status(403).json({ message: "Admin access only" });
     }
     req.admin = {

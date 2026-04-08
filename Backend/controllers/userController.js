@@ -2,8 +2,15 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import User from "../models/user.js";
 
-const signToken = (userId) =>
-  jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const signToken = (userDoc) => {
+  const role = userDoc?.role || "user";
+  const email = userDoc?.email;
+  return jwt.sign(
+    { userId: userDoc._id, role, email },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
 
 const toUserPayload = (userDoc) => {
   const u = userDoc.toSafeObject ? userDoc.toSafeObject() : userDoc.toObject();
@@ -40,7 +47,7 @@ export const registerUser = async (req, res) => {
       city,
     });
 
-    const token = signToken(user._id);
+    const token = signToken(user);
 
     res.status(201).json({
       message: "User registered successfully",
@@ -66,7 +73,7 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = signToken(user._id);
+    const token = signToken(user);
 
     res.json({
       message: "Login successful",

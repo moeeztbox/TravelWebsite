@@ -11,10 +11,11 @@ import {
   Menu,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { clearAdminSession } from "../../Services/adminService";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminLayout({ title, subtitle, children, headerRight }) {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const menuRef = useRef(null);
@@ -30,8 +31,8 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
   }, []);
 
   const handleLogout = () => {
-    clearAdminSession();
-    navigate("/admin/login", { replace: true });
+    signOut();
+    navigate("/login", { replace: true });
   };
 
   const closeSidebar = () => setSidebarOpen(false);

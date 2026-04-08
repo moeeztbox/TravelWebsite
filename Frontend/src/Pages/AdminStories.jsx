@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Filter, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import AdminLayout from "../Components/Admin/AdminLayout";
-import { adminApi } from "../Services/adminService";
+import { api } from "../Services/authService";
 import { getApiOrigin } from "../utils/apiOrigin";
 
 export default function AdminStories() {
@@ -15,7 +15,7 @@ export default function AdminStories() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await adminApi.get("/admin/stories", {
+      const { data } = await api.get("/admin/stories", {
         params: { status: statusFilter },
       });
       setStories(data.stories ?? []);
@@ -33,7 +33,7 @@ export default function AdminStories() {
   const setStatus = async (id, status) => {
     setBusyId(id);
     try {
-      await adminApi.patch(`/admin/stories/${id}`, { status });
+      await api.patch(`/admin/stories/${id}`, { status });
       toast.success(`Story ${status}`);
       await load();
     } catch (e) {

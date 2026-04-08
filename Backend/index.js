@@ -19,6 +19,7 @@ import {
   setJourneyStage,
 } from "./controllers/adminBookingController.js";
 import { seedPackagesIfEnabled } from "./seed/packagesSeed.js";
+import { seedAdminUserOnStart } from "./seed/adminSeed.js";
 import { protect } from "./middleware/authMiddleware.js";
 import { uploadStoryVideo } from "./middleware/uploadStoryVideo.js";
 import {
@@ -112,6 +113,9 @@ connectDB()
   .then(() => {
     seedPackagesIfEnabled().catch((e) =>
       console.error("Package seeding failed:", e)
+    );
+    seedAdminUserOnStart().catch((e) =>
+      console.error("Admin seeding failed:", e)
     );
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

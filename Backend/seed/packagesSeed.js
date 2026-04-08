@@ -112,10 +112,6 @@ const SEED_PACKAGES = [
 ];
 
 export async function seedPackagesIfEnabled() {
-  const enabled =
-    (process.env.SEED_PACKAGES_ON_START || "").toLowerCase() === "true";
-  if (!enabled) return;
-
   // Insert only missing packageIds (idempotent).
   const existing = await Package.find(
     { packageId: { $in: SEED_PACKAGES.map((p) => p.packageId) } },
@@ -124,7 +120,10 @@ export async function seedPackagesIfEnabled() {
 
   const existingIds = new Set(existing.map((e) => e.packageId));
   const missing = SEED_PACKAGES.filter((p) => !existingIds.has(p.packageId));
-  if (missing.length === 0) return;
+  if (missing.length === 0) {
+    console.log("Packages seed: already exists (no missing packages).");
+    return;
+  }
 
   await Package.insertMany(missing, { ordered: false });
   console.log(`Seeded ${missing.length} package(s).`);
