@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Home } from "lucide-react";
+import StripeWrapper from "../Services/PaymentIntegration/StripeWrapper";
 
 function NotFoundPage() {
   return (
@@ -58,7 +59,7 @@ function NotFoundPage() {
             Back to Home
           </Link>
         </motion.div>
-
+        <StripeWrapper />
         {/* Simple decorative elements - matching theme colors */}
         <motion.div
           className="absolute -top-10 -left-10 text-4xl text-yellow-400/20"
