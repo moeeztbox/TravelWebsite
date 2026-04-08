@@ -158,22 +158,41 @@ export const setJourneyStage = async (req, res) => {
       return res.status(400).json({ message: "Invalid stage" });
     }
 
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: {
-          "journey.stage": stage,
-          "journey.updatedAt": new Date(),
-        },
-      },
-      { new: true, runValidators: true }
-    ).populate("user", "firstName lastName email");
-
-    if (!booking) {
+    const bookingDoc = await Booking.findById(req.params.id).populate(
+      "user",
+      "firstName lastName email"
+    );
+    if (!bookingDoc) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    res.json({ booking });
+    const startAt = bookingDoc.journey?.startAt
+      ? new Date(bookingDoc.journey.startAt)
+      : null;
+    if (!startAt || Number.isNaN(startAt.getTime())) {
+      return res.status(400).json({
+        message: "Cannot update stage: booking has no scheduled start time.",
+      });
+    }
+
+    const now = Date.now();
+    if (now < startAt.getTime()) {
+      return res.status(400).json({
+        message:
+          "Cannot update stage before the scheduled start time is reached.",
+      });
+    }
+
+    bookingDoc.journey = {
+      ...(bookingDoc.journey?.toObject
+        ? bookingDoc.journey.toObject()
+        : bookingDoc.journey),
+      stage,
+      updatedAt: new Date(),
+    };
+    await bookingDoc.save();
+
+    res.json({ booking: bookingDoc });
   } catch (error) {
     console.error("setJourneyStage:", error);
     res.status(500).json({ message: error.message || "Server error" });

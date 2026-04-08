@@ -26,6 +26,12 @@ export default function AdminUserStatuses() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [busyId, setBusyId] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(t);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -101,6 +107,14 @@ export default function AdminUserStatuses() {
                 </tr>
               ) : (
                 scheduled.map((b) => (
+                  (() => {
+                    const startMs = b.journey?.startAt
+                      ? new Date(b.journey.startAt).getTime()
+                      : NaN;
+                    const startReached = Number.isFinite(startMs) && now >= startMs;
+                    const disabled = busyId === b._id || !startReached;
+
+                    return (
                   <tr
                     key={b._id}
                     className="border-b border-zinc-50 hover:bg-zinc-50/50"
@@ -124,7 +138,7 @@ export default function AdminUserStatuses() {
                     </td>
                     <td className="px-4 py-3">
                       <select
-                        disabled={busyId === b._id}
+                        disabled={disabled}
                         value={b.journey?.stage || "not_started"}
                         onChange={(e) => updateStage(b._id, e.target.value)}
                         className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:opacity-60"
@@ -136,8 +150,15 @@ export default function AdminUserStatuses() {
                         <option value="return_flight">Return flight</option>
                         <option value="completed">Completed</option>
                       </select>
+                      {!startReached ? (
+                        <p className="mt-1 text-[11px] text-zinc-400">
+                          Available after start time.
+                        </p>
+                      ) : null}
                     </td>
                   </tr>
+                    );
+                  })()
                 ))
               )}
             </tbody>
