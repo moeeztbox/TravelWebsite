@@ -83,7 +83,8 @@ export function usePackageBooking() {
   }, [isAuthenticated, navigate, promptLoginForBooking]);
 
   const bookPackage = useCallback(
-    async (pkg) => {
+    async (pkg, opts = {}) => {
+      const { redirectToDashboard = true } = opts || {};
       if (!isAuthenticated) {
         promptLoginForBooking();
         return;
@@ -100,7 +101,9 @@ export function usePackageBooking() {
             description: "Pending admin approval. View it on your dashboard.",
           });
         }
-        navigate("/dashboard");
+        if (redirectToDashboard) {
+          navigate("/dashboard");
+        }
       } catch (err) {
         toast.error(bookingErrorMessage(err));
       }

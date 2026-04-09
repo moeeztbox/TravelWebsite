@@ -102,3 +102,41 @@ export const deleteMyBooking = async (req, res) => {
     res.status(500).json({ message: error.message || "Server error" });
   }
 };
+
+export const setMyPaymentMethod = async (req, res) => {
+  try {
+    const userId = req.user._id ?? req.user.id;
+    const { method } = req.body || {};
+    const allowed = ["", "jazzcash", "easypaisa", "card", "bank_transfer"];
+    const next = String(method || "").trim();
+    if (!allowed.includes(next)) {
+      return res.status(400).json({ message: "Invalid payment method" });
+    }
+
+    const booking = await Booking.findOne({ _id: req.params.id, user: userId });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    if (booking.status !== "approved") {
+      return res.status(400).json({
+        message: "Payment method can be set after admin approval.",
+      });
+    }
+    if (booking.payment?.status === "verified") {
+      return res.status(400).json({
+        message: "Payment method cannot be changed after verification.",
+      });
+    }
+
+    booking.payment = {
+      ...(booking.payment?.toObject ? booking.payment.toObject() : booking.payment),
+      method: next,
+    };
+    await booking.save();
+
+    res.json({ booking });
+  } catch (error) {
+    console.error("setMyPaymentMethod:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};

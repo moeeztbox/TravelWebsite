@@ -46,7 +46,7 @@ export const sendContactEmail = async (req, res, next) => {
     await transporter.sendMail({
       from: userEmail,
       sender: MAIL_USER,
-      to: "namrahakram102@gmail.com",
+      to: "moeezjamil868@gmail.com",
       replyTo: userEmail,
       subject: `${subjectPrefix} From ${safeName}`,
       text: `From: ${userEmail}\nName: ${safeName}\nType: ${normalizedType}\n\nMessage:\n${String(

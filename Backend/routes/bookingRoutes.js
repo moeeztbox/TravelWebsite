@@ -5,6 +5,7 @@ import {
   listMyBookings,
   getBookingById,
   deleteMyBooking,
+  setMyPaymentMethod,
 } from "../controllers/bookingController.js";
 import { attachDocuments } from "../controllers/bookingDocumentsController.js";
 import {
@@ -21,6 +22,7 @@ router.post("/", createDraftBooking);
 router.get("/", listMyBookings);
 router.get("/:id", getBookingById);
 router.delete("/:id", deleteMyBooking);
+router.patch("/:id/payment-method", setMyPaymentMethod);
 router.post(
   "/:id/documents",
   bookingUploadFields(),

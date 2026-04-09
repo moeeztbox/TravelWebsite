@@ -21,6 +21,7 @@ import {
   uploadBookingDocuments,
   uploadPaymentReceipt,
   deleteMyBooking,
+  setMyPaymentMethod,
 } from "../Services/bookingService";
 import {
   acceptCustomPackageRequest,
@@ -285,6 +286,38 @@ export default function UserDashboard() {
     } finally {
       setOverlay({ open: false, message: "" });
     }
+  };
+
+  const PAYMENT_METHODS = [
+    { id: "", label: "Select payment method…" },
+    { id: "jazzcash", label: "JazzCash" },
+    { id: "easypaisa", label: "Easypaisa" },
+    { id: "card", label: "Card" },
+    { id: "bank_transfer", label: "Bank transfer" },
+  ];
+
+  const PAYMENT_DETAILS = {
+    jazzcash: {
+      title: "JazzCash",
+      lines: ["Account number: 03258816338", "Account title: Ali Ahmad"],
+    },
+    easypaisa: {
+      title: "Easypaisa",
+      lines: ["Account number: 03144313206", "Account title: Ali Ahmad"],
+    },
+    card: {
+      title: "Card",
+      lines: ["Card number: 11310112434110", "Card title/name: Ali Ahmad"],
+    },
+    bank_transfer: {
+      title: "Bank transfer",
+      lines: [
+        "Bank: Askari Bank",
+        "Account title: Ali Ahmad",
+        "Account number: 11310112434110",
+        "IBAN: —",
+      ],
+    },
   };
 
   const handleDeleteRejected = async (id) => {
@@ -751,6 +784,10 @@ export default function UserDashboard() {
                     !journeyLocked &&
                     b.payment?.status !== "verified" &&
                     !b.payment?.receiptPdf;
+                  const canSetMethod =
+                    !journeyLocked && b.payment?.status !== "verified";
+                  const method = b.payment?.method || "";
+                  const details = method ? PAYMENT_DETAILS[method] : null;
                   return (
                     <li
                       id={`booking-${b._id}`}
@@ -871,6 +908,60 @@ export default function UserDashboard() {
                         </button>
                       </form>
                     ) : null}
+
+                    {/* Payment method */}
+                    <div className="mt-3">
+                      {canSetMethod ? (
+                        <div className="space-y-3 border-t border-emerald-100 pt-3">
+                          <p className="text-xs font-medium text-stone-700">
+                            Payment method
+                          </p>
+                          <select
+                            value={method}
+                            onChange={async (e) => {
+                              const next = e.target.value;
+                              setOverlay({
+                                open: true,
+                                message: "Saving payment method…",
+                              });
+                              try {
+                                await setMyPaymentMethod(b._id, next);
+                                toast.success("Payment method saved");
+                                await loadBookings();
+                              } catch (err) {
+                                toast.error(
+                                  err.response?.data?.message || "Save failed"
+                                );
+                              } finally {
+                                setOverlay({ open: false, message: "" });
+                              }
+                            }}
+                            className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          >
+                            {PAYMENT_METHODS.map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.label}
+                              </option>
+                            ))}
+                          </select>
+                          {details ? (
+                            <div className="rounded-xl border border-stone-200 bg-white/70 px-4 py-3 text-sm text-stone-700">
+                              <p className="font-semibold text-stone-900">
+                                {details.title}
+                              </p>
+                              <ul className="mt-2 space-y-1 text-sm text-stone-700">
+                                {details.lines.map((line) => (
+                                  <li key={line}>{line}</li>
+                                ))}
+                              </ul>
+                              <p className="text-[11px] text-stone-500 mt-2">
+                                After payment, upload the receipt PDF below.
+                              </p>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
 
                     {/* Payment receipt */}
                     <div className="mt-3">

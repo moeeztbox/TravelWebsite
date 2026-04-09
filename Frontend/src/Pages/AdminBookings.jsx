@@ -151,6 +151,19 @@ export default function AdminBookings() {
             <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${payColors[b.payment?.status] || "bg-zinc-100 text-zinc-600 border-zinc-200"}`}>
               {b.payment?.status || "no payment"}
             </span>
+            {b.payment?.method ? (
+              <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold border bg-white text-zinc-600 border-zinc-200">
+                {b.payment.method === "jazzcash"
+                  ? "JazzCash"
+                  : b.payment.method === "easypaisa"
+                    ? "Easypaisa"
+                    : b.payment.method === "card"
+                      ? "Card"
+                      : b.payment.method === "bank_transfer"
+                        ? "Bank"
+                        : b.payment.method}
+              </span>
+            ) : null}
           </div>
         </div>
 

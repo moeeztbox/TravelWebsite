@@ -37,6 +37,7 @@ function serviceBadges(services) {
 function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
   const dialogRef = useRef(null);
   const contentRef = useRef(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const highlights = getHighlights(pkg);
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);
   const pageScrollYRef = useRef(0);
@@ -66,17 +67,20 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
 
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") {
+        if (confirmOpen) setConfirmOpen(false);
+        else onClose();
+      }
     };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleEscape);
+      window.addEventListener("keydown", handleEscape);
     }
     
     return () => {
-      window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener("keydown", handleEscape);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, confirmOpen]);
 
   if (!isOpen) return null;
 
@@ -217,13 +221,56 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
           <button
             type="button"
             disabled={booking}
-            onClick={() => onBookPackage?.()}
+            onClick={() => setConfirmOpen(true)}
             className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#C9A227] to-[#DAB83D] hover:opacity-95 disabled:opacity-60"
           >
             {booking ? "Adding…" : "Book now"}
           </button>
         </div>
         </div>
+
+      {confirmOpen ? (
+        <div
+          className="fixed inset-0 z-[100001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => (booking ? null : setConfirmOpen(false))}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white border border-gray-200 shadow-[0_18px_60px_rgba(0,0,0,0.22)] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h4 className="text-base font-semibold text-gray-900">
+                Confirm booking
+              </h4>
+              <p className="text-sm text-gray-600 mt-1">
+                Are you sure you want to book{" "}
+                <span className="font-semibold text-gray-900">{pkg.title}</span>?
+              </p>
+            </div>
+            <div className="px-5 py-4 flex items-center justify-end gap-2 bg-white">
+              <button
+                type="button"
+                disabled={booking}
+                onClick={() => setConfirmOpen(false)}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:bg-black/5 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={booking}
+                onClick={async () => {
+                  setConfirmOpen(false);
+                  await onBookPackage?.();
+                }}
+                className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#C9A227] to-[#DAB83D] hover:opacity-95 disabled:opacity-60"
+              >
+                {booking ? "Adding…" : "Yes, book it"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <style jsx global>{`
         @keyframes overlay-in {
@@ -264,7 +311,7 @@ function PackageCard({ pkg }) {
     if (booking) return;
     setBooking(true);
     try {
-      await bookPackage(pkg);
+      await bookPackage(pkg, { redirectToDashboard: false });
       setIsDialogOpen(false);
     } finally {
       // keep overlay slightly longer to avoid flicker on fast navigation

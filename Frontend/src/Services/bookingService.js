@@ -23,6 +23,13 @@ export async function uploadPaymentReceipt(bookingId, formData) {
   return data;
 }
 
+export async function setMyPaymentMethod(bookingId, method) {
+  const { data } = await api.patch(`/bookings/${bookingId}/payment-method`, {
+    method,
+  });
+  return data;
+}
+
 export async function deleteMyBooking(bookingId) {
   const { data } = await api.delete(`/bookings/${bookingId}`);
   return data;
