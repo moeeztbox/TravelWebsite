@@ -35,6 +35,12 @@ export const setBookingStatus = async (req, res) => {
       });
     }
 
+    if (existing.status === "approved" && status === "rejected") {
+      return res.status(400).json({
+        message: "Approved bookings cannot be rejected.",
+      });
+    }
+
     // Safety: once payment is verified (or journey scheduled), do not allow rejecting/rolling back.
     const paymentVerified = existing.payment?.status === "verified";
     const journeyScheduled = Boolean(existing.journey?.startAt);
@@ -153,6 +159,31 @@ export const scheduleJourney = async (req, res) => {
       return res.status(400).json({
         message: "Payment must be verified before scheduling the journey",
       });
+    }
+
+    const prevJourney = booking.journey?.toObject
+      ? booking.journey.toObject()
+      : booking.journey;
+    const prevStart = prevJourney?.startAt
+      ? new Date(prevJourney.startAt)
+      : null;
+    const journeyInProgressStages = new Set([
+      "flight_takeoff",
+      "in_makkah",
+      "in_madinah",
+      "return_flight",
+      "completed",
+    ]);
+    if (prevStart && !Number.isNaN(prevStart.getTime())) {
+      const scheduledTimeReached = Date.now() >= prevStart.getTime();
+      const stagePastScheduled = journeyInProgressStages.has(
+        prevJourney?.stage || ""
+      );
+      if (scheduledTimeReached || stagePastScheduled) {
+        return res.status(400).json({
+          message: "Cannot reschedule after the journey has started.",
+        });
+      }
     }
 
     booking.journey = {

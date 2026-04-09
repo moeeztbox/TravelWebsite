@@ -11,6 +11,22 @@ import {
 } from "../Services/adminService";
 import { getApiOrigin } from "../utils/apiOrigin";
 
+/** True once the scheduled start time has passed or the journey has moved past "scheduled". */
+function journeyHasStarted(journey) {
+  if (!journey) return false;
+  const inProgress = new Set([
+    "flight_takeoff",
+    "in_makkah",
+    "in_madinah",
+    "return_flight",
+    "completed",
+  ]);
+  if (inProgress.has(journey.stage || "")) return true;
+  const t = journey.startAt ? new Date(journey.startAt).getTime() : NaN;
+  if (Number.isNaN(t)) return false;
+  return Date.now() >= t;
+}
+
 function userLabel(user) {
   if (!user) return "Unknown user";
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
@@ -125,6 +141,7 @@ export default function AdminBookings() {
     const canVerify      = b.status === "approved" && b.payment?.status === "verifying" && docsSubmitted;
     const lockStatus     = b.payment?.status === "verified" || Boolean(b.journey?.startAt);
     const fullyScheduled = b.status === "approved" && b.payment?.status === "verified" && b.journey?.startAt;
+    const rescheduleLocked = journeyHasStarted(b.journey);
 
     const statusColors = {
       approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -211,7 +228,7 @@ export default function AdminBookings() {
           <div className="flex flex-wrap items-center gap-2 pt-1">
           
             <button type="button"
-              disabled={busyId === b._id || b.status === "rejected" || fullyScheduled}
+              disabled={busyId === b._id || b.status !== "pending" || fullyScheduled}
               onClick={() => setStatus(b._id, "approved")}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {busyId === b._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
@@ -220,7 +237,7 @@ export default function AdminBookings() {
 
            
             <button type="button"
-              disabled={busyId === b._id || lockStatus || b.status === "rejected"}
+              disabled={busyId === b._id || lockStatus || b.status !== "pending"}
               onClick={() => setStatus(b._id, "rejected")}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {busyId === b._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
@@ -252,12 +269,13 @@ export default function AdminBookings() {
            
             {b.status === "approved" && b.payment?.status === "verified" && (
               <button type="button"
-                disabled={busyId === b._id}
+                disabled={busyId === b._id || rescheduleLocked}
+                title={rescheduleLocked ? "Cannot reschedule after the journey has started." : undefined}
                 onClick={() => {
                   setScheduleFor(b._id);
                   setStartAt(b.journey?.startAt ? new Date(b.journey.startAt).toISOString().slice(0, 16) : "");
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 disabled:opacity-50 transition-colors">
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <CalendarClock className="h-3.5 w-3.5" />
                 {b.journey?.startAt ? "Reschedule" : "Set start date"}
               </button>
@@ -274,6 +292,12 @@ export default function AdminBookings() {
               </button>
             )}
           </div>
+
+          {b.status === "approved" && b.payment?.status === "verified" && rescheduleLocked ? (
+            <p className="text-xs text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2">
+              Journey has started — rescheduling is disabled.
+            </p>
+          ) : null}
         </div>
       </div>
     );

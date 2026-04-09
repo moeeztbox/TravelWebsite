@@ -21,7 +21,6 @@ import {
   uploadBookingDocuments,
   uploadPaymentReceipt,
   deleteMyBooking,
-  setMyPaymentMethod,
 } from "../Services/bookingService";
 import {
   acceptCustomPackageRequest,
@@ -157,6 +156,8 @@ export default function UserDashboard() {
   const [loadingCustom, setLoadingCustom] = useState(true);
   const [uploadForId, setUploadForId] = useState(null);
   const [receiptForId, setReceiptForId] = useState(null);
+  /** Local payment method choice per booking — saved when receipt is submitted */
+  const [paymentMethodDraft, setPaymentMethodDraft] = useState({});
   const [trackFor, setTrackFor] = useState(null);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [avatarDraft, setAvatarDraft] = useState(user?.bitmojiIndex ?? 0);
@@ -170,15 +171,16 @@ export default function UserDashboard() {
     setAvatarDraft(user?.bitmojiIndex ?? 0);
   }, [user]);
 
-  const loadBookings = async () => {
-    setLoadingList(true);
+  const loadBookings = async (opts = {}) => {
+    const silent = Boolean(opts.silent);
+    if (!silent) setLoadingList(true);
     try {
       const { bookings: list } = await listMyBookings();
       setBookings(list || []);
     } catch {
       toast.error("Could not load bookings");
     } finally {
-      setLoadingList(false);
+      if (!silent) setLoadingList(false);
     }
   };
 
@@ -264,7 +266,7 @@ export default function UserDashboard() {
       await uploadBookingDocuments(bookingId, fd);
       toast.success("Documents uploaded");
       setUploadForId(null);
-      await loadBookings();
+      await loadBookings({ silent: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Upload failed");
     } finally {
@@ -274,13 +276,22 @@ export default function UserDashboard() {
 
   const handleReceiptUpload = async (bookingId, e) => {
     e.preventDefault();
+    const fromDraft = paymentMethodDraft[bookingId];
+    const fromServer = bookings.find((x) => x._id === bookingId)?.payment
+      ?.method;
+    const method = (fromDraft ?? fromServer ?? "").trim();
+    if (!method) {
+      toast.error("Select a payment method before uploading the receipt.");
+      return;
+    }
     const fd = new FormData(e.target);
+    fd.set("method", method);
     setOverlay({ open: true, message: "Submitting receipt…" });
     try {
       await uploadPaymentReceipt(bookingId, fd);
       toast.success("Receipt submitted. Payment is verifying.");
       setReceiptForId(null);
-      await loadBookings();
+      await loadBookings({ silent: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Upload failed");
     } finally {
@@ -786,7 +797,9 @@ export default function UserDashboard() {
                     !b.payment?.receiptPdf;
                   const canSetMethod =
                     !journeyLocked && b.payment?.status !== "verified";
-                  const method = b.payment?.method || "";
+                  const receiptSubmitted = Boolean(b.payment?.receiptPdf);
+                  const method =
+                    paymentMethodDraft[b._id] ?? b.payment?.method ?? "";
                   const details = method ? PAYMENT_DETAILS[method] : null;
                   return (
                     <li
@@ -916,27 +929,21 @@ export default function UserDashboard() {
                           <p className="text-xs font-medium text-stone-700">
                             Payment method
                           </p>
+                          <p className="text-[11px] text-stone-500 -mt-1 mb-1">
+                            {receiptSubmitted
+                              ? "Payment method is locked after your receipt is submitted."
+                              : "Your choice is stored when you upload the receipt below—no need to save separately."}
+                          </p>
                           <select
                             value={method}
-                            onChange={async (e) => {
-                              const next = e.target.value;
-                              setOverlay({
-                                open: true,
-                                message: "Saving payment method…",
-                              });
-                              try {
-                                await setMyPaymentMethod(b._id, next);
-                                toast.success("Payment method saved");
-                                await loadBookings();
-                              } catch (err) {
-                                toast.error(
-                                  err.response?.data?.message || "Save failed"
-                                );
-                              } finally {
-                                setOverlay({ open: false, message: "" });
-                              }
+                            disabled={receiptSubmitted}
+                            onChange={(e) => {
+                              setPaymentMethodDraft((prev) => ({
+                                ...prev,
+                                [b._id]: e.target.value,
+                              }));
                             }}
-                            className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                            className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-60 disabled:cursor-not-allowed"
                           >
                             {PAYMENT_METHODS.map((m) => (
                               <option key={m.id} value={m.id}>

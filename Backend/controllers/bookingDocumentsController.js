@@ -47,6 +47,8 @@ export const attachDocuments = async (req, res) => {
   }
 };
 
+const PAYMENT_METHODS = ["jazzcash", "easypaisa", "card", "bank_transfer"];
+
 export const attachPaymentReceipt = async (req, res) => {
   try {
     const userId = req.user._id ?? req.user.id;
@@ -65,6 +67,19 @@ export const attachPaymentReceipt = async (req, res) => {
       });
     }
 
+    if (booking.payment?.status === "verified") {
+      return res.status(400).json({
+        message: "Payment already verified.",
+      });
+    }
+
+    const method = String(req.body?.method || "").trim();
+    if (!method || !PAYMENT_METHODS.includes(method)) {
+      return res.status(400).json({
+        message: "Select a payment method before uploading the receipt.",
+      });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: "No PDF files received" });
     }
@@ -76,6 +91,7 @@ export const attachPaymentReceipt = async (req, res) => {
         $set: {
           "payment.receiptPdf": `${base}/${req.file.filename}`,
           "payment.status": "verifying",
+          "payment.method": method,
         },
       },
       { new: true }
