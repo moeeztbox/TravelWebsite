@@ -10,10 +10,23 @@ export async function listMyStories() {
   return data.stories ?? [];
 }
 
-export async function submitStory({ title, type, text, videoFile }) {
+export async function submitStory({
+  title,
+  type,
+  displayName,
+  username,
+  location,
+  rating,
+  text,
+  videoFile,
+}) {
   const fd = new FormData();
   fd.append("title", title);
   fd.append("type", type);
+  if (displayName) fd.append("displayName", displayName);
+  if (username) fd.append("username", username);
+  if (location) fd.append("location", location);
+  if (rating != null) fd.append("rating", String(rating));
   if (text) fd.append("text", text);
   if (videoFile) fd.append("video", videoFile);
   const { data } = await api.post("/stories", fd);

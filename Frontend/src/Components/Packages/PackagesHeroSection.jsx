@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import AboutHeroImage from "../../Assets/Images/aboutus images/about-hero.jpg";
-import { usePackageBooking } from "../../hooks/usePackageBooking";
+import { usePackageBooking } from "../../Hooks/usePackageBooking";
 
 function PackagesHeroSection() {
   const { goToPackagesOrPromptLogin } = usePackageBooking();

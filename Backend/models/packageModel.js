@@ -25,6 +25,13 @@ const packageSchema = new mongoose.Schema(
     badge: { type: String, default: "" },
     image: { type: String, default: "" },
     highlights: [highlightSchema],
+    services: {
+      ziyarat: { type: Boolean, default: false },
+      transport: { type: Boolean, default: false },
+      visa: { type: Boolean, default: false },
+      ticket: { type: Boolean, default: false },
+      hotel: { type: Boolean, default: false },
+    },
     active: { type: Boolean, default: true },
   },
   { timestamps: true, collection: "packages" }

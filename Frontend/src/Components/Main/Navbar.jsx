@@ -14,7 +14,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { UserCircle } from "lucide-react";
 import LanguageSwitcher from "../../Services/Languages/LanguageSwitcher";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../Context/AuthContext";
 
 export default function NavbarDemo() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function NavbarDemo() {
   const navItems = [
     { name: "Home", link: "/" },
     { name: "Packages", link: "/packages" },
-    { name: "Booking", link: "/booking" },
+    ...(isAuthenticated ? [{ name: "Booking", link: "/booking" }] : []),
     { name: "Services", link: "/services" },
     { name: "FAQ", link: "/faq" },
     { name: "Stories", link: "/stories" },

@@ -8,7 +8,19 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import packageRoutes from "./routes/packageRoutes.js";
+import complainRoutes from "./routes/complainRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
+import customPackageRoutes from "./routes/customPackageRoutes.js";
+import adminCustomPackageRoutes from "./routes/adminCustomPackageRoutes.js";
 import { listPackages } from "./controllers/packageController.js";
+import { adminListAllPackages } from "./controllers/packageController.js";
+import { sendComplainEmail } from "./controllers/complainController.js";
+import { sendContactEmail } from "./controllers/contactController.js";
+import {
+  createCustomPackageRequest,
+  listMyCustomPackageRequests,
+  acceptApprovedCustomPackage,
+} from "./controllers/customPackageController.js";
 import { adminLogin } from "./controllers/adminController.js";
 import { protectAdmin } from "./middleware/adminMiddleware.js";
 import {
@@ -17,6 +29,7 @@ import {
   setPaymentStatus,
   scheduleJourney,
   setJourneyStage,
+  adminDeleteBooking,
 } from "./controllers/adminBookingController.js";
 import { seedPackagesIfEnabled } from "./seed/packagesSeed.js";
 import { seedAdminUserOnStart } from "./seed/adminSeed.js";
@@ -31,6 +44,10 @@ import {
   adminListStories,
   adminSetStoryStatus,
 } from "./controllers/adminStoryController.js";
+import {
+  adminListCustomPackageRequests,
+  adminUpdateCustomPackageRequest,
+} from "./controllers/adminCustomPackageController.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Always load Backend/.env even if you run `node Backend/index.js` from the repo root
@@ -72,13 +89,40 @@ app.post("/api/admin/login", adminLogin);
 // Admin bookings management
 app.get("/api/admin/bookings", protectAdmin, listAllBookings);
 app.patch("/api/admin/bookings/:id", protectAdmin, setBookingStatus);
+app.delete("/api/admin/bookings/:id", protectAdmin, adminDeleteBooking);
 app.patch("/api/admin/bookings/:id/payment", protectAdmin, setPaymentStatus);
 app.patch("/api/admin/bookings/:id/journey", protectAdmin, scheduleJourney);
 app.patch("/api/admin/bookings/:id/journey-stage", protectAdmin, setJourneyStage);
+// Admin custom packages
+app.get(
+  "/api/admin/custom-packages",
+  protectAdmin,
+  adminListCustomPackageRequests
+);
+app.patch(
+  "/api/admin/custom-packages/:id",
+  protectAdmin,
+  adminUpdateCustomPackageRequest
+);
+app.use("/api/admin/custom-packages", adminCustomPackageRoutes);
 // Must be registered before the mounted router: Express 5 often does not match router.get("/") for GET /api/packages → 404 without this line.
 app.get("/api/packages", listPackages);
+// Admin package listing (includes inactive)
+app.get("/api/admin/packages", protectAdmin, adminListAllPackages);
 app.use("/api/packages", packageRoutes);
 app.use("/api/bookings", bookingRoutes);
+// Custom package requests (user)
+app.post("/api/custom-packages", protect, createCustomPackageRequest);
+app.get("/api/custom-packages/me", protect, listMyCustomPackageRequests);
+app.post("/api/custom-packages/:id/accept", protect, acceptApprovedCustomPackage);
+app.use("/api/custom-packages", customPackageRoutes);
+// Express 5: mounted Router can fail to match POST / → 404; register explicitly.
+app.post("/api/complain", sendComplainEmail);
+app.use("/api/complain", complainRoutes);
+
+// Contact (complaint + inquiry) - shared nodemailer logic
+app.post("/api/contact", sendContactEmail);
+app.use("/api/contact", contactRoutes);
 
 // Stories (public + user)
 app.get("/api/stories", listApprovedStories);

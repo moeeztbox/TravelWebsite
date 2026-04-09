@@ -13,7 +13,7 @@ import {
   Clock,
   Trash2,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../Context/AuthContext";
 import { Link } from "react-router-dom";
 import { updateProfile } from "../Services/authService";
 import {
@@ -22,6 +22,10 @@ import {
   uploadPaymentReceipt,
   deleteMyBooking,
 } from "../Services/bookingService";
+import {
+  acceptCustomPackageRequest,
+  listMyCustomPackageRequests,
+} from "../Services/customPackageService";
 import { getBitmojiAvatarUrl, BITMOJI_COUNT } from "../constants/bitmoji";
 import { getApiOrigin } from "../utils/apiOrigin";
 
@@ -107,11 +111,11 @@ function JourneyStepper({ stage }) {
                     done
                       ? "bg-emerald-600 border-emerald-600 text-white"
                       : active
-                        ? "bg-white border-emerald-600 text-emerald-700"
+                        ? "bg-emerald-600 border-emerald-600 text-white"
                         : "bg-white border-stone-300 text-stone-400"
                   }`}
                 >
-                  {done ? <Check className="w-4 h-4" /> : i + 1}
+                  {done || active ? <Check className="w-4 h-4" /> : i + 1}
                 </div>
                 {i !== steps.length - 1 ? (
                   <div
@@ -140,10 +144,16 @@ function JourneyStepper({ stage }) {
 export default function UserDashboard() {
   const { user, updateUser } = useAuth();
   const [phone, setPhone] = useState(user?.phone || "");
+  const [address, setAddress] = useState(user?.address || "");
+  const [country, setCountry] = useState(user?.country || "");
+  const [city, setCity] = useState(user?.city || "");
   const [bitmojiIndex, setBitmojiIndex] = useState(user?.bitmojiIndex ?? 0);
   const [saving, setSaving] = useState(false);
+  const [overlay, setOverlay] = useState({ open: false, message: "" });
   const [bookings, setBookings] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
+  const [customRequests, setCustomRequests] = useState([]);
+  const [loadingCustom, setLoadingCustom] = useState(true);
   const [uploadForId, setUploadForId] = useState(null);
   const [receiptForId, setReceiptForId] = useState(null);
   const [trackFor, setTrackFor] = useState(null);
@@ -152,6 +162,9 @@ export default function UserDashboard() {
 
   useEffect(() => {
     setPhone(user?.phone || "");
+    setAddress(user?.address || "");
+    setCountry(user?.country || "");
+    setCity(user?.city || "");
     setBitmojiIndex(user?.bitmojiIndex ?? 0);
     setAvatarDraft(user?.bitmojiIndex ?? 0);
   }, [user]);
@@ -172,17 +185,41 @@ export default function UserDashboard() {
     loadBookings();
   }, []);
 
+  const loadCustom = async () => {
+    setLoadingCustom(true);
+    try {
+      const rows = await listMyCustomPackageRequests();
+      setCustomRequests(rows || []);
+    } catch {
+      // keep quiet; dashboard should still work without this section
+    } finally {
+      setLoadingCustom(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCustom();
+  }, []);
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setOverlay({ open: true, message: "Saving…" });
     try {
-      const { user: u } = await updateProfile({ phone, bitmojiIndex });
+      const { user: u } = await updateProfile({
+        phone,
+        address,
+        country,
+        city,
+        bitmojiIndex,
+      });
       updateUser(u);
       toast.success("Profile updated");
     } catch (err) {
       toast.error(err.response?.data?.message || "Update failed");
     } finally {
       setSaving(false);
+      setOverlay({ open: false, message: "" });
     }
   };
 
@@ -190,40 +227,76 @@ export default function UserDashboard() {
   const approvedBookings = bookings.filter((b) => b.status === "approved");
   const rejectedBookings = bookings.filter((b) => b.status === "rejected");
   const origin = getApiOrigin();
+  const pendingCustom = customRequests.filter((r) => r.status === "pending");
+  const approvedCustom = customRequests.filter((r) => r.status === "approved");
+  const rejectedCustom = customRequests.filter((r) => r.status === "rejected");
+  // Once an approved custom request becomes a real booking (bookingId exists),
+  // we treat it as "moved to bookings" and stop showing it in this section.
+  const approvedCustomVisible = approvedCustom.filter((r) => !r.bookingId);
+  const visibleCustomCount =
+    pendingCustom.length + approvedCustomVisible.length + rejectedCustom.length;
+
+  const formatPkr = (n) => `PKR ${(Number(n) || 0).toLocaleString()}`;
+  const [acceptingCustomId, setAcceptingCustomId] = useState(null);
+
+  const acceptOffer = async (reqId) => {
+    setAcceptingCustomId(reqId);
+    setOverlay({ open: true, message: "Accepting offer…" });
+    try {
+      await acceptCustomPackageRequest(reqId);
+      toast.success("Offer accepted. You can upload documents now.");
+      await loadCustom();
+      await loadBookings();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not accept offer");
+    } finally {
+      setAcceptingCustomId(null);
+      setOverlay({ open: false, message: "" });
+    }
+  };
 
   const handleUpload = async (bookingId, e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
+    setOverlay({ open: true, message: "Uploading documents…" });
     try {
       await uploadBookingDocuments(bookingId, fd);
       toast.success("Documents uploaded");
       setUploadForId(null);
-      loadBookings();
+      await loadBookings();
     } catch (err) {
       toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
     }
   };
 
   const handleReceiptUpload = async (bookingId, e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
+    setOverlay({ open: true, message: "Submitting receipt…" });
     try {
       await uploadPaymentReceipt(bookingId, fd);
       toast.success("Receipt submitted. Payment is verifying.");
       setReceiptForId(null);
-      loadBookings();
+      await loadBookings();
     } catch (err) {
       toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
     }
   };
 
   const handleDeleteRejected = async (id) => {
+    setOverlay({ open: true, message: "Removing…" });
     try {
       await deleteMyBooking(id);
       toast.success("Removed");
-      loadBookings();
+      await loadBookings();
     } catch (err) {
       toast.error(err.response?.data?.message || "Remove failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
     }
   };
 
@@ -240,6 +313,18 @@ export default function UserDashboard() {
 
   return (
     <div className="min-h-screen bg-stone-100 pt-28 pb-16 px-4">
+      {overlay.open ? (
+        <div className="fixed inset-0 z-[200] bg-black/35 backdrop-blur-md flex items-center justify-center">
+          <div className="bg-white/80 backdrop-blur-md border border-white/40 rounded-2xl px-6 py-5 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full border-4 border-amber-400/30 border-t-amber-500 animate-spin" />
+              <div className="text-sm font-semibold text-stone-800">
+                {overlay.message || "Loading…"}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
@@ -309,6 +394,45 @@ export default function UserDashboard() {
                   placeholder="+92 300 1234567"
                 />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-stone-700 mb-1">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900 focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                    placeholder="Street / area"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900 focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                    placeholder="Country"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900 focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+                    placeholder="City"
+                  />
+                </div>
+              </div>
               <button
                 type="submit"
                 disabled={saving}
@@ -320,111 +444,316 @@ export default function UserDashboard() {
             </form>
           </section>
 
-          <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-bold text-stone-900 mb-2">
-              Draft bookings
-            </h2>
-            <p className="text-sm text-stone-500 mb-6">
-              Waiting for admin approval. You’ll be able to upload visa and documents
-              after approval.
-            </p>
-            {loadingList ? (
-              <p className="text-stone-500 text-sm">Loading…</p>
-            ) : draftBookings.length === 0 ? (
-              <p className="text-stone-500 text-sm">No draft bookings yet.</p>
-            ) : (
-              <ul className="space-y-3">
-                {draftBookings.map((b) => (
-                  <li
-                    key={b._id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-100 bg-stone-50/80 px-4 py-3"
-                  >
-                    <div>
-                      <p className="font-semibold text-stone-900">
-                        {b.packageTitle}
-                      </p>
-                      <p className="text-xs text-stone-500">
-                        {b.packagePrice} · {b.packageDuration}
-                      </p>
-                    </div>
-                    <StatusBadge status={b.status} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-bold text-stone-900 mb-2">
-              Rejected bookings
-            </h2>
-            <p className="text-sm text-stone-500 mb-6">
-              Remove a rejected booking and try again.
-            </p>
-            {loadingList ? (
-              <p className="text-stone-500 text-sm">Loading…</p>
-            ) : rejectedBookings.length === 0 ? (
-              <p className="text-stone-500 text-sm">No rejected bookings.</p>
-            ) : (
-              <ul className="space-y-3">
-                {rejectedBookings.map((b) => (
-                  <li
-                    key={b._id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-100 bg-red-50/40 px-4 py-3"
-                  >
-                    <div>
-                      <p className="font-semibold text-stone-900">
-                        {b.packageTitle}
-                      </p>
-                      <p className="text-xs text-stone-600">
-                        {b.packagePrice} · {b.packageDuration}
-                      </p>
-                      {b.statusReason ? (
-                        <p className="text-xs text-red-700 mt-1">
-                          {b.statusReason === "payment_failed"
-                            ? "Rejected: payment verification failed"
-                            : "Rejected by admin"}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={b.status} />
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteRejected(b._id)}
-                        className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-red-200 text-red-700 hover:bg-red-50"
-                        aria-label="Remove rejected booking"
-                        title="Remove"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
-            <h2 className="text-xl font-bold text-stone-900 mb-2">
-              Approved bookings
-            </h2>
-            <p className="text-sm text-stone-500 mb-6">
-              After admin approval, upload your visa PDF, another document PDF, and payment receipt.
-            </p>
-            {loadingList ? (
-              <p className="text-stone-500 text-sm">Loading…</p>
-            ) : approvedBookings.length === 0 ? (
-              <p className="text-stone-500 text-sm">
-                No approved bookings yet. An administrator will update the status
-                after review.
+          {loadingList || draftBookings.length > 0 ? (
+            <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
+              <h2 className="text-xl font-bold text-stone-900 mb-2">
+                Draft bookings
+              </h2>
+              <p className="text-sm text-stone-500 mb-6">
+                Waiting for admin approval. You’ll be able to upload visa and
+                documents after approval.
               </p>
-            ) : (
-              <ul className="space-y-4">
-                {approvedBookings.map((b) => {
+              {loadingList ? (
+                <p className="text-stone-500 text-sm">Loading…</p>
+              ) : (
+                <ul className="space-y-3">
+                  {draftBookings.map((b) => (
+                    <li
+                      key={b._id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-100 bg-stone-50/80 px-4 py-3"
+                    >
+                      <div>
+                        <p className="font-semibold text-stone-900">
+                          {b.packageTitle}
+                        </p>
+                        <p className="text-xs text-stone-500">
+                          {b.packagePrice} · {b.packageDuration}
+                        </p>
+                      </div>
+                      <StatusBadge status={b.status} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+
+          {loadingCustom || visibleCustomCount > 0 ? (
+            <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
+              <h2 className="text-xl font-bold text-stone-900 mb-2">
+                Your custom package
+              </h2>
+              <p className="text-sm text-stone-500 mb-6">
+                Requests you submitted from the Customize Package form. Admin will
+                approve/reject and may set a final amount.
+              </p>
+
+              {loadingCustom ? (
+                <p className="text-stone-500 text-sm">Loading…</p>
+              ) : (
+                <div className="space-y-6">
+                  {pendingCustom.length ? (
+                  <div>
+                    <h3 className="text-sm font-semibold text-stone-800 mb-2">
+                      Pending
+                    </h3>
+                    <ul className="space-y-3">
+                      {pendingCustom.map((r) => (
+                        <li
+                          key={r._id}
+                          className="rounded-xl border border-stone-100 bg-stone-50/80 px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+                        >
+                          <div>
+                            <p className="font-semibold text-stone-900">
+                              {r.hotelCategory}★ · {r.passengers} pax
+                            </p>
+                            <p className="text-xs text-stone-500 mt-0.5">
+                              {r.startDate
+                                ? new Date(r.startDate).toLocaleDateString()
+                                : "—"}
+                              {r.estimate?.total
+                                ? ` · Estimate ${formatPkr(r.estimate.total)}`
+                                : ""}
+                            </p>
+                          </div>
+                          <StatusBadge status="pending" />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                  {approvedCustomVisible.length ? (
+                  <div>
+                    <h3 className="text-sm font-semibold text-stone-800 mb-2">
+                      Approved
+                    </h3>
+                    <ul className="space-y-3">
+                      {approvedCustomVisible.map((r) => {
+                        const linkedBooking = r.bookingId
+                          ? bookings.find((b) => b._id === r.bookingId)
+                          : null;
+                        return (
+                        <li
+                          key={r._id}
+                          className="rounded-xl border border-emerald-100 bg-emerald-50/40 px-4 py-3"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-stone-900">
+                                {r.hotelCategory}★ · {r.passengers} pax
+                              </p>
+                              <p className="text-xs text-stone-600 mt-0.5">
+                                {r.startDate
+                                  ? new Date(r.startDate).toLocaleDateString()
+                                  : "—"}
+                              </p>
+                              {r.adminTotal?.amount ? (
+                                <p className="text-sm font-semibold text-emerald-900 mt-2">
+                                  Final amount: {formatPkr(r.adminTotal.amount)}
+                                  {r.adminExtra?.amount ? (
+                                    <span className="text-xs text-stone-600 font-medium">
+                                      {" "}
+                                      (Extra {formatPkr(r.adminExtra.amount)})
+                                    </span>
+                                  ) : null}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-stone-600 mt-2">
+                                  Admin approved. Final amount will be updated soon.
+                                </p>
+                              )}
+                              {r.adminNote ? (
+                                <p className="text-xs text-stone-600 mt-2 whitespace-pre-wrap">
+                                  {r.adminNote}
+                                </p>
+                              ) : null}
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <StatusBadge status="approved" />
+                              {r.bookingId ? (
+                                linkedBooking ? (
+                                  <div className="flex flex-col items-end gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setUploadForId(linkedBooking._id);
+                                        document
+                                          .getElementById(
+                                            `booking-${linkedBooking._id}`
+                                          )
+                                          ?.scrollIntoView({
+                                            behavior: "smooth",
+                                            block: "center",
+                                          });
+                                      }}
+                                      className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-amber-600 px-4 py-2 rounded-xl hover:bg-amber-700"
+                                    >
+                                      Upload documents
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setReceiptForId(linkedBooking._id);
+                                        document
+                                          .getElementById(
+                                            `booking-${linkedBooking._id}`
+                                          )
+                                          ?.scrollIntoView({
+                                            behavior: "smooth",
+                                            block: "center",
+                                          });
+                                      }}
+                                      className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-emerald-700 px-4 py-2 rounded-xl hover:bg-emerald-800"
+                                    >
+                                      Submit receipt
+                                    </button>
+                                    <span className="text-[11px] text-stone-500">
+                                      Added to bookings
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-[11px] text-stone-500">
+                                    Added to bookings
+                                  </span>
+                                )
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={
+                                    acceptingCustomId === r._id ||
+                                    !r.adminTotal?.amount
+                                  }
+                                  onClick={() => acceptOffer(r._id)}
+                                  className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-emerald-700 px-4 py-2 rounded-xl hover:bg-emerald-800 disabled:opacity-60"
+                                >
+                                  {acceptingCustomId === r._id
+                                    ? "Accepting…"
+                                    : "Accept offer"}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      );
+                      })}
+                    </ul>
+                  </div>
+                ) : null}
+
+                {rejectedCustom.length ? (
+                  <div>
+                    <h3 className="text-sm font-semibold text-stone-800 mb-2">
+                      Rejected
+                    </h3>
+                    <ul className="space-y-3">
+                      {rejectedCustom.map((r) => (
+                        <li
+                          key={r._id}
+                          className="rounded-xl border border-red-100 bg-red-50/40 px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+                        >
+                          <div>
+                            <p className="font-semibold text-stone-900">
+                              {r.hotelCategory}★ · {r.passengers} pax
+                            </p>
+                            <p className="text-xs text-stone-600 mt-0.5">
+                              {r.startDate
+                                ? new Date(r.startDate).toLocaleDateString()
+                                : "—"}
+                            </p>
+                            {r.adminNote ? (
+                              <p className="text-xs text-red-700 mt-2 whitespace-pre-wrap">
+                                {r.adminNote}
+                              </p>
+                            ) : null}
+                          </div>
+                          <StatusBadge status="rejected" />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                </div>
+              )}
+            </section>
+          ) : null}
+
+          {loadingList || rejectedBookings.length > 0 ? (
+            <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
+              <h2 className="text-xl font-bold text-stone-900 mb-2">
+                Rejected bookings
+              </h2>
+              <p className="text-sm text-stone-500 mb-6">
+                Remove a rejected booking and try again.
+              </p>
+              {loadingList ? (
+                <p className="text-stone-500 text-sm">Loading…</p>
+              ) : (
+                <ul className="space-y-3">
+                  {rejectedBookings.map((b) => (
+                    <li
+                      key={b._id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-100 bg-red-50/40 px-4 py-3"
+                    >
+                      <div>
+                        <p className="font-semibold text-stone-900">
+                          {b.packageTitle}
+                        </p>
+                        <p className="text-xs text-stone-600">
+                          {b.packagePrice} · {b.packageDuration}
+                        </p>
+                        {b.statusReason ? (
+                          <p className="text-xs text-red-700 mt-1">
+                            {b.statusReason === "payment_failed"
+                              ? "Rejected: payment verification failed"
+                              : "Rejected by admin"}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={b.status} />
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteRejected(b._id)}
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-red-200 text-red-700 hover:bg-red-50"
+                          aria-label="Remove rejected booking"
+                          title="Remove"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+
+          {loadingList || approvedBookings.length > 0 ? (
+            <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
+              <h2 className="text-xl font-bold text-stone-900 mb-2">
+                Approved bookings
+              </h2>
+              <p className="text-sm text-stone-500 mb-6">
+                After admin approval, upload your visa PDF, another document PDF,
+                and payment receipt.
+              </p>
+              {loadingList ? (
+                <p className="text-stone-500 text-sm">Loading…</p>
+              ) : (
+                <ul className="space-y-4">
+                  {approvedBookings.map((b) => {
                   const journeyLocked = Boolean(b.journey?.startAt);
+                  const showDocsForm =
+                    !journeyLocked &&
+                    (!b.documents?.visaPdf || !b.documents?.otherPdf);
+                  const showReceiptForm =
+                    !journeyLocked &&
+                    b.payment?.status !== "verified" &&
+                    !b.payment?.receiptPdf;
                   return (
                     <li
+                      id={`booking-${b._id}`}
                       key={b._id}
                       className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4"
                     >
@@ -497,69 +826,55 @@ export default function UserDashboard() {
                         ) : null}
                       </div>
                     ) : null}
-                    {!journeyLocked ? (
-                      uploadForId === b._id ? (
+                    {showDocsForm ? (
                       <form
                         onSubmit={(e) => handleUpload(b._id, e)}
                         className="space-y-3 border-t border-emerald-100 pt-3 mt-2"
                       >
                         <p className="text-xs font-medium text-stone-700">
-                          PDF only, max 8 MB each
+                          Upload required documents (PDF)
                         </p>
-                        <div>
-                          <label className="block text-xs text-stone-600 mb-1">
-                            Visa (PDF)
-                          </label>
-                          <input
-                            name="visaPdf"
-                            type="file"
-                            accept="application/pdf"
-                            className="text-sm w-full"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-stone-600 mb-1">
-                            Other document (PDF)
-                          </label>
-                          <input
-                            name="otherPdf"
-                            type="file"
-                            accept="application/pdf"
-                            className="text-sm w-full"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="submit"
-                            className="inline-flex items-center gap-2 bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg"
-                          >
-                            <Upload className="w-4 h-4" />
-                            Upload
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setUploadForId(null)}
-                            className="text-sm text-stone-600 px-2"
-                          >
-                            Cancel
-                          </button>
-                        </div>
+                        {!b.documents?.visaPdf ? (
+                          <div>
+                            <label className="block text-xs text-stone-600 mb-1">
+                              Visa (PDF)
+                            </label>
+                            <input
+                              name="visaPdf"
+                              type="file"
+                              accept="application/pdf"
+                              className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
+                              required
+                            />
+                          </div>
+                        ) : null}
+                        {!b.documents?.otherPdf ? (
+                          <div>
+                            <label className="block text-xs text-stone-600 mb-1">
+                              Other document (PDF)
+                            </label>
+                            <input
+                              name="otherPdf"
+                              type="file"
+                              accept="application/pdf"
+                              className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
+                              required
+                            />
+                          </div>
+                        ) : null}
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-2 bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg"
+                        >
+                          <Upload className="w-4 h-4" />
+                          Upload documents
+                        </button>
                       </form>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setUploadForId(b._id)}
-                        className="inline-flex items-center gap-2 text-sm font-medium text-amber-800 bg-white border border-amber-200 px-4 py-2 rounded-lg hover:bg-amber-50"
-                      >
-                        <Upload className="w-4 h-4" />
-                        Upload documents (PDF)
-                      </button>
-                    )
                     ) : null}
 
                     {/* Payment receipt */}
                     <div className="mt-3">
-                      {journeyLocked || b.payment?.status === "verified" ? null : receiptForId === b._id ? (
+                      {showReceiptForm ? (
                         <form
                           onSubmit={(e) => handleReceiptUpload(b._id, e)}
                           className="space-y-3 border-t border-emerald-100 pt-3"
@@ -571,43 +886,26 @@ export default function UserDashboard() {
                             name="receiptPdf"
                             type="file"
                             accept="application/pdf"
-                            className="text-sm w-full"
+                            className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
                             required
                           />
-                          <div className="flex gap-2">
-                            <button
-                              type="submit"
-                              className="inline-flex items-center gap-2 bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
-                            >
-                              <Upload className="w-4 h-4" />
-                              Submit receipt
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setReceiptForId(null)}
-                              className="text-sm text-stone-600 px-2"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                          <button
+                            type="submit"
+                            className="inline-flex items-center gap-2 bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+                          >
+                            <Upload className="w-4 h-4" />
+                            Submit receipt
+                          </button>
                         </form>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setReceiptForId(b._id)}
-                          className="inline-flex items-center gap-2 text-sm font-medium text-emerald-900 bg-white border border-emerald-200 px-4 py-2 rounded-lg hover:bg-emerald-50"
-                        >
-                          <Upload className="w-4 h-4" />
-                          Submit payment receipt
-                        </button>
-                      )}
+                      ) : null}
                     </div>
                     </li>
                   );
-                })}
-              </ul>
-            )}
-          </section>
+                  })}
+                </ul>
+              )}
+            </section>
+          ) : null}
         </div>
 
         <aside className="space-y-6">

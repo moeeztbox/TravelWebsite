@@ -1,4 +1,4 @@
-import { api } from "./authService";
+import { api } from "../Services/authService";
 
 export async function adminCreatePackage(payload) {
   const { data } = await api.post("/packages", payload);
@@ -17,6 +17,11 @@ export async function adminDeletePackage(packageId) {
   await api.delete(`/packages/${encodeURIComponent(packageId)}`);
 }
 
+export async function adminListPackages() {
+  const { data } = await api.get("/admin/packages");
+  return data.packages ?? [];
+}
+
 export async function adminListBookings(status = "pending") {
   const { data } = await api.get("/admin/bookings", {
     params: { status },
@@ -27,6 +32,11 @@ export async function adminListBookings(status = "pending") {
 export async function adminSetBookingStatus(id, status) {
   const { data } = await api.patch(`/admin/bookings/${id}`, { status });
   return data.booking;
+}
+
+export async function adminDeleteBooking(id) {
+  const { data } = await api.delete(`/admin/bookings/${id}`);
+  return data;
 }
 
 export async function adminSetPaymentStatus(id, status) {

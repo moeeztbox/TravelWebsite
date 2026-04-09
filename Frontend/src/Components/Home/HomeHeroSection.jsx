@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { usePackageBooking } from "../../hooks/usePackageBooking";
+import { usePackageBooking } from "../../Hooks/usePackageBooking";
 
 const HomeHeroSection = () => {
   const { goToPackagesOrPromptLogin } = usePackageBooking();

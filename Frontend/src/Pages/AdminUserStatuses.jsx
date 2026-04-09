@@ -60,6 +60,15 @@ export default function AdminUserStatuses() {
     [rows]
   );
 
+  const cardRows = useMemo(() => {
+    return scheduled.map((b) => {
+      const startMs = b.journey?.startAt ? new Date(b.journey.startAt).getTime() : NaN;
+      const startReached = Number.isFinite(startMs) && now >= startMs;
+      const disabled = busyId === b._id || !startReached;
+      return { b, startReached, disabled };
+    });
+  }, [scheduled, now, busyId]);
+
   const updateStage = async (id, stage) => {
     setBusyId(id);
     try {
@@ -78,16 +87,96 @@ export default function AdminUserStatuses() {
       title="User Statuses"
       subtitle="Users appear here after payment is verified and a start date is scheduled."
     >
-      <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm overflow-hidden">
+      {/* Mobile: card list */}
+      <div className="sm:hidden space-y-3">
+        {loading ? (
+          <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm px-5 py-10 text-center text-zinc-500">
+            Loading…
+          </div>
+        ) : cardRows.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm px-5 py-10 text-center text-zinc-500">
+            No users scheduled yet.
+          </div>
+        ) : (
+          cardRows.map(({ b, startReached, disabled }) => (
+            <div
+              key={b._id}
+              className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm overflow-hidden"
+            >
+              <div className="px-4 py-3 border-b border-zinc-100">
+                <div className="text-sm font-semibold text-zinc-900">
+                  {userLabel(b.user)}
+                </div>
+                <div className="text-xs text-zinc-500 mt-0.5">
+                  {b.packageTitle}{" "}
+                  <span className="font-mono text-[11px] text-zinc-400">
+                    ({b.packageId})
+                  </span>
+                </div>
+              </div>
+              <div className="px-4 py-3 space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-xs text-zinc-500">Start</div>
+                  <div className="text-xs text-zinc-700 text-right">
+                    {b.journey?.startAt
+                      ? new Date(b.journey.startAt).toLocaleString()
+                      : "—"}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-xs text-zinc-500">Current stage</div>
+                  <div className="text-xs font-medium text-zinc-800">
+                    {stageLabel(b.journey?.stage)}
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-zinc-100">
+                  <label className="block text-xs font-medium text-zinc-600 mb-1">
+                    Update stage
+                  </label>
+                  <select
+                    disabled={disabled}
+                    value={b.journey?.stage || "not_started"}
+                    onChange={(e) => updateStage(b._id, e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:opacity-60"
+                  >
+                    <option value="scheduled">Scheduled</option>
+                    <option value="flight_takeoff">Flight takeoff</option>
+                    <option value="in_makkah">In Makkah</option>
+                    <option value="in_madinah">In Madinah</option>
+                    <option value="return_flight">Return flight</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                  {!startReached ? (
+                    <p className="mt-1 text-[11px] text-zinc-400">
+                      Available after start time.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop/tablet: table */}
+      <div className="hidden sm:block bg-white rounded-2xl border border-zinc-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead>
               <tr className="border-b border-zinc-100 bg-zinc-50/80">
-                <th className="px-4 py-3 font-medium text-zinc-600">User</th>
-                <th className="px-4 py-3 font-medium text-zinc-600">Package</th>
-                <th className="px-4 py-3 font-medium text-zinc-600">Start</th>
-                <th className="px-4 py-3 font-medium text-zinc-600">Stage</th>
-                <th className="px-4 py-3 font-medium text-zinc-600 w-56">
+                <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide">
+                  User
+                </th>
+                <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide">
+                  Package
+                </th>
+                <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide hidden md:table-cell">
+                  Start
+                </th>
+                <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide hidden lg:table-cell">
+                  Stage
+                </th>
+                <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide w-56">
                   Update
                 </th>
               </tr>
@@ -106,60 +195,66 @@ export default function AdminUserStatuses() {
                   </td>
                 </tr>
               ) : (
-                scheduled.map((b) => (
-                  (() => {
-                    const startMs = b.journey?.startAt
-                      ? new Date(b.journey.startAt).getTime()
-                      : NaN;
-                    const startReached = Number.isFinite(startMs) && now >= startMs;
-                    const disabled = busyId === b._id || !startReached;
-
-                    return (
-                  <tr
-                    key={b._id}
-                    className="border-b border-zinc-50 hover:bg-zinc-50/50"
-                  >
-                    <td className="px-4 py-3 text-zinc-900 font-medium">
-                      {userLabel(b.user)}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-700">
-                      <div className="font-medium">{b.packageTitle}</div>
-                      <div className="text-xs text-zinc-500 font-mono">
-                        {b.packageId}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-zinc-700 whitespace-nowrap">
-                      {b.journey?.startAt
-                        ? new Date(b.journey.startAt).toLocaleString()
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-700">
-                      {stageLabel(b.journey?.stage)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <select
-                        disabled={disabled}
-                        value={b.journey?.stage || "not_started"}
-                        onChange={(e) => updateStage(b._id, e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:opacity-60"
-                      >
-                        <option value="scheduled">Scheduled</option>
-                        <option value="flight_takeoff">Flight takeoff</option>
-                        <option value="in_makkah">In Makkah</option>
-                        <option value="in_madinah">In Madinah</option>
-                        <option value="return_flight">Return flight</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                      {!startReached ? (
-                        <p className="mt-1 text-[11px] text-zinc-400">
-                          Available after start time.
-                        </p>
-                      ) : null}
-                    </td>
-                  </tr>
-                    );
-                  })()
-                ))
+                scheduled.map((b) => {
+                  const startMs = b.journey?.startAt
+                    ? new Date(b.journey.startAt).getTime()
+                    : NaN;
+                  const startReached = Number.isFinite(startMs) && now >= startMs;
+                  const disabled = busyId === b._id || !startReached;
+                  return (
+                    <tr
+                      key={b._id}
+                      className="border-b border-zinc-50 last:border-0 hover:bg-zinc-50/60 transition-colors"
+                    >
+                      <td className="px-4 py-3.5 text-zinc-900 font-medium">
+                        {userLabel(b.user)}
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-700">
+                        <div className="font-medium">{b.packageTitle}</div>
+                        <div className="text-xs text-zinc-500 font-mono">
+                          {b.packageId}
+                        </div>
+                        <div className="md:hidden mt-1 text-xs text-zinc-500">
+                          <span className="font-medium text-zinc-700">Start:</span>{" "}
+                          {b.journey?.startAt
+                            ? new Date(b.journey.startAt).toLocaleString()
+                            : "—"}
+                          <span className="mx-2 text-zinc-300">•</span>
+                          <span className="font-medium text-zinc-700">Stage:</span>{" "}
+                          {stageLabel(b.journey?.stage)}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-700 whitespace-nowrap hidden md:table-cell">
+                        {b.journey?.startAt
+                          ? new Date(b.journey.startAt).toLocaleString()
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3.5 text-zinc-700 hidden lg:table-cell">
+                        {stageLabel(b.journey?.stage)}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <select
+                          disabled={disabled}
+                          value={b.journey?.stage || "not_started"}
+                          onChange={(e) => updateStage(b._id, e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:opacity-60"
+                        >
+                          <option value="scheduled">Scheduled</option>
+                          <option value="flight_takeoff">Flight takeoff</option>
+                          <option value="in_makkah">In Makkah</option>
+                          <option value="in_madinah">In Madinah</option>
+                          <option value="return_flight">Return flight</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                        {!startReached ? (
+                          <p className="mt-1 text-[11px] text-zinc-400">
+                            Available after start time.
+                          </p>
+                        ) : null}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

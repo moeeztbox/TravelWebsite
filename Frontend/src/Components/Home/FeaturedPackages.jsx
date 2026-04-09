@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { usePackageBooking } from "../../hooks/usePackageBooking";
-import { fetchPackages } from "../../services/packageService";
+import { usePackageBooking } from "../../Hooks/usePackageBooking";
+import { Link } from "react-router-dom";
+import { fetchPackages } from "../../Services/packageService";
 import { iconForHighlightKey } from "../../constants/packageHighlightIcons";
 import {
   Calendar,
@@ -142,16 +143,18 @@ const CustomPackageCTA = () => (
     viewport={{ once: true }}
   >
     <p className="text-gray-600 mb-6 text-lg">
-      Need a Customize Package? We&apos;re here to help create your Perfect
-      Journey.
+      Want to explore more options?
     </p>
-    <motion.button
-      className="bg-gradient-to-r from-white to-[#C9A227]/10 border-2 border-[#C9A227] text-[#C9A227] hover:bg-gradient-to-r hover:from-[#C9A227] hover:to-[#DAB83D] hover:text-white hover:border-[#DAB83D] px-8 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      Request Customize Package
-    </motion.button>
+    <Link to="/packages">
+      <motion.button
+        type="button"
+        className="bg-gradient-to-r from-white to-[#C9A227]/10 border-2 border-[#C9A227] text-[#C9A227] hover:bg-gradient-to-r hover:from-[#C9A227] hover:to-[#DAB83D] hover:text-white hover:border-[#DAB83D] px-8 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        View all packages
+      </motion.button>
+    </Link>
   </motion.div>
 );
 

@@ -1,17 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  MoreVertical,
-  Pencil,
-  Trash2,
-  Plus,
-  X,
-  Loader2,
-} from "lucide-react";
+import { Pencil, Trash2, Plus, X, Loader2 } from "lucide-react";
 import AdminLayout from "../Components/Admin/AdminLayout";
-import { fetchPackages } from "../services/packageService";
 import {
   adminCreatePackage,
+  adminListPackages,
   adminUpdatePackage,
   adminDeletePackage,
 } from "../Services/adminService";
@@ -30,6 +23,13 @@ function emptyForm() {
     badge: "",
     image: "",
     active: true,
+    services: {
+      ziyarat: false,
+      transport: false,
+      visa: false,
+      ticket: false,
+      hotel: false,
+    },
     highlights: [
       { iconKey: "map-pin", text: "" },
       { iconKey: "hotel", text: "" },
@@ -48,6 +48,13 @@ function pkgToForm(pkg) {
     badge: pkg.badge ?? "",
     image: pkg.image ?? "",
     active: pkg.active !== false,
+    services: {
+      ziyarat: Boolean(pkg.services?.ziyarat),
+      transport: Boolean(pkg.services?.transport),
+      visa: Boolean(pkg.services?.visa),
+      ticket: Boolean(pkg.services?.ticket),
+      hotel: Boolean(pkg.services?.hotel),
+    },
     highlights:
       Array.isArray(pkg.highlights) && pkg.highlights.length > 0
         ? pkg.highlights.map((h) => ({
@@ -66,12 +73,11 @@ export default function AdminPackages() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [openMenuId, setOpenMenuId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const packages = await fetchPackages();
+      const packages = await adminListPackages();
       setList([...packages].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
     } catch (e) {
       toast.error("Failed to load packages");
@@ -84,6 +90,18 @@ export default function AdminPackages() {
     load();
   }, [load]);
 
+  /* lock body scroll when modal is open */
+  useEffect(() => {
+    if (modalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [modalOpen]);
+
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyForm());
@@ -94,7 +112,6 @@ export default function AdminPackages() {
     setEditingId(pkg.packageId);
     setForm(pkgToForm(pkg));
     setModalOpen(true);
-    setOpenMenuId(null);
   };
 
   const closeModal = () => {
@@ -144,6 +161,13 @@ export default function AdminPackages() {
       badge: form.badge.trim(),
       image: form.image.trim(),
       active: form.active,
+      services: {
+        ziyarat: Boolean(form.services?.ziyarat),
+        transport: Boolean(form.services?.transport),
+        visa: Boolean(form.services?.visa),
+        ticket: Boolean(form.services?.ticket),
+        hotel: Boolean(form.services?.hotel),
+      },
       highlights,
     };
 
@@ -194,126 +218,119 @@ export default function AdminPackages() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 active:scale-95 transition-all shadow-sm"
           >
             <Plus className="h-4 w-4" />
-            Add package
+            <span>Add package</span>
           </button>
         }
       >
+        {/* Table card */}
         <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead>
                 <tr className="border-b border-zinc-100 bg-zinc-50/80">
-                  <th className="px-4 py-3 font-medium text-zinc-600 whitespace-nowrap">
+                  <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide whitespace-nowrap w-16">
                     Order
                   </th>
-                  <th className="px-4 py-3 font-medium text-zinc-600">
+                  <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide">
                     Package ID
                   </th>
-                  <th className="px-4 py-3 font-medium text-zinc-600">
+                  <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide">
                     Title
                   </th>
-                  <th className="px-4 py-3 font-medium text-zinc-600">
+                  <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide hidden sm:table-cell">
                     Price
                   </th>
-                  <th className="px-4 py-3 font-medium text-zinc-600">
+                  <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide hidden md:table-cell">
                     Duration
                   </th>
-                  <th className="px-4 py-3 font-medium text-zinc-600">
+                  <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="px-4 py-3 font-medium text-zinc-600 w-12">
-                    {" "}
-                  </th>
+                  <th className="px-2 py-3 w-10" />
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-16 text-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-rose-500 mx-auto" />
+                    <td colSpan={7} className="px-4 py-20 text-center">
+                      <Loader2 className="h-7 w-7 animate-spin text-rose-400 mx-auto" />
+                      <p className="mt-3 text-xs text-zinc-400">Loading packages…</p>
                     </td>
                   </tr>
                 ) : list.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-12 text-center text-zinc-500"
-                    >
-                      No packages yet. Click &quot;Add package&quot; to create
-                      one.
+                    <td colSpan={7} className="px-4 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center">
+                          <Plus className="h-5 w-5 text-zinc-400" />
+                        </div>
+                        <p className="text-sm text-zinc-500">No packages yet.</p>
+                        <button
+                          type="button"
+                          onClick={openCreate}
+                          className="text-sm text-rose-500 font-medium hover:underline"
+                        >
+                          Create your first package
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   list.map((pkg) => (
                     <tr
                       key={pkg.packageId}
-                      className="border-b border-zinc-50 hover:bg-zinc-50/50 transition-colors"
+                      className="border-b border-zinc-50 last:border-0 hover:bg-zinc-50/60 transition-colors"
                     >
-                      <td className="px-4 py-3 text-zinc-700 whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-zinc-500 text-xs font-mono">
                         {pkg.order ?? "—"}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-zinc-800 max-w-[140px] truncate">
+                      <td className="px-4 py-3.5 font-mono text-xs text-zinc-700 max-w-[130px] truncate">
                         {pkg.packageId}
                       </td>
-                      <td className="px-4 py-3 text-zinc-900 font-medium max-w-[200px] truncate">
+                      <td className="px-4 py-3.5 text-zinc-900 font-medium max-w-[180px] truncate">
                         {pkg.title}
                       </td>
-                      <td className="px-4 py-3 text-zinc-600 whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-zinc-500 whitespace-nowrap hidden sm:table-cell text-sm">
                         {pkg.price || "—"}
                       </td>
-                      <td className="px-4 py-3 text-zinc-600">
+                      <td className="px-4 py-3.5 text-zinc-500 hidden md:table-cell text-sm">
                         {pkg.duration || "—"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <span
-                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${
                             pkg.active !== false
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                              : "bg-zinc-100 text-zinc-600 border border-zinc-200"
+                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
+                              : "bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200"
                           }`}
                         >
                           {pkg.active !== false ? "Active" : "Hidden"}
                         </span>
                       </td>
-                      <td className="px-2 py-2 relative">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setOpenMenuId((id) =>
-                              id === pkg.packageId ? null : pkg.packageId
-                            )
-                          }
-                          className="p-2 rounded-lg text-zinc-500 hover:bg-zinc-100"
-                          aria-label="Actions"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
-                        {openMenuId === pkg.packageId ? (
-                          <div className="absolute right-2 top-10 z-20 w-40 rounded-xl bg-white border border-zinc-200 shadow-lg py-1">
-                            <button
-                              type="button"
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
-                              onClick={() => openEdit(pkg)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                              onClick={() => {
-                                setOpenMenuId(null);
-                                setDeleteTarget(pkg.packageId);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Delete
-                            </button>
-                          </div>
-                        ) : null}
+                      <td className="px-2 py-2">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(pkg)}
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
+                            aria-label={`Edit ${pkg.packageId}`}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(pkg.packageId)}
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                            aria-label={`Delete ${pkg.packageId}`}
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -321,256 +338,390 @@ export default function AdminPackages() {
               </tbody>
             </table>
           </div>
+
+          {/* Table footer */}
+          {list.length > 0 && !loading && (
+            <div className="px-4 py-2.5 border-t border-zinc-100 bg-zinc-50/50">
+              <p className="text-xs text-zinc-400">
+                {list.length} package{list.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+          )}
         </div>
       </AdminLayout>
 
-      {modalOpen ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-zinc-200">
-            <div className="sticky top-0 bg-white border-b border-zinc-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <h2 className="text-lg font-semibold text-zinc-900">
-                {editingId ? "Edit package" : "New package"}
-              </h2>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500"
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-zinc-600">
-                    Package ID (slug) *
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm disabled:bg-zinc-50"
-                    value={form.packageId}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, packageId: e.target.value }))
-                    }
-                    disabled={!!editingId}
-                    required
-                    placeholder="e.g. economy-umrah"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-zinc-600">
-                    Sort order
-                  </label>
-                  <input
-                    type="number"
-                    className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-                    value={form.order}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        order: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-zinc-600">
-                    Active
-                  </label>
-                  <label className="mt-2 flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.active}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, active: e.target.checked }))
-                      }
-                      className="rounded border-zinc-300 text-rose-500 focus:ring-rose-500"
-                    />
-                    <span className="text-sm text-zinc-700">Show on site</span>
-                  </label>
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-zinc-600">
-                    Title *
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-                    value={form.title}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, title: e.target.value }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-zinc-600">
-                    Subtitle
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-                    value={form.subtitle}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, subtitle: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-zinc-600">
-                    Price
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-                    value={form.price}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, price: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-zinc-600">
-                    Duration
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-                    value={form.duration}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, duration: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-zinc-600">
-                    Badge
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-                    value={form.badge}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, badge: e.target.value }))
-                    }
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-zinc-600">
-                    Image URL
-                  </label>
-                  <input
-                    className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-                    value={form.image}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, image: e.target.value }))
-                    }
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
+      {/* ── Create / Edit Modal ── */}
+      {modalOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-[2px]"
+            onClick={closeModal}
+            aria-hidden="true"
+          />
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-medium text-zinc-600">
-                    Highlights (icon + text; empty lines ignored)
-                  </label>
+          {/* Scroll container — fills viewport, scrolls independently */}
+          <div className="fixed inset-0 z-[101] overflow-y-auto overflow-x-hidden">
+            {/* Centering wrapper — min-height ensures the dialog is centered even on short content */}
+            <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-4 md:p-6">
+              <div
+                className="
+                  relative bg-white rounded-2xl shadow-2xl
+                  w-full max-w-lg
+                  flex flex-col
+                  border border-zinc-200
+                "
+                style={{ maxHeight: "calc(100dvh - 2rem)" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Sticky header */}
+                <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-zinc-100 px-5 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
+                  <div>
+                    <h2 className="text-base font-semibold text-zinc-900 leading-tight">
+                      {editingId ? "Edit package" : "New package"}
+                    </h2>
+                    {editingId && (
+                      <p className="text-xs text-zinc-400 mt-0.5 font-mono">{editingId}</p>
+                    )}
+                  </div>
                   <button
                     type="button"
-                    onClick={addHighlightRow}
-                    className="text-xs text-rose-600 font-medium hover:underline"
+                    onClick={closeModal}
+                    className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700 transition-colors flex-shrink-0"
+                    aria-label="Close"
                   >
-                    + Add row
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="space-y-2">
-                  {form.highlights.map((h, i) => (
-                    <div key={i} className="flex gap-2 items-start">
-                      <select
-                        value={h.iconKey}
-                        onChange={(e) =>
-                          updateHighlight(i, "iconKey", e.target.value)
-                        }
-                        className="rounded-xl border border-zinc-200 px-2 py-2 text-xs shrink-0 max-w-[120px]"
-                      >
-                        {ICON_OPTIONS.map((k) => (
-                          <option key={k} value={k}>
-                            {k}
-                          </option>
+
+                {/* Scrollable form body */}
+                <div
+                  className="overflow-y-auto overscroll-contain"
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
+                  <form onSubmit={handleSubmit} className="p-5 space-y-5">
+
+                    {/* Section: Identity */}
+                    <fieldset className="space-y-3">
+                      <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                        Identity
+                      </legend>
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 mb-1">
+                          Package ID (slug) *
+                        </label>
+                        <input
+                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                          value={form.packageId}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, packageId: e.target.value }))
+                          }
+                          disabled={!!editingId}
+                          required
+                          placeholder="e.g. economy-umrah"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 mb-1">
+                            Sort order
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            value={form.order}
+                            onChange={(e) =>
+                              setForm((f) => ({ ...f, order: e.target.value }))
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 mb-1">
+                            Visibility
+                          </label>
+                          <label className="flex items-center gap-2.5 h-[38px] cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={form.active}
+                              onChange={(e) =>
+                                setForm((f) => ({ ...f, active: e.target.checked }))
+                              }
+                              className="h-4 w-4 rounded border-zinc-300 text-rose-500 focus:ring-rose-500"
+                            />
+                            <span className="text-sm text-zinc-700">Show on site</span>
+                          </label>
+                        </div>
+                      </div>
+                    </fieldset>
+
+                    {/* Divider */}
+                    <hr className="border-zinc-100" />
+
+                    {/* Section: Content */}
+                    <fieldset className="space-y-3">
+                      <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                        Content
+                      </legend>
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 mb-1">
+                          Title *
+                        </label>
+                        <input
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                          value={form.title}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, title: e.target.value }))
+                          }
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 mb-1">
+                          Subtitle
+                        </label>
+                        <input
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                          value={form.subtitle}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, subtitle: e.target.value }))
+                          }
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 mb-1">
+                            Price
+                          </label>
+                          <input
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            value={form.price}
+                            onChange={(e) =>
+                              setForm((f) => ({ ...f, price: e.target.value }))
+                            }
+                            placeholder="e.g. PKR 85,000"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 mb-1">
+                            Duration
+                          </label>
+                          <input
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            value={form.duration}
+                            onChange={(e) =>
+                              setForm((f) => ({ ...f, duration: e.target.value }))
+                            }
+                            placeholder="e.g. 14 days"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 mb-1">
+                            Badge
+                          </label>
+                          <input
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            value={form.badge}
+                            onChange={(e) =>
+                              setForm((f) => ({ ...f, badge: e.target.value }))
+                            }
+                            placeholder="e.g. Most popular"
+                          />
+                        </div>
+                        <div>
+                          {/* spacer */}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 mb-1">
+                          Image URL
+                        </label>
+                        <input
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                          value={form.image}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, image: e.target.value }))
+                          }
+                          placeholder="https://..."
+                        />
+                      </div>
+                    </fieldset>
+
+                    {/* Divider */}
+                    <hr className="border-zinc-100" />
+
+                    {/* Section: Services */}
+                    <fieldset className="space-y-2">
+                      <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                        Services included
+                      </legend>
+                      <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
+                        {[
+                          ["ziyarat", "Ziyarat"],
+                          ["transport", "Transport"],
+                          ["visa", "Visa"],
+                          ["ticket", "Ticket"],
+                          ["hotel", "Hotel"],
+                        ].map(([key, label]) => (
+                          <label
+                            key={key}
+                            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
+                              form.services?.[key]
+                                ? "border-rose-200 bg-rose-50/60"
+                                : "border-zinc-200 bg-zinc-50 hover:bg-white"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={Boolean(form.services?.[key])}
+                              onChange={(e) =>
+                                setForm((f) => ({
+                                  ...f,
+                                  services: {
+                                    ...(f.services || {}),
+                                    [key]: e.target.checked,
+                                  },
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-zinc-300 text-rose-500 focus:ring-rose-500"
+                            />
+                            <span className="text-sm text-zinc-700">{label}</span>
+                          </label>
                         ))}
-                      </select>
-                      <input
-                        className="flex-1 rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-                        value={h.text}
-                        onChange={(e) =>
-                          updateHighlight(i, "text", e.target.value)
-                        }
-                        placeholder="Highlight text"
-                      />
-                      {form.highlights.length > 1 ? (
+                      </div>
+                    </fieldset>
+
+                    {/* Divider */}
+                    <hr className="border-zinc-100" />
+
+                    {/* Section: Highlights */}
+                    <fieldset className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                          Highlights
+                        </legend>
                         <button
                           type="button"
-                          onClick={() => removeHighlightRow(i)}
-                          className="p-2 text-zinc-400 hover:text-red-500"
-                          aria-label="Remove row"
+                          onClick={addHighlightRow}
+                          className="text-xs text-rose-500 font-medium hover:text-rose-700 hover:underline transition-colors"
                         >
-                          <X className="h-4 w-4" />
+                          + Add row
                         </button>
-                      ) : null}
+                      </div>
+                      <p className="text-xs text-zinc-400">Empty rows are ignored on save.</p>
+                      <div className="space-y-2">
+                        {form.highlights.map((h, i) => (
+                          <div key={i} className="flex gap-2 items-center">
+                            <select
+                              value={h.iconKey}
+                              onChange={(e) =>
+                                updateHighlight(i, "iconKey", e.target.value)
+                              }
+                              className="rounded-xl border border-zinc-200 bg-white px-2 py-2 text-xs flex-shrink-0 w-28 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            >
+                              {ICON_OPTIONS.map((k) => (
+                                <option key={k} value={k}>
+                                  {k}
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              className="flex-1 min-w-0 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                              value={h.text}
+                              onChange={(e) =>
+                                updateHighlight(i, "text", e.target.value)
+                              }
+                              placeholder="Highlight text"
+                            />
+                            {form.highlights.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeHighlightRow(i)}
+                                className="p-1.5 text-zinc-300 hover:text-red-400 transition-colors flex-shrink-0"
+                                aria-label="Remove row"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
+
+                    {/* Sticky footer */}
+                    <div className="sticky bottom-0 -mx-5 -mb-5 px-5 py-4 bg-white/95 backdrop-blur-sm border-t border-zinc-100 flex justify-end gap-2 rounded-b-2xl mt-2">
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 active:scale-95 disabled:opacity-60 transition-all"
+                      >
+                        {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {editingId ? "Save changes" : "Create package"}
+                      </button>
                     </div>
-                  ))}
+                  </form>
                 </div>
               </div>
+            </div>
+          </div>
+        </>
+      )}
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-zinc-100">
+      {/* ── Delete confirm ── */}
+      {deleteTarget && (
+        <>
+          <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-[2px]" />
+          <div className="fixed inset-0 z-[111] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-zinc-200">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="h-9 w-9 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-zinc-900 leading-tight">
+                    Delete package?
+                  </h3>
+                  <p className="text-sm text-zinc-500 mt-1">
+                    This removes{" "}
+                    <code className="font-mono text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded text-xs">
+                      {deleteTarget}
+                    </code>{" "}
+                    from the database and cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+                  onClick={() => setDeleteTarget(null)}
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 hover:bg-zinc-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 disabled:opacity-60"
+                  type="button"
+                  onClick={confirmDelete}
+                  className="px-4 py-2 rounded-xl text-sm font-medium bg-red-500 text-white hover:bg-red-600 active:scale-95 transition-all"
                 >
-                  {saving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : null}
-                  {editingId ? "Save changes" : "Create package"}
+                  Delete
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
-
-      {deleteTarget ? (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 border border-zinc-200">
-            <h3 className="text-lg font-semibold text-zinc-900">
-              Delete package?
-            </h3>
-            <p className="text-sm text-zinc-600 mt-2">
-              This removes{" "}
-              <span className="font-mono text-zinc-800">{deleteTarget}</span>{" "}
-              from the database. This cannot be undone.
-            </p>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                type="button"
-                onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-700 hover:bg-zinc-100"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="px-4 py-2 rounded-xl text-sm font-medium bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
             </div>
           </div>
-        </div>
-      ) : null}
+        </>
+      )}
     </>
   );
 }

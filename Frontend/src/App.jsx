@@ -6,7 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useEffect } from "react";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./Context/AuthContext";
 import RequireAuth from "./components/RequireAuth";
 import RequireAdmin from "./Components/RequireAdmin";
 import Home from "./Pages/Home";
@@ -32,6 +32,7 @@ import AdminPackages from "./Pages/AdminPackages";
 import AdminBookings from "./Pages/AdminBookings";
 import AdminUserStatuses from "./Pages/AdminUserStatuses";
 import AdminStories from "./Pages/AdminStories";
+import AdminCustomPackages from "./Pages/AdminCustomPackages";
 import Stories from "./Pages/Stories";
 import SubmitStory from "./Pages/SubmitStory";
 
@@ -93,7 +94,7 @@ function AppRoutes() {
           <Route
             path="/booking"
             element={
-              <RequireAuth redirectTo="/register">
+              <RequireAuth redirectTo="/login">
                 <Booking />
               </RequireAuth>
             }
@@ -111,6 +112,14 @@ function AppRoutes() {
             element={
               <RequireAdmin>
                 <AdminBookings />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/custom-packages"
+            element={
+              <RequireAdmin>
+                <AdminCustomPackages />
               </RequireAdmin>
             }
           />

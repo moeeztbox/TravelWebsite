@@ -11,6 +11,15 @@ export const listPackages = async (req, res) => {
   }
 };
 
+export const adminListAllPackages = async (req, res) => {
+  try {
+    const packages = await Package.find({}).sort({ order: 1 });
+    res.json({ packages });
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
 export const getPackageBySlug = async (req, res) => {
   try {
     const pkg = await Package.findOne({
@@ -38,6 +47,7 @@ export const createPackage = async (req, res) => {
       badge = "",
       image = "",
       highlights = [],
+      services = {},
       active = true,
     } = req.body;
 
@@ -62,6 +72,13 @@ export const createPackage = async (req, res) => {
       badge,
       image,
       highlights,
+      services: {
+        ziyarat: Boolean(services?.ziyarat),
+        transport: Boolean(services?.transport),
+        visa: Boolean(services?.visa),
+        ticket: Boolean(services?.ticket),
+        hotel: Boolean(services?.hotel),
+      },
       active,
     });
 
@@ -73,9 +90,19 @@ export const createPackage = async (req, res) => {
 
 export const updatePackage = async (req, res) => {
   try {
+    const body = { ...(req.body || {}) };
+    if (body.services && typeof body.services === "object") {
+      body.services = {
+        ziyarat: Boolean(body.services?.ziyarat),
+        transport: Boolean(body.services?.transport),
+        visa: Boolean(body.services?.visa),
+        ticket: Boolean(body.services?.ticket),
+        hotel: Boolean(body.services?.hotel),
+      };
+    }
     const pkg = await Package.findOneAndUpdate(
       { packageId: req.params.packageId },
-      { $set: req.body },
+      { $set: body },
       { new: true, runValidators: true }
     );
     if (!pkg) {

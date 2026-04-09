@@ -1,4 +1,4 @@
-import { resolveApiBase } from "../services/authService";
+import { resolveApiBase } from "../Services/authService";
 
 /** Origin for static files (/uploads) — strips `/api` from the API base. */
 export function getApiOrigin() {

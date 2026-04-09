@@ -11,8 +11,8 @@ import {
   Lock,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { register } from "../../services/authService";
-import { useAuth } from "../../context/AuthContext";
+import { register } from "../../Services/authService";
+import { useAuth } from "../../Context/AuthContext";
 
 function getErrorMessage(error) {
   const data = error.response?.data;

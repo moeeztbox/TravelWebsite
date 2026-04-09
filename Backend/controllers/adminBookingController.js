@@ -7,7 +7,8 @@ export const listAllBookings = async (req, res) => {
 
     const bookings = await Booking.find(query)
       .populate("user", "firstName lastName email")
-      .sort({ updatedAt: -1 });
+      // Keep list stable when admin updates status/payment/journey (updatedAt changes).
+      .sort({ createdAt: -1, _id: -1 });
 
     res.json({ bookings });
   } catch (error) {
@@ -23,15 +24,41 @@ export const setBookingStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status" });
     }
 
+    const existing = await Booking.findById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (existing.status === "rejected" && status === "approved") {
+      return res.status(400).json({
+        message: "Rejected bookings cannot be approved.",
+      });
+    }
+
+    // Safety: once payment is verified (or journey scheduled), do not allow rejecting/rolling back.
+    const paymentVerified = existing.payment?.status === "verified";
+    const journeyScheduled = Boolean(existing.journey?.startAt);
+    if (status === "rejected" && (paymentVerified || journeyScheduled)) {
+      return res.status(400).json({
+        message:
+          "Cannot reject this booking after payment is verified or the journey is scheduled.",
+      });
+    }
+
+    const shouldResetPayment =
+      status !== "approved" || existing.payment?.status === "rejected";
+
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       {
         $set: {
           status,
           statusReason: status === "rejected" ? "admin_rejected" : "",
-          // Reset payment when returning to draft
-          ...(status !== "approved"
-            ? { "payment.status": "none" }
+          ...(shouldResetPayment
+            ? {
+                "payment.status": "none",
+                "payment.receiptPdf": "",
+              }
             : {}),
         },
       },
@@ -195,6 +222,25 @@ export const setJourneyStage = async (req, res) => {
     res.json({ booking: bookingDoc });
   } catch (error) {
     console.error("setJourneyStage:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export const adminDeleteBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    if (booking.status !== "rejected") {
+      return res.status(400).json({
+        message: "Only rejected bookings can be removed.",
+      });
+    }
+    await Booking.deleteOne({ _id: booking._id });
+    res.json({ message: "Booking removed" });
+  } catch (error) {
+    console.error("adminDeleteBooking:", error);
     res.status(500).json({ message: error.message || "Server error" });
   }
 };

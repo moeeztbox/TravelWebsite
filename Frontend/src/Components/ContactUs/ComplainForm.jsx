@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AlertCircle, User, Mail, MessageSquare, Phone } from "lucide-react";
+import { api, formatAxiosError } from "../../Services/authService";
+import { useAuth } from "../../Context/AuthContext";
 
 function ComplainForm() {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -9,6 +12,8 @@ function ComplainForm() {
     phone: "",
     complaint: "",
   });
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [sending, setSending] = useState(false);
 
   const [focused, setFocused] = useState({
     firstName: false,
@@ -22,10 +27,39 @@ function ComplainForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const inferredName = useMemo(() => {
+    const n =
+      [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
+      "";
+    return n;
+  }, [user?.firstName, user?.lastName]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Complaint Submitted:", formData);
-    setFormData({ firstName: "", lastName: "", email: "", phone: "", complaint: "" });
+    setStatus({ type: "", message: "" });
+    setSending(true);
+    try {
+      await api.post("/complain", {
+        userEmail: formData.email.trim(),
+        userName:
+          inferredName ||
+          `${formData.firstName} ${formData.lastName}`.trim() ||
+          "User",
+        complaint: formData.complaint,
+      });
+      setStatus({ type: "success", message: "Complaint submitted. Email sent." });
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        complaint: "",
+      });
+    } catch (err) {
+      setStatus({ type: "error", message: formatAxiosError(err) });
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleFocus = (field) => {
@@ -40,7 +74,10 @@ function ComplainForm() {
     <div className="w-full max-w-3xl lg:max-w-4xl mx-auto py-6 px-2 sm:px-4">
       {/* Form Container */}
       <div className="relative z-10 w-full flex flex-col items-stretch">
-        <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 space-y-6 w-full">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 space-y-6 w-full"
+        >
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center bg-yellow-600 p-3 rounded-xl mb-4 shadow-lg">
@@ -53,6 +90,19 @@ function ComplainForm() {
               We take your concerns seriously and will respond promptly
             </p>
           </div>
+
+          {status.message ? (
+            <div
+              className={`text-sm rounded-lg px-3 py-2 border ${
+                status.type === "success"
+                  ? "text-green-700 bg-green-50 border-green-200"
+                  : "text-red-700 bg-red-50 border-red-200"
+              }`}
+              role="alert"
+            >
+              {status.message}
+            </div>
+          ) : null}
 
           {/* First Row: First Name & Last Name */}
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
@@ -169,14 +219,16 @@ function ComplainForm() {
 
           {/* Submit Button */}
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
+            disabled={sending}
             className="w-full bg-yellow-600 text-white font-semibold p-3 sm:p-4 rounded-xl hover:bg-yellow-700 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:scale-[1.02] group"
           >
-            <span className="text-base sm:text-lg">Submit Complaint</span>
+            <span className="text-base sm:text-lg">
+              {sending ? "Sending..." : "Submit Complaint"}
+            </span>
             <AlertCircle className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );

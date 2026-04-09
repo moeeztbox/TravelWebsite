@@ -2,16 +2,15 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   LayoutGrid,
   LogOut,
-  Search,
-  Bell,
   ChevronDown,
   ClipboardList,
+  PackagePlus,
   Users,
   BookOpen,
   Menu,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../Context/AuthContext";
 
 export default function AdminLayout({ title, subtitle, children, headerRight }) {
   const navigate = useNavigate();
@@ -88,6 +87,14 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
             Bookings
           </Link>
           <Link
+            to="/admin/custom-packages"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 border border-transparent hover:border-zinc-200"
+            onClick={closeSidebar}
+          >
+            <PackagePlus className="h-5 w-5 shrink-0 text-zinc-500" />
+            Custom Packages
+          </Link>
+          <Link
             to="/admin/stories"
             className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 border border-transparent hover:border-zinc-200"
             onClick={closeSidebar}
@@ -119,24 +126,7 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex-1 max-w-md relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-            <input
-              type="search"
-              placeholder="Search..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-zinc-50 border border-zinc-200/80 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-300"
-              readOnly
-              aria-label="Search (placeholder)"
-            />
-          </div>
           <div className="flex items-center gap-3 ml-auto">
-            <button
-              type="button"
-              className="p-2 rounded-xl text-zinc-500 hover:bg-zinc-100"
-              aria-label="Notifications"
-            >
-              <Bell className="h-5 w-5" />
-            </button>
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -170,7 +160,7 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
           </div>
         </header>
 
-        <main className="flex-1 p-6 overflow-auto">
+        <main id="admin-scroll-container" className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
               <div>
