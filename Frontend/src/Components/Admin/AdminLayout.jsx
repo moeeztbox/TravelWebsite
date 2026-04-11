@@ -1,47 +1,54 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutGrid,
-  LogOut,
-  ChevronDown,
+  Home,
   ClipboardList,
   PackagePlus,
   Users,
   BookOpen,
   Menu,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import { useAuth } from "../../Context/AuthContext";
+import { useState } from "react";
+
+function sidebarLinkClass(active) {
+  return [
+    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium border transition-colors",
+    active
+      ? "bg-amber-50 text-amber-900 border-amber-200 shadow-sm"
+      : "text-zinc-700 hover:bg-amber-50/60 border border-transparent hover:border-amber-100",
+  ].join(" ");
+}
 
 export default function AdminLayout({ title, subtitle, children, headerRight }) {
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  const path = location.pathname;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const menuRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleLogout = () => {
-    signOut();
-    navigate("/login", { replace: true });
-  };
 
   const closeSidebar = () => setSidebarOpen(false);
 
+  const nav = [
+    { to: "/admin/packages", label: "Packages", icon: LayoutGrid },
+    { to: "/admin/bookings", label: "Bookings", icon: ClipboardList },
+    { to: "/admin/custom-packages", label: "Custom Packages", icon: PackagePlus },
+    { to: "/admin/stories", label: "Stories", icon: BookOpen },
+    { to: "/admin/user-statuses", label: "User Statuses", icon: Users },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#f4f5f7] flex">
+    <div className="min-h-screen box-border pt-16 lg:pt-20 flex bg-gradient-to-b from-amber-50/40 via-stone-50 to-stone-100">
+      <button
+        type="button"
+        onClick={() => setSidebarOpen(true)}
+        className="lg:hidden fixed left-3 z-[225] top-[4.75rem] inline-flex h-10 w-10 items-center justify-center rounded-full border border-amber-200/80 bg-white text-amber-800 shadow-md hover:bg-amber-50"
+        aria-label="Open admin menu"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
       {sidebarOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-[210] bg-black/40 lg:hidden"
+          className="fixed top-16 left-0 right-0 bottom-0 z-30 bg-black/40 lg:hidden"
           onClick={closeSidebar}
           aria-label="Close sidebar overlay"
         />
@@ -49,126 +56,51 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
 
       <aside
         className={[
-          "w-64 shrink-0 bg-white border-r border-zinc-200/80 flex flex-col shadow-sm",
-          "fixed inset-y-0 left-0 z-[220] lg:static lg:translate-x-0",
+          "w-64 shrink-0 bg-white/95 backdrop-blur-sm border-r border-amber-200/60 flex flex-col shadow-md shadow-amber-900/5",
+          "fixed left-0 bottom-0 top-16 z-[220] lg:static lg:z-auto lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-[calc(100vh-5rem)] lg:translate-x-0",
           "transition-transform duration-200 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         ].join(" ")}
       >
-        <div className="p-6 border-b border-zinc-100">
-          <Link
-            to="/admin/packages"
-            className="flex items-center gap-2"
-            onClick={closeSidebar}
-          >
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500 text-white font-bold text-sm">
-              T
-            </span>
-            <span className="font-semibold text-zinc-900 tracking-tight">
-              Travel Admin
-            </span>
-          </Link>
-        </div>
-        <nav className="flex-1 p-3 space-y-1">
-          <Link
-            to="/admin/packages"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium bg-rose-50 text-rose-700 border border-rose-100"
-            onClick={closeSidebar}
-          >
-            <LayoutGrid className="h-5 w-5 shrink-0" />
-            Packages
-          </Link>
-          <Link
-            to="/admin/bookings"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 border border-transparent hover:border-zinc-200"
-            onClick={closeSidebar}
-          >
-            <ClipboardList className="h-5 w-5 shrink-0 text-zinc-500" />
-            Bookings
-          </Link>
-          <Link
-            to="/admin/custom-packages"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 border border-transparent hover:border-zinc-200"
-            onClick={closeSidebar}
-          >
-            <PackagePlus className="h-5 w-5 shrink-0 text-zinc-500" />
-            Custom Packages
-          </Link>
-          <Link
-            to="/admin/stories"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 border border-transparent hover:border-zinc-200"
-            onClick={closeSidebar}
-          >
-            <BookOpen className="h-5 w-5 shrink-0 text-zinc-500" />
-            Stories
-          </Link>
-          <Link
-            to="/admin/user-statuses"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 border border-transparent hover:border-zinc-200"
-            onClick={closeSidebar}
-          >
-            <Users className="h-5 w-5 shrink-0 text-zinc-500" />
-            User Statuses
-          </Link>
+        <nav className="flex-1 p-3 pt-4 space-y-1">
+          {nav.map(({ to, label, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className={sidebarLinkClass(path === to)}
+              onClick={closeSidebar}
+            >
+              <Icon className="h-5 w-5 shrink-0 text-amber-600/90" />
+              {label}
+            </Link>
+          ))}
         </nav>
-        <div className="p-4 border-t border-zinc-100 text-xs text-zinc-400">
-          Signed in as admin
+        <div className="p-3 border-t border-amber-100">
+          <Link
+            to="/"
+            className="flex items-center justify-center lg:justify-start rounded-xl p-2 text-amber-800 hover:bg-amber-50/80 transition-colors"
+            title="View public site"
+            onClick={closeSidebar}
+          >
+            <Home className="h-5 w-5 shrink-0" aria-hidden />
+            <span className="sr-only">View public site</span>
+          </Link>
         </div>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 bg-white border-b border-zinc-200/80 flex items-center gap-4 px-4 sm:px-6 shrink-0">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-xl text-zinc-600 hover:bg-zinc-100"
-            aria-label="Open sidebar"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <div className="flex items-center gap-3 ml-auto">
-            <div className="relative" ref={menuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen((o) => !o)}
-                className="flex items-center gap-2 rounded-xl pl-1 pr-2 py-1 hover:bg-zinc-100"
-              >
-                <span className="h-9 w-9 rounded-full bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center text-white text-sm font-medium">
-                  A
-                </span>
-                <span className="text-sm font-medium text-zinc-800 hidden sm:inline">
-                  Admin
-                </span>
-                <ChevronDown className="h-4 w-4 text-zinc-400" />
-              </button>
-              {menuOpen ? (
-                <div className="absolute right-0 mt-2 w-44 rounded-xl bg-white border border-zinc-200 shadow-lg py-1 z-50">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      handleLogout();
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Log out
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </header>
-
-        <main id="admin-scroll-container" className="flex-1 p-6">
+        <main
+          id="admin-scroll-container"
+          className="flex-1 px-4 py-4 sm:px-6 sm:py-6 pl-14 lg:pl-6"
+        >
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl font-semibold text-zinc-900 tracking-tight">
+                <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">
                   {title}
                 </h1>
                 {subtitle ? (
-                  <p className="text-sm text-zinc-500 mt-1">{subtitle}</p>
+                  <p className="text-sm text-zinc-600 mt-1">{subtitle}</p>
                 ) : null}
               </div>
               {headerRight}

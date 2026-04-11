@@ -137,7 +137,7 @@ export default function AdminUserStatuses() {
                     disabled={disabled}
                     value={b.journey?.stage || "not_started"}
                     onChange={(e) => updateStage(b._id, e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:opacity-60"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
                   >
                     <option value="scheduled">Scheduled</option>
                     <option value="flight_takeoff">Flight takeoff</option>
@@ -237,7 +237,7 @@ export default function AdminUserStatuses() {
                           disabled={disabled}
                           value={b.journey?.stage || "not_started"}
                           onChange={(e) => updateStage(b._id, e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 disabled:opacity-60"
+                          className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
                         >
                           <option value="scheduled">Scheduled</option>
                           <option value="flight_takeoff">Flight takeoff</option>

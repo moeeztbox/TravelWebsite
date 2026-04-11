@@ -41,19 +41,32 @@ export default function AdminBookings() {
   const [startAt, setStartAt] = useState("");
   const origin = getApiOrigin();
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts = {}) => {
+    const silent = Boolean(opts.silent);
+    if (!silent) setLoading(true);
     try {
       const rows = await adminListBookings("all");
       setBookings(rows);
     } catch {
       toast.error("Failed to load bookings");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  /** Keeps the viewport on the booking you just acted on (full-page loader was resetting scroll). */
+  const scrollToBookingCard = (bookingId) => {
+    if (!bookingId) return;
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`admin-booking-${bookingId}`)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  };
 
   const grouped = useCallback((rows) => {
     const map = new Map();
@@ -79,7 +92,8 @@ export default function AdminBookings() {
     try {
       await adminSetBookingStatus(id, status);
       toast.success(`Booking ${status}`);
-      await load();
+      await load({ silent: true });
+      scrollToBookingCard(id);
     } catch (e) {
       toast.error(e.response?.data?.message || "Update failed");
     } finally { setBusyId(null); }
@@ -90,7 +104,8 @@ export default function AdminBookings() {
     try {
       await adminSetPaymentStatus(id, "verified");
       toast.success("Payment marked verified");
-      await load();
+      await load({ silent: true });
+      scrollToBookingCard(id);
     } catch (e) {
       toast.error(e.response?.data?.message || "Update failed");
     } finally { setBusyId(null); }
@@ -101,7 +116,8 @@ export default function AdminBookings() {
     try {
       await adminSetPaymentStatus(id, "rejected");
       toast.success("Payment marked failed");
-      await load();
+      await load({ silent: true });
+      scrollToBookingCard(id);
     } catch (e) {
       toast.error(e.response?.data?.message || "Update failed");
     } finally { setBusyId(null); }
@@ -115,7 +131,8 @@ export default function AdminBookings() {
       toast.success("Journey scheduled");
       setScheduleFor(null);
       setStartAt("");
-      await load();
+      await load({ silent: true });
+      scrollToBookingCard(id);
     } catch (e) {
       toast.error(e.response?.data?.message || "Schedule failed");
     } finally { setBusyId(null); }
@@ -126,17 +143,34 @@ export default function AdminBookings() {
     try {
       await adminDeleteBooking(id);
       toast.success("Rejected booking removed");
-      await load();
+      await load({ silent: true });
     } catch (e) {
       toast.error(e.response?.data?.message || "Remove failed");
     } finally { setBusyId(null); }
   };
 
+  const methodLabel = (m) =>
+    m === "jazzcash"
+      ? "JazzCash"
+      : m === "easypaisa"
+        ? "Easypaisa"
+        : m === "card"
+          ? "Card"
+          : m === "bank_transfer"
+            ? "Bank transfer"
+            : m === "stripe"
+              ? "Stripe"
+              : m || "—";
+
   const BookingCard = ({ b, allowDeleteRejected }) => {
     const hasVisa    = Boolean(b.documents?.visaPdf);
     const hasOther   = Boolean(b.documents?.otherPdf);
     const hasReceipt = Boolean(b.payment?.receiptPdf);
-    const docsSubmitted  = hasVisa && hasOther && hasReceipt;
+    const isStripe   = b.payment?.method === "stripe";
+    const hasStripePaymentProof =
+      isStripe && Boolean(b.payment?.stripePaymentIntentId);
+    const paymentProofComplete = hasReceipt || hasStripePaymentProof;
+    const docsSubmitted  = hasVisa && hasOther && paymentProofComplete;
     const awaitingDocs   = b.status === "approved" && !docsSubmitted;
     const canVerify      = b.status === "approved" && b.payment?.status === "verifying" && docsSubmitted;
     const lockStatus     = b.payment?.status === "verified" || Boolean(b.journey?.startAt);
@@ -155,7 +189,10 @@ export default function AdminBookings() {
     };
 
     return (
-      <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+      <div
+        id={`admin-booking-${b._id}`}
+        className="bg-white rounded-xl border border-zinc-200 overflow-hidden scroll-mt-24"
+      >
         <div className="px-4 py-3 border-b border-zinc-100 flex flex-wrap items-start justify-between gap-2 bg-zinc-50/60">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-zinc-900 truncate">{b.packageTitle}</p>
@@ -169,16 +206,19 @@ export default function AdminBookings() {
               {b.payment?.status || "no payment"}
             </span>
             {b.payment?.method ? (
-              <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold border bg-white text-zinc-600 border-zinc-200">
-                {b.payment.method === "jazzcash"
-                  ? "JazzCash"
-                  : b.payment.method === "easypaisa"
-                    ? "Easypaisa"
-                    : b.payment.method === "card"
-                      ? "Card"
-                      : b.payment.method === "bank_transfer"
-                        ? "Bank"
-                        : b.payment.method}
+              <span
+                title={
+                  isStripe
+                    ? "Paid via Stripe — no PDF receipt from the user"
+                    : undefined
+                }
+                className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                  isStripe
+                    ? "bg-violet-50 text-violet-800 border-violet-200"
+                    : "bg-white text-zinc-600 border-zinc-200"
+                }`}
+              >
+                {methodLabel(b.payment.method)}
               </span>
             ) : null}
           </div>
@@ -197,11 +237,10 @@ export default function AdminBookings() {
             {[
               { label: "Visa PDF",   href: hasVisa    ? `${origin}${b.documents.visaPdf}`  : null },
               { label: "Other PDF",  href: hasOther   ? `${origin}${b.documents.otherPdf}` : null },
-              { label: "Receipt",    href: hasReceipt ? `${origin}${b.payment.receiptPdf}` : null },
             ].map(({ label, href }) =>
               href ? (
                 <a key={label} href={href} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-100 hover:bg-rose-100 transition-colors font-medium">
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-100 hover:bg-amber-100 transition-colors font-medium">
                   ↗ {label}
                 </a>
               ) : (
@@ -210,12 +249,45 @@ export default function AdminBookings() {
                 </span>
               )
             )}
+            {isStripe ? (
+              <span
+                className="inline-flex items-center px-2.5 py-1 rounded-lg bg-violet-50 text-violet-800 border border-violet-200 font-medium"
+                title="Payment method is Stripe — no PDF receipt upload"
+              >
+                Payment receipt: not required (Stripe)
+              </span>
+            ) : hasReceipt ? (
+              <a
+                href={`${origin}${b.payment.receiptPdf}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-100 hover:bg-amber-100 transition-colors font-medium"
+              >
+                ↗ Receipt PDF
+              </a>
+            ) : (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-400 border border-zinc-200">
+                Receipt PDF: missing
+              </span>
+            )}
           </div>
 
           
           {awaitingDocs && (
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-              ⏳ Waiting for user to upload: visa PDF, other PDF, and payment receipt.
+              ⏳ Waiting for user:{" "}
+              {[
+                !hasVisa ? "visa PDF" : null,
+                !hasOther ? "other PDF" : null,
+                !paymentProofComplete
+                  ? isStripe
+                    ? "Stripe payment completion"
+                    : "payment receipt PDF"
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(", ") || "required documents"}
+              .
             </p>
           )}
           {lockStatus && !awaitingDocs && (
@@ -275,7 +347,7 @@ export default function AdminBookings() {
                   setScheduleFor(b._id);
                   setStartAt(b.journey?.startAt ? new Date(b.journey.startAt).toISOString().slice(0, 16) : "");
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <CalendarClock className="h-3.5 w-3.5" />
                 {b.journey?.startAt ? "Reschedule" : "Set start date"}
               </button>
@@ -375,7 +447,7 @@ export default function AdminBookings() {
       <div className="space-y-5">
         {loading ? (
           <div className="bg-white rounded-2xl border border-zinc-200 px-6 py-20 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
           </div>
         ) : (
           <>
@@ -441,7 +513,7 @@ export default function AdminBookings() {
                 <label className="block text-xs font-medium text-zinc-600 mb-1.5">Start date & time</label>
                 <input type="datetime-local" value={startAt}
                   onChange={e => setStartAt(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400/30" required />
+                  className="w-full px-3 py-2 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30" required />
               </div>
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => setScheduleFor(null)}
@@ -450,7 +522,7 @@ export default function AdminBookings() {
                 </button>
                 <button type="button" disabled={busyId === scheduleFor || !startAt}
                   onClick={() => schedule(scheduleFor)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 transition-colors">
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition-colors">
                   {busyId === scheduleFor && <Loader2 className="h-4 w-4 animate-spin" />}
                   {busyId === scheduleFor ? "Saving…" : "Save schedule"}
                 </button>

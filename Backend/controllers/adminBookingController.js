@@ -100,15 +100,29 @@ export const setPaymentStatus = async (req, res) => {
       const hasVisa = Boolean(existing.documents?.visaPdf);
       const hasOther = Boolean(existing.documents?.otherPdf);
       const hasReceipt = Boolean(existing.payment?.receiptPdf);
-      if (!hasVisa || !hasOther || !hasReceipt) {
+      const isStripe = existing.payment?.method === "stripe";
+      const hasStripeProof =
+        isStripe && Boolean(existing.payment?.stripePaymentIntentId);
+
+      const missing = [];
+      if (!hasVisa) missing.push("visa PDF");
+      if (!hasOther) missing.push("other document PDF");
+      if (isStripe) {
+        if (!hasStripeProof) missing.push("completed Stripe payment");
+      } else {
+        if (!hasReceipt) missing.push("receipt PDF");
+      }
+
+      if (missing.length > 0) {
         return res.status(400).json({
-          message:
-            "Cannot verify payment: visa PDF, other document PDF, and receipt PDF are required.",
+          message: `Cannot verify payment: ${missing.join(", ")} required.`,
         });
       }
+
       if (existing.payment?.status !== "verifying") {
         return res.status(400).json({
-          message: "Cannot verify payment: receipt must be submitted first.",
+          message:
+            "Cannot verify payment: payment must be awaiting verification (verifying) first.",
         });
       }
     }

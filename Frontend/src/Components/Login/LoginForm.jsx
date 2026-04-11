@@ -31,17 +31,13 @@ function LoginForm() {
 
   useEffect(() => {
     if (!ready || !isAuthenticated) return;
-    if (user?.role === "isAdmin") {
-      navigate("/admin/packages", { replace: true });
-      return;
-    }
     const from = location.state?.from;
     const target =
       from && typeof from === "object" && from.pathname
         ? from.pathname
         : "/";
     navigate(target, { replace: true });
-  }, [ready, isAuthenticated, user?.role, navigate, location.state?.from]);
+  }, [ready, isAuthenticated, navigate, location.state?.from]);
 
   const handleFocus = (field) => setFocused({ ...focused, [field]: true });
   const handleBlur = (field) => setFocused({ ...focused, [field]: false });

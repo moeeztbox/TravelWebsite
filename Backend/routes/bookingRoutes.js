@@ -7,6 +7,10 @@ import {
   deleteMyBooking,
   setMyPaymentMethod,
 } from "../controllers/bookingController.js";
+import {
+  createBookingPaymentIntent,
+  confirmBookingStripePayment,
+} from "../controllers/stripePaymentController.js";
 import { attachDocuments } from "../controllers/bookingDocumentsController.js";
 import {
   bookingUploadFields,
@@ -20,6 +24,8 @@ router.use(protect);
 
 router.post("/", createDraftBooking);
 router.get("/", listMyBookings);
+router.post("/:id/stripe/payment-intent", createBookingPaymentIntent);
+router.post("/:id/stripe/confirm", confirmBookingStripePayment);
 router.get("/:id", getBookingById);
 router.delete("/:id", deleteMyBooking);
 router.patch("/:id/payment-method", setMyPaymentMethod);

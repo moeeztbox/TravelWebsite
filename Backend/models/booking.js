@@ -35,9 +35,10 @@ const bookingSchema = new mongoose.Schema(
     },
     payment: {
       receiptPdf: { type: String, default: "" },
+      stripePaymentIntentId: { type: String, default: "" },
       method: {
         type: String,
-        enum: ["", "jazzcash", "easypaisa", "card", "bank_transfer"],
+        enum: ["", "jazzcash", "easypaisa", "card", "bank_transfer", "stripe"],
         default: "",
       },
       status: {

@@ -218,7 +218,7 @@ export default function AdminPackages() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 active:scale-95 transition-all shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 active:scale-95 transition-all shadow-sm"
           >
             <Plus className="h-4 w-4" />
             <span>Add package</span>
@@ -256,7 +256,7 @@ export default function AdminPackages() {
                 {loading ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-20 text-center">
-                      <Loader2 className="h-7 w-7 animate-spin text-rose-400 mx-auto" />
+                      <Loader2 className="h-7 w-7 animate-spin text-amber-400 mx-auto" />
                       <p className="mt-3 text-xs text-zinc-400">Loading packages…</p>
                     </td>
                   </tr>
@@ -271,7 +271,7 @@ export default function AdminPackages() {
                         <button
                           type="button"
                           onClick={openCreate}
-                          className="text-sm text-rose-500 font-medium hover:underline"
+                          className="text-sm text-amber-500 font-medium hover:underline"
                         >
                           Create your first package
                         </button>
@@ -411,7 +411,7 @@ export default function AdminPackages() {
                           Package ID (slug) *
                         </label>
                         <input
-                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                          className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                           value={form.packageId}
                           onChange={(e) =>
                             setForm((f) => ({ ...f, packageId: e.target.value }))
@@ -429,7 +429,7 @@ export default function AdminPackages() {
                           </label>
                           <input
                             type="number"
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                             value={form.order}
                             onChange={(e) =>
                               setForm((f) => ({ ...f, order: e.target.value }))
@@ -447,7 +447,7 @@ export default function AdminPackages() {
                               onChange={(e) =>
                                 setForm((f) => ({ ...f, active: e.target.checked }))
                               }
-                              className="h-4 w-4 rounded border-zinc-300 text-rose-500 focus:ring-rose-500"
+                              className="h-4 w-4 rounded border-zinc-300 text-amber-500 focus:ring-amber-500"
                             />
                             <span className="text-sm text-zinc-700">Show on site</span>
                           </label>
@@ -468,7 +468,7 @@ export default function AdminPackages() {
                           Title *
                         </label>
                         <input
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                           value={form.title}
                           onChange={(e) =>
                             setForm((f) => ({ ...f, title: e.target.value }))
@@ -481,7 +481,7 @@ export default function AdminPackages() {
                           Subtitle
                         </label>
                         <input
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                           value={form.subtitle}
                           onChange={(e) =>
                             setForm((f) => ({ ...f, subtitle: e.target.value }))
@@ -495,7 +495,7 @@ export default function AdminPackages() {
                             Price
                           </label>
                           <input
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                             value={form.price}
                             onChange={(e) =>
                               setForm((f) => ({ ...f, price: e.target.value }))
@@ -508,7 +508,7 @@ export default function AdminPackages() {
                             Duration
                           </label>
                           <input
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                             value={form.duration}
                             onChange={(e) =>
                               setForm((f) => ({ ...f, duration: e.target.value }))
@@ -524,7 +524,7 @@ export default function AdminPackages() {
                             Badge
                           </label>
                           <input
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                             value={form.badge}
                             onChange={(e) =>
                               setForm((f) => ({ ...f, badge: e.target.value }))
@@ -542,7 +542,7 @@ export default function AdminPackages() {
                           Image URL
                         </label>
                         <input
-                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                           value={form.image}
                           onChange={(e) =>
                             setForm((f) => ({ ...f, image: e.target.value }))
@@ -572,7 +572,7 @@ export default function AdminPackages() {
                             key={key}
                             className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
                               form.services?.[key]
-                                ? "border-rose-200 bg-rose-50/60"
+                                ? "border-amber-200 bg-amber-50/60"
                                 : "border-zinc-200 bg-zinc-50 hover:bg-white"
                             }`}
                           >
@@ -588,7 +588,7 @@ export default function AdminPackages() {
                                   },
                                 }))
                               }
-                              className="h-4 w-4 rounded border-zinc-300 text-rose-500 focus:ring-rose-500"
+                              className="h-4 w-4 rounded border-zinc-300 text-amber-500 focus:ring-amber-500"
                             />
                             <span className="text-sm text-zinc-700">{label}</span>
                           </label>
@@ -608,7 +608,7 @@ export default function AdminPackages() {
                         <button
                           type="button"
                           onClick={addHighlightRow}
-                          className="text-xs text-rose-500 font-medium hover:text-rose-700 hover:underline transition-colors"
+                          className="text-xs text-amber-500 font-medium hover:text-amber-700 hover:underline transition-colors"
                         >
                           + Add row
                         </button>
@@ -622,7 +622,7 @@ export default function AdminPackages() {
                               onChange={(e) =>
                                 updateHighlight(i, "iconKey", e.target.value)
                               }
-                              className="rounded-xl border border-zinc-200 bg-white px-2 py-2 text-xs flex-shrink-0 w-28 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                              className="rounded-xl border border-zinc-200 bg-white px-2 py-2 text-xs flex-shrink-0 w-28 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                             >
                               {ICON_OPTIONS.map((k) => (
                                 <option key={k} value={k}>
@@ -631,7 +631,7 @@ export default function AdminPackages() {
                               ))}
                             </select>
                             <input
-                              className="flex-1 min-w-0 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-400 transition-colors"
+                              className="flex-1 min-w-0 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
                               value={h.text}
                               onChange={(e) =>
                                 updateHighlight(i, "text", e.target.value)
@@ -665,7 +665,7 @@ export default function AdminPackages() {
                       <button
                         type="submit"
                         disabled={saving}
-                        className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 active:scale-95 disabled:opacity-60 transition-all"
+                        className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 active:scale-95 disabled:opacity-60 transition-all"
                       >
                         {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                         {editingId ? "Save changes" : "Create package"}

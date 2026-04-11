@@ -34,3 +34,17 @@ export async function deleteMyBooking(bookingId) {
   const { data } = await api.delete(`/bookings/${bookingId}`);
   return data;
 }
+
+export async function createStripePaymentIntent(bookingId) {
+  const { data } = await api.post(
+    `/bookings/${bookingId}/stripe/payment-intent`
+  );
+  return data;
+}
+
+export async function confirmStripePayment(bookingId, paymentIntentId) {
+  const { data } = await api.post(`/bookings/${bookingId}/stripe/confirm`, {
+    paymentIntentId,
+  });
+  return data;
+}

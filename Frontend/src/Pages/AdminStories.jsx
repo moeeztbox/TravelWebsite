@@ -56,7 +56,7 @@ export default function AdminStories() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+            className="px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           >
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
@@ -69,7 +69,7 @@ export default function AdminStories() {
       <div className="space-y-4">
         {loading ? (
           <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm px-6 py-16 text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-rose-500 mx-auto" />
+            <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto" />
           </div>
         ) : stories.length === 0 ? (
           <div className="bg-white rounded-2xl border border-zinc-200/80 shadow-sm px-6 py-14 text-center text-zinc-500">

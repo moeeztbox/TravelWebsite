@@ -10,7 +10,7 @@ import {
   MobileNavToggle,
   MobileNavMenu,
 } from "../../UI/resizable-navbar";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { UserCircle } from "lucide-react";
 import LanguageSwitcher from "../../Services/Languages/LanguageSwitcher";
@@ -18,7 +18,11 @@ import { useAuth } from "../../Context/AuthContext";
 
 export default function NavbarDemo() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, user, signOut } = useAuth();
+  const isAdmin = user?.role === "isAdmin";
+  const accountHref = isAdmin ? "/admin/packages" : "/dashboard";
+  const accountTitle = isAdmin ? "Admin panel" : "Your dashboard";
   const [bookingGateOpen, setBookingGateOpen] = useState(false);
 
   const navItems = [
@@ -118,19 +122,78 @@ export default function NavbarDemo() {
 
             {isAuthenticated ? (
               <div className="flex items-center gap-2 sm:gap-3">
-                <Link
-                  to="/dashboard"
-                  title="Your dashboard"
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-yellow-700 hover:bg-yellow-50 transition-colors"
-                >
-                  <UserCircle
-                    className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
-                    strokeWidth={1.5}
-                  />
-                  <span className="hidden sm:inline max-w-[140px] lg:max-w-[180px] truncate text-sm lg:text-base font-semibold">
-                    {displayName}
-                  </span>
-                </Link>
+                {isAdmin ? (
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      className={[
+                        "flex items-center justify-center rounded-lg p-1.5 transition-colors outline-none",
+                        location.pathname.startsWith("/admin") ||
+                          location.pathname === "/dashboard"
+                          ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60"
+                          : "text-yellow-700 hover:bg-yellow-50",
+                      ].join(" ")}
+                      aria-haspopup="menu"
+                      aria-label="Account menu"
+                    >
+                      <UserCircle
+                        className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
+                        strokeWidth={1.5}
+                      />
+                    </button>
+                    <div
+                      className="absolute right-0 top-full z-[60] pt-1 opacity-0 invisible pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:visible group-focus-within:pointer-events-auto"
+                      role="menu"
+                      aria-label="Admin account"
+                    >
+                      <div className="rounded-xl border border-amber-200 bg-white shadow-lg py-1 min-w-[13rem]">
+                        <Link
+                          to="/admin/packages"
+                          role="menuitem"
+                          className={[
+                            "block px-4 py-2.5 text-sm font-medium transition-colors",
+                            location.pathname.startsWith("/admin")
+                              ? "bg-amber-50 text-amber-950"
+                              : "text-stone-700 hover:bg-amber-50/80",
+                          ].join(" ")}
+                        >
+                          Admin panel
+                        </Link>
+                        <Link
+                          to="/dashboard"
+                          role="menuitem"
+                          className={[
+                            "block px-4 py-2.5 text-sm font-medium transition-colors border-t border-stone-100",
+                            location.pathname === "/dashboard"
+                              ? "bg-amber-50 text-amber-950"
+                              : "text-stone-700 hover:bg-amber-50/80",
+                          ].join(" ")}
+                        >
+                          Member dashboard
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    to={accountHref}
+                    title={accountTitle}
+                    className={[
+                      "flex items-center rounded-lg transition-colors gap-2 px-2 py-1.5",
+                      location.pathname.startsWith("/admin")
+                        ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60"
+                        : "text-yellow-700 hover:bg-yellow-50",
+                    ].join(" ")}
+                  >
+                    <UserCircle
+                      className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
+                      strokeWidth={1.5}
+                    />
+                    <span className="hidden sm:inline max-w-[140px] lg:max-w-[180px] truncate text-sm lg:text-base font-semibold">
+                      {displayName}
+                    </span>
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -189,17 +252,49 @@ export default function NavbarDemo() {
               <div className="px-4 sm:px-6 py-3">
                 {isAuthenticated ? (
                   <div className="flex flex-col gap-3">
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-amber-100"
-                    >
-                      <UserCircle className="w-10 h-10 shrink-0" />
-                      <div className="min-w-0 text-left">
-                        <p className="text-xs text-amber-200/80">Signed in</p>
-                        <p className="font-semibold truncate">{displayName}</p>
+                    {isAdmin ? (
+                      <div className="flex flex-col gap-2 w-full rounded-xl bg-white/5 border border-white/10 p-3">
+                        <p className="text-xs font-medium text-amber-200/90 px-1">
+                          Account
+                        </p>
+                        <Link
+                          to="/admin/packages"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-amber-50 ${
+                            location.pathname.startsWith("/admin")
+                              ? "bg-white/15 ring-1 ring-amber-400/40"
+                              : "hover:bg-white/10"
+                          }`}
+                        >
+                          <UserCircle className="w-5 h-5 shrink-0 opacity-90" />
+                          Admin panel
+                        </Link>
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-amber-50 ${
+                            location.pathname === "/dashboard"
+                              ? "bg-white/15 ring-1 ring-amber-400/40"
+                              : "hover:bg-white/10"
+                          }`}
+                        >
+                          <UserCircle className="w-5 h-5 shrink-0 opacity-90" />
+                          Member dashboard
+                        </Link>
                       </div>
-                    </Link>
+                    ) : (
+                      <Link
+                        to={accountHref}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 border border-white/10 text-amber-100"
+                      >
+                        <UserCircle className="w-10 h-10 shrink-0" />
+                        <div className="min-w-0 text-left">
+                          <p className="text-xs text-amber-200/80">Signed in</p>
+                          <p className="font-semibold truncate">{displayName}</p>
+                        </div>
+                      </Link>
+                    )}
                     <button
                       type="button"
                       onClick={handleLogout}

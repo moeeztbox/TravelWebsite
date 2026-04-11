@@ -30,6 +30,7 @@ import {
 } from "../Services/customPackageService";
 import { getBitmojiAvatarUrl, BITMOJI_COUNT } from "../constants/bitmoji";
 import { getApiOrigin } from "../utils/apiOrigin";
+import BookingStripeCheckout from "../Services/PaymentIntegration/BookingStripeCheckout";
 
 function StatusBadge({ status }) {
   const map = {
@@ -145,6 +146,7 @@ function JourneyStepper({ stage }) {
 
 export default function UserDashboard() {
   const { user, updateUser } = useAuth();
+  const isAdmin = user?.role === "isAdmin";
   const [phone, setPhone] = useState(user?.phone || "");
   const [address, setAddress] = useState(user?.address || "");
   const [country, setCountry] = useState(user?.country || "");
@@ -345,6 +347,7 @@ export default function UserDashboard() {
     { id: "jazzcash", label: "JazzCash" },
     { id: "easypaisa", label: "Easypaisa" },
     { id: "bank_transfer", label: "Bank transfer" },
+    { id: "stripe", label: "Card (Stripe)" },
   ];
 
   const PAYMENT_DETAILS = {
@@ -363,6 +366,13 @@ export default function UserDashboard() {
         "Account title: Ali Ahmad",
         "Account number: 11310112434110",
         "IBAN: —",
+      ],
+    },
+    stripe: {
+      title: "Card payment (Stripe)",
+      lines: [
+        "Pay securely with your debit or credit card.",
+        "No receipt upload is needed—your payment is confirmed with Stripe.",
       ],
     },
   };
@@ -904,10 +914,6 @@ export default function UserDashboard() {
                   const showDocsForm =
                     !journeyLocked &&
                     (!b.documents?.visaPdf || !b.documents?.otherPdf);
-                  const showReceiptForm =
-                    !journeyLocked &&
-                    b.payment?.status !== "verified" &&
-                    !b.payment?.receiptPdf;
                   const canSetMethod =
                     !journeyLocked && b.payment?.status !== "verified";
                   const receiptSubmitted = Boolean(b.payment?.receiptPdf);
@@ -915,7 +921,20 @@ export default function UserDashboard() {
                     paymentMethodDraft[b._id] ?? b.payment?.method ?? "";
                   const method =
                     rawMethod === "card" ? "bank_transfer" : rawMethod;
+                  const isStripe = method === "stripe";
                   const details = method ? PAYMENT_DETAILS[method] : null;
+                  const methodSelectLocked =
+                    b.payment?.status === "verifying" ||
+                    b.payment?.status === "verified" ||
+                    receiptSubmitted;
+                  const showReceiptForm =
+                    !journeyLocked &&
+                    b.payment?.status !== "verified" &&
+                    !b.payment?.receiptPdf &&
+                    !isStripe;
+                  const payStatus = b.payment?.status ?? "none";
+                  const showStripeCheckout =
+                    !journeyLocked && payStatus === "none" && isStripe;
                   return (
                     <li
                       id={`booking-${b._id}`}
@@ -1045,13 +1064,15 @@ export default function UserDashboard() {
                             Payment method
                           </p>
                           <p className="text-[11px] text-stone-500 -mt-1 mb-1">
-                            {receiptSubmitted
-                              ? "Payment method is locked after your receipt is submitted."
-                              : "Your choice is stored when you upload the receipt below—no need to save separately."}
+                            {methodSelectLocked
+                              ? "Payment method is locked after you submit payment."
+                              : isStripe
+                                ? "Choose Card (Stripe), then complete payment in the secure form below."
+                                : "Your choice is stored when you upload the receipt below—no need to save separately."}
                           </p>
                           <select
                             value={method}
-                            disabled={receiptSubmitted}
+                            disabled={methodSelectLocked}
                             onChange={(e) => {
                               setPaymentMethodDraft((prev) => ({
                                 ...prev,
@@ -1077,13 +1098,30 @@ export default function UserDashboard() {
                                 ))}
                               </ul>
                               <p className="text-[11px] text-stone-500 mt-2">
-                                After payment, upload the receipt PDF below.
+                                {isStripe
+                                  ? "Use the Stripe form below—no PDF receipt is required."
+                                  : "After payment, upload the receipt PDF below."}
                               </p>
                             </div>
                           ) : null}
                         </div>
                       ) : null}
                     </div>
+
+                    {showStripeCheckout ? (
+                      <div className="mt-3">
+                        <BookingStripeCheckout
+                          bookingId={b._id}
+                          onPaid={async () => {
+                            toast.success(
+                              "Payment received. It will show as verifying until admin confirms."
+                            );
+                            await loadBookings({ silent: true });
+                          }}
+                          onError={(msg) => toast.error(msg)}
+                        />
+                      </div>
+                    ) : null}
 
                     {/* Payment receipt */}
                     <div className="mt-3">
@@ -1124,26 +1162,61 @@ export default function UserDashboard() {
         <aside className="space-y-6">
           <div className="bg-white rounded-2xl shadow border border-stone-200 p-6">
             <h3 className="font-semibold text-stone-900 mb-2">Profile tips</h3>
-            <p className="text-sm text-stone-600">
-              Add your phone number and pick an avatar so we can recognize your
-              account easily. After a booking is approved, return here to upload
-              visa and travel documents as PDFs.
-            </p>
-            <div className="mt-4 h-2 rounded-full bg-stone-100 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all"
-                style={{
-                  width: `${Math.min(
-                    100,
-                    25 +
-                      (user?.phone ? 25 : 0) +
-                      (bitmojiIndex != null ? 25 : 0) +
-                      (user?.city ? 25 : 0)
-                  )}%`,
-                }}
-              />
-            </div>
-            <p className="text-xs text-stone-500 mt-2">Profile completeness</p>
+            {isAdmin ? (
+              <>
+                <p className="text-sm text-stone-600">
+                  As an administrator, you can use this dashboard to preview the
+                  same member experience your travelers see—bookings, documents,
+                  and custom packages. Walk through flows here to verify everything
+                  works, then manage content and approvals from the admin panel
+                  (face icon → Admin panel).
+                </p>
+                <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200/80 px-3 py-2.5 text-xs text-amber-950">
+                  <span className="font-semibold">Tip:</span> Use the main site
+                  navigation to test public pages; use{" "}
+                  <span className="font-medium">Admin panel</span> in the account
+                  menu for back-office tasks.
+                </div>
+                <div className="mt-4 h-2 rounded-full bg-stone-100 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        25 +
+                          (user?.phone ? 25 : 0) +
+                          (bitmojiIndex != null ? 25 : 0) +
+                          (user?.city ? 25 : 0)
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-stone-500 mt-2">Profile completeness</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-stone-600">
+                  Add your phone number and pick an avatar so we can recognize your
+                  account easily. After a booking is approved, return here to upload
+                  visa and travel documents as PDFs.
+                </p>
+                <div className="mt-4 h-2 rounded-full bg-stone-100 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(
+                        100,
+                        25 +
+                          (user?.phone ? 25 : 0) +
+                          (bitmojiIndex != null ? 25 : 0) +
+                          (user?.city ? 25 : 0)
+                      )}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-stone-500 mt-2">Profile completeness</p>
+              </>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl shadow border border-stone-200 p-6">

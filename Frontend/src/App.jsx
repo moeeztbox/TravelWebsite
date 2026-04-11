@@ -55,12 +55,9 @@ const ScrollToTop = () => {
 };
 
 function AppRoutes() {
-  const location = useLocation();
-  const hideMainChrome = location.pathname.startsWith("/admin");
-
   return (
     <>
-      {!hideMainChrome ? <Navbar /> : null}
+      <Navbar />
       <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/packages" element={<Packages />} />
@@ -149,7 +146,7 @@ function AppRoutes() {
           />
           <Route path="/*" element={<NotFound />} />
       </Routes>
-      {!hideMainChrome ? <Footer /> : null}
+      <Footer />
     </>
   );
 }
