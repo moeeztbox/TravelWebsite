@@ -19,10 +19,12 @@ import { useAuth } from "../../Context/AuthContext";
 export default function NavbarDemo() {
   const navigate = useNavigate();
   const { isAuthenticated, user, signOut } = useAuth();
+  const [bookingGateOpen, setBookingGateOpen] = useState(false);
+
   const navItems = [
     { name: "Home", link: "/" },
     { name: "Packages", link: "/packages" },
-    ...(isAuthenticated ? [{ name: "Booking", link: "/booking" }] : []),
+    { name: "Booking", link: "/booking", requiresAuth: true },
     { name: "Services", link: "/services" },
     { name: "FAQ", link: "/faq" },
     { name: "Stories", link: "/stories" },
@@ -53,12 +55,63 @@ export default function NavbarDemo() {
     navigate("/", { replace: true });
   };
 
+  const openBookingGate = () => setBookingGateOpen(true);
+
   return (
     <div className="relative w-full">
+      {bookingGateOpen ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="booking-gate-title"
+          onClick={() => setBookingGateOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white shadow-xl border border-gray-200 p-6 sm:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              id="booking-gate-title"
+              className="text-lg sm:text-xl font-bold text-gray-900"
+            >
+              Sign in required
+            </h2>
+            <p className="mt-3 text-sm sm:text-base text-gray-600 leading-relaxed">
+              For booking you should register yourself first. Create an account to continue, or
+              cancel to stay on the site.
+            </p>
+            <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setBookingGateOpen(false)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border-2 border-gray-300 text-gray-800 font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setBookingGateOpen(false);
+                  navigate("/register");
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-yellow-600 text-white font-semibold hover:bg-yellow-500 transition-colors"
+              >
+                Register yourself
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <Navbar>
         <NavBody>
           <NavbarLogo />
-          <NavItems items={navItems} />
+          <NavItems
+            items={navItems}
+            isAuthenticated={isAuthenticated}
+            onAuthRequiredClick={openBookingGate}
+          />
 
           <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
             <LanguageSwitcher />
@@ -124,6 +177,11 @@ export default function NavbarDemo() {
             <NavItems
               items={navItems}
               isMobile={true}
+              isAuthenticated={isAuthenticated}
+              onAuthRequiredClick={() => {
+                setIsMobileMenuOpen(false);
+                openBookingGate();
+              }}
               onItemClick={() => setIsMobileMenuOpen(false)}
             />
 

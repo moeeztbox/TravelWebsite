@@ -15,6 +15,8 @@ import ContactUs from "./Pages/ContactUs";
 import Packages from "./Pages/Packages";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
+import ForgotPassword from "./Pages/ForgotPassword";
+import ResetPassword from "./Pages/ResetPassword";
 import Navbar from "./Components/Main/Navbar";
 import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
@@ -80,6 +82,8 @@ function AppRoutes() {
           <Route path="/travel-guide" element={<TravelPage />} />
           <Route path="/ziyarat-guide" element={<ZiyaratPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<Register />} />
           <Route path="/policies" element={<Policies />} />
           <Route path="/coming-soon" element={<ComingSoon />} />

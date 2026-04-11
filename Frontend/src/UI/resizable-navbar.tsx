@@ -43,10 +43,12 @@ export const NavBody: React.FC<NavBodyProps> = ({
 };
 
 // 3. Navigation Items - With underline hover animation
-interface NavItem {
+export interface NavItem {
   name: string;
   link: string;
   subItems?: NavItem[];
+  /** When set, guests trigger onAuthRequiredClick instead of navigating to link */
+  requiresAuth?: boolean;
 }
 
 interface NavItemsProps {
@@ -54,6 +56,8 @@ interface NavItemsProps {
   className?: string;
   onItemClick?: () => void;
   isMobile?: boolean;
+  isAuthenticated?: boolean;
+  onAuthRequiredClick?: (item: NavItem) => void;
 }
 
 export const NavItems: React.FC<NavItemsProps> = ({
@@ -61,6 +65,8 @@ export const NavItems: React.FC<NavItemsProps> = ({
   className,
   onItemClick,
   isMobile = false,
+  isAuthenticated = false,
+  onAuthRequiredClick,
 }) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isHoveringDropdown, setIsHoveringDropdown] = useState(false);
@@ -133,6 +139,26 @@ export const NavItems: React.FC<NavItemsProps> = ({
           onMouseEnter={() => handleMouseEnter(item.name)}
           onMouseLeave={handleMouseLeave}
         >
+          {item.requiresAuth && !isAuthenticated ? (
+            <button
+              type="button"
+              onClick={() => {
+                onAuthRequiredClick?.(item);
+                handleItemClick();
+              }}
+              className={cn(
+                "transition-all duration-300 whitespace-nowrap relative group flex items-center bg-transparent border-0 cursor-pointer font-inherit",
+                isMobile
+                  ? "block px-6 py-5 text-lg font-semibold text-black hover:text-yellow-600 hover:bg-gray-50 first:pt-4 last:pb-4 w-full text-left"
+                  : "text-gray-700 hover:text-yellow-600"
+              )}
+            >
+              {item.name}
+              {!isMobile && (
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-600 transition-all duration-300 group-hover:w-full" />
+              )}
+            </button>
+          ) : (
           <Link
             to={item.link}
             onClick={handleItemClick}
@@ -157,6 +183,7 @@ export const NavItems: React.FC<NavItemsProps> = ({
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-600 transition-all duration-300 group-hover:w-full"></span>
             )}
           </Link>
+          )}
 
           {/* Desktop Dropdown */}
           {!isMobile && item.subItems && item.subItems.length > 0 && (

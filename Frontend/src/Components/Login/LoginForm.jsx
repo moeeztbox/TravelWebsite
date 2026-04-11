@@ -131,6 +131,14 @@ function LoginForm() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            <div className="text-right mt-2">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-yellow-600 font-medium hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <div className="text-center pt-2 sm:pt-4">
