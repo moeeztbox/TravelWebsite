@@ -7,6 +7,9 @@ import {
   Users,
   BookOpen,
   Menu,
+  Bus,
+  FileText,
+  Layers,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -28,7 +31,14 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
 
   const nav = [
     { to: "/admin/packages", label: "Packages", icon: LayoutGrid },
+    {
+      to: "/admin/service-options",
+      label: "Transport & visa options",
+      icon: Layers,
+    },
     { to: "/admin/bookings", label: "Bookings", icon: ClipboardList },
+    { to: "/admin/transportation", label: "Transportation Bookings", icon: Bus },
+    { to: "/admin/visa-requests", label: "Visa requests", icon: FileText },
     { to: "/admin/custom-packages", label: "Custom Packages", icon: PackagePlus },
     { to: "/admin/stories", label: "Stories", icon: BookOpen },
     { to: "/admin/user-statuses", label: "User Statuses", icon: Users },

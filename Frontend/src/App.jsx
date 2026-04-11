@@ -35,6 +35,9 @@ import AdminBookings from "./Pages/AdminBookings";
 import AdminUserStatuses from "./Pages/AdminUserStatuses";
 import AdminStories from "./Pages/AdminStories";
 import AdminCustomPackages from "./Pages/AdminCustomPackages";
+import AdminTransportation from "./Pages/AdminTransportation";
+import AdminVisaRequests from "./Pages/AdminVisaRequests";
+import AdminServiceOptions from "./Pages/AdminServiceOptions";
 import Stories from "./Pages/Stories";
 import SubmitStory from "./Pages/SubmitStory";
 
@@ -109,10 +112,34 @@ function AppRoutes() {
             }
           />
           <Route
+            path="/admin/service-options"
+            element={
+              <RequireAdmin>
+                <AdminServiceOptions />
+              </RequireAdmin>
+            }
+          />
+          <Route
             path="/admin/bookings"
             element={
               <RequireAdmin>
                 <AdminBookings />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/transportation"
+            element={
+              <RequireAdmin>
+                <AdminTransportation />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/visa-requests"
+            element={
+              <RequireAdmin>
+                <AdminVisaRequests />
               </RequireAdmin>
             }
           />

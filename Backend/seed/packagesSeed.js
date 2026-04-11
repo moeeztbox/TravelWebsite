@@ -112,7 +112,6 @@ const SEED_PACKAGES = [
 ];
 
 export async function seedPackagesIfEnabled() {
-  // Insert only missing packageIds (idempotent).
   const existing = await Package.find(
     { packageId: { $in: SEED_PACKAGES.map((p) => p.packageId) } },
     { packageId: 1 }

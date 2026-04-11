@@ -23,6 +23,18 @@ import {
   deleteMyBooking,
 } from "../Services/bookingService";
 import {
+  listMyTransportationBookings,
+  setTransportPaymentMethod,
+  uploadTransportPaymentReceipt,
+  dismissTransportationBooking,
+} from "../Services/transportationService";
+import {
+  listMyVisaRequests,
+  setVisaPaymentMethod,
+  uploadVisaPaymentReceipt,
+  dismissVisaRequest,
+} from "../Services/visaRequestService";
+import {
   acceptCustomPackageRequest,
   rejectCustomPackageOffer,
   deleteMyCustomPackageRequest,
@@ -31,6 +43,7 @@ import {
 import { getBitmojiAvatarUrl, BITMOJI_COUNT } from "../constants/bitmoji";
 import { getApiOrigin } from "../utils/apiOrigin";
 import BookingStripeCheckout from "../Services/PaymentIntegration/BookingStripeCheckout";
+import MiscStripeCheckout from "../Services/PaymentIntegration/MiscStripeCheckout";
 
 function StatusBadge({ status }) {
   const map = {
@@ -158,6 +171,12 @@ export default function UserDashboard() {
   const [loadingList, setLoadingList] = useState(true);
   const [customRequests, setCustomRequests] = useState([]);
   const [loadingCustom, setLoadingCustom] = useState(true);
+  const [transportBookings, setTransportBookings] = useState([]);
+  const [loadingTransport, setLoadingTransport] = useState(true);
+  const [visaRequests, setVisaRequests] = useState([]);
+  const [loadingVisa, setLoadingVisa] = useState(true);
+  const [paymentMethodTransport, setPaymentMethodTransport] = useState({});
+  const [paymentMethodVisa, setPaymentMethodVisa] = useState({});
   const [uploadForId, setUploadForId] = useState(null);
   const [receiptForId, setReceiptForId] = useState(null);
   /** Local payment method choice per booking — saved when receipt is submitted */
@@ -208,6 +227,129 @@ export default function UserDashboard() {
     loadCustom();
   }, []);
 
+  const loadTransport = async (silent) => {
+    if (!silent) setLoadingTransport(true);
+    try {
+      const list = await listMyTransportationBookings();
+      setTransportBookings(list || []);
+    } catch {
+      /* optional section */
+    } finally {
+      if (!silent) setLoadingTransport(false);
+    }
+  };
+
+  const loadVisa = async (silent) => {
+    if (!silent) setLoadingVisa(true);
+    try {
+      const list = await listMyVisaRequests();
+      setVisaRequests(list || []);
+    } catch {
+      /* optional */
+    } finally {
+      if (!silent) setLoadingVisa(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTransport();
+    loadVisa();
+  }, []);
+
+  const isTransportServiceDone = (b) => {
+    if (b.payment?.status !== "verified") return false;
+    const t = b.endAt || b.pickupAt;
+    if (!t) return false;
+    return Date.now() > new Date(t).getTime();
+  };
+
+  const isVisaProcessingDone = (v) => {
+    if (v.payment?.status !== "verified") return false;
+    const t = v.serviceEndDate;
+    if (!t) return false;
+    return Date.now() > new Date(t).getTime();
+  };
+
+  const submitTransportReceipt = async (id, e) => {
+    e.preventDefault();
+    const method =
+      paymentMethodTransport[id] ||
+      transportBookings.find((x) => x._id === id)?.payment?.method;
+    if (!method) {
+      toast.error("Select a payment method first.");
+      return;
+    }
+    if (method === "stripe") {
+      toast.error("Use the Stripe card form below—no receipt upload.");
+      return;
+    }
+    await setTransportPaymentMethod(id, method);
+    const fd = new FormData(e.target);
+    setOverlay({ open: true, message: "Uploading receipt…" });
+    try {
+      await uploadTransportPaymentReceipt(id, fd);
+      toast.success("Receipt submitted");
+      await loadTransport(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
+  const submitVisaReceipt = async (id, e) => {
+    e.preventDefault();
+    const method =
+      paymentMethodVisa[id] ||
+      visaRequests.find((x) => x._id === id)?.payment?.method;
+    if (!method) {
+      toast.error("Select a payment method first.");
+      return;
+    }
+    if (method === "stripe") {
+      toast.error("Use the Stripe card form below—no receipt upload.");
+      return;
+    }
+    await setVisaPaymentMethod(id, method);
+    const fd = new FormData(e.target);
+    setOverlay({ open: true, message: "Uploading receipt…" });
+    try {
+      await uploadVisaPaymentReceipt(id, fd);
+      toast.success("Receipt submitted");
+      await loadVisa(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
+  const removeTransport = async (id) => {
+    setOverlay({ open: true, message: "Removing…" });
+    try {
+      await dismissTransportationBooking(id);
+      toast.success("Removed");
+      await loadTransport(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not remove");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
+  const removeVisa = async (id) => {
+    setOverlay({ open: true, message: "Removing…" });
+    try {
+      await dismissVisaRequest(id);
+      toast.success("Removed");
+      await loadVisa(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not remove");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -234,6 +376,10 @@ export default function UserDashboard() {
   const approvedBookings = bookings.filter((b) => b.status === "approved");
   const rejectedBookings = bookings.filter((b) => b.status === "rejected");
   const origin = getApiOrigin();
+  const miscReceiptUrl = (filename) =>
+    filename
+      ? `${origin}/uploads/misc-receipts/${encodeURIComponent(filename)}`
+      : "";
   const pendingCustom = customRequests.filter((r) => r.status === "pending");
   const approvedCustom = customRequests.filter((r) => r.status === "approved");
   const rejectedCustom = customRequests.filter((r) => r.status === "rejected");
@@ -533,6 +679,451 @@ export default function UserDashboard() {
               </button>
             </form>
           </section>
+
+          {!loadingTransport && transportBookings.length > 0 ? (
+            <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
+              <h2 className="text-xl font-bold text-stone-900 mb-2">
+                Your transportation bookings
+              </h2>
+              <p className="text-sm text-stone-500 mb-6">
+                Track approval, pay with receipt only, and remove the card after
+                your ride date has passed.
+              </p>
+              <ul className="space-y-4">
+                {transportBookings.map((tb) => (
+                  <li
+                    key={tb._id}
+                    className="rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3 space-y-2"
+                  >
+                    <div className="flex flex-wrap justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-stone-900">
+                          {tb.selectedOption?.title}
+                        </p>
+                        <p className="text-xs text-stone-500">
+                          {tb.form?.pickup} → {tb.form?.dropoff}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                          tb.status === "approved"
+                            ? "bg-emerald-100 text-emerald-900 border-emerald-200"
+                            : tb.status === "rejected"
+                              ? "bg-red-100 text-red-800 border-red-200"
+                              : "bg-amber-100 text-amber-900 border-amber-200"
+                        }`}
+                      >
+                        {tb.status === "pending"
+                          ? "Awaiting approval"
+                          : tb.status}
+                      </span>
+                    </div>
+
+                    {tb.status === "rejected" ? (
+                      <p className="text-sm text-red-700">
+                        Request was rejected. You can remove this card.
+                      </p>
+                    ) : null}
+
+                    {tb.status === "approved" &&
+                    tb.payment?.status !== "verified" ? (
+                      (() => {
+                        const rawMethod =
+                          paymentMethodTransport[tb._id] ??
+                          tb.payment?.method ??
+                          "";
+                        const method =
+                          rawMethod === "card" ? "bank_transfer" : rawMethod;
+                        const isStripe = method === "stripe";
+                        const details = method ? PAYMENT_DETAILS[method] : null;
+                        const receiptSubmitted = Boolean(tb.payment?.receiptPdf);
+                        const methodSelectLocked =
+                          tb.payment?.status === "verifying" ||
+                          receiptSubmitted;
+                        const payStatus = tb.payment?.status ?? "none";
+                        const showReceiptForm =
+                          payStatus !== "verified" &&
+                          !tb.payment?.receiptPdf &&
+                          !isStripe &&
+                          method;
+                        const showStripeCheckout =
+                          payStatus === "none" && isStripe;
+                        return (
+                      <div className="space-y-3 border-t border-stone-200 pt-2">
+                        <p className="text-xs font-medium text-stone-700">
+                          Payment ({tb.selectedOption?.priceLabel || "—"})
+                        </p>
+                        <p className="text-[11px] text-stone-500">
+                          {methodSelectLocked
+                            ? "Payment method is locked after you submit payment."
+                            : isStripe
+                              ? "Choose Card (Stripe), then complete payment below."
+                              : "Your choice is saved when you upload the receipt—no separate save."}
+                        </p>
+                        <select
+                          className="w-full max-w-xs rounded-lg border border-stone-200 px-2 py-1.5 text-sm disabled:opacity-60"
+                          disabled={methodSelectLocked}
+                          value={method}
+                          onChange={(e) =>
+                            setPaymentMethodTransport((m) => ({
+                              ...m,
+                              [tb._id]: e.target.value,
+                            }))
+                          }
+                        >
+                          {PAYMENT_METHODS.map((m) => (
+                            <option
+                              key={m.id === "" ? "pm-empty" : m.id}
+                              value={m.id}
+                            >
+                              {m.label}
+                            </option>
+                          ))}
+                        </select>
+                        {details ? (
+                          <div className="rounded-xl border border-stone-200 bg-white/70 px-3 py-2 text-sm text-stone-700">
+                            <p className="font-semibold text-stone-900">
+                              {details.title}
+                            </p>
+                            <ul className="mt-1 space-y-0.5 text-xs">
+                              {details.lines.map((line) => (
+                                <li key={line}>{line}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                        {showStripeCheckout ? (
+                          <MiscStripeCheckout
+                            kind="transport"
+                            recordId={tb._id}
+                            onPaid={async () => {
+                              toast.success(
+                                "Payment received. Awaiting admin verification."
+                              );
+                              await loadTransport(true);
+                            }}
+                            onError={(msg) => toast.error(msg)}
+                          />
+                        ) : null}
+                        {showReceiptForm ? (
+                        <form
+                          className="flex flex-col sm:flex-row gap-2 items-start"
+                          onSubmit={(e) => submitTransportReceipt(tb._id, e)}
+                        >
+                          <input
+                            name="receiptPdf"
+                            type="file"
+                            accept="application/pdf"
+                            className="text-sm"
+                            required
+                          />
+                          <button
+                            type="submit"
+                            className="px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-semibold"
+                          >
+                            Submit receipt
+                          </button>
+                        </form>
+                        ) : null}
+                        {tb.payment?.status === "verifying" ? (
+                          <div className="text-xs text-amber-800 space-y-0.5">
+                            <p>Awaiting admin verification</p>
+                            {isStripe ? (
+                              <p className="text-stone-500 font-normal">
+                                Paid with Stripe — no PDF receipt to download here.
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                        );
+                      })()
+                    ) : null}
+
+                    {tb.payment?.status === "verified" ? (
+                      <div className="border-t border-stone-200 pt-2 space-y-1 text-sm text-stone-700">
+                        <p className="font-medium text-emerald-800">
+                          Payment verified
+                        </p>
+                        {tb.payment?.method === "stripe" ? (
+                          <p className="text-xs text-stone-500">
+                            Paid with Stripe — there is no uploaded PDF receipt
+                            for this booking.
+                          </p>
+                        ) : tb.payment?.receiptPdf ? (
+                          <a
+                            href={miscReceiptUrl(tb.payment.receiptPdf)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-sm text-amber-700 hover:underline"
+                          >
+                            <FileText className="w-4 h-4" /> View payment
+                            receipt
+                          </a>
+                        ) : null}
+                        <p>
+                          Pickup:{" "}
+                          {tb.pickupAt
+                            ? new Date(tb.pickupAt).toLocaleString()
+                            : `${tb.form?.pickupDate} ${tb.form?.pickupTime || ""}`}
+                        </p>
+                        <p>
+                          End:{" "}
+                          {tb.endAt
+                            ? new Date(tb.endAt).toLocaleString()
+                            : "—"}
+                        </p>
+                        <p>Passengers: {tb.form?.passengers}</p>
+                        {isTransportServiceDone(tb) ? (
+                          <div className="flex flex-wrap items-center gap-2 pt-2">
+                            <p className="text-xs font-medium text-emerald-800">
+                              Service completed successfully. You can remove this
+                              reminder.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => removeTransport(tb._id)}
+                              className="inline-flex items-center gap-1 text-xs text-red-700 font-semibold"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Remove
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {tb.status === "rejected" ? (
+                      <button
+                        type="button"
+                        onClick={() => removeTransport(tb._id)}
+                        className="inline-flex items-center gap-1 text-xs text-red-700 font-semibold"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Remove
+                      </button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {!loadingVisa && visaRequests.length > 0 ? (
+            <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
+              <h2 className="text-xl font-bold text-stone-900 mb-2">
+                Your visa requests
+              </h2>
+              <p className="text-sm text-stone-500 mb-6">
+                Same flow as transportation: approval → payment receipt →
+                verification.
+              </p>
+              <ul className="space-y-4">
+                {visaRequests.map((vr) => (
+                  <li
+                    key={vr._id}
+                    className="rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3 space-y-2"
+                  >
+                    <div className="flex flex-wrap justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-stone-900">
+                          {vr.selectedOption?.title}
+                        </p>
+                        <p className="text-xs text-stone-500">
+                          {vr.form?.nationality} · {vr.form?.duration} ·{" "}
+                          {vr.membersCount} travellers
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                          vr.status === "approved"
+                            ? "bg-emerald-100 text-emerald-900 border-emerald-200"
+                            : vr.status === "rejected"
+                              ? "bg-red-100 text-red-800 border-red-200"
+                              : "bg-amber-100 text-amber-900 border-amber-200"
+                        }`}
+                      >
+                        {vr.status === "pending"
+                          ? "Awaiting approval"
+                          : vr.status}
+                      </span>
+                    </div>
+
+                    {vr.status === "rejected" ? (
+                      <p className="text-sm text-red-700">
+                        Request was rejected. You can remove this card.
+                      </p>
+                    ) : null}
+
+                    {vr.status === "approved" &&
+                    vr.payment?.status !== "verified" ? (
+                      (() => {
+                        const rawMethod =
+                          paymentMethodVisa[vr._id] ??
+                          vr.payment?.method ??
+                          "";
+                        const method =
+                          rawMethod === "card" ? "bank_transfer" : rawMethod;
+                        const isStripe = method === "stripe";
+                        const details = method ? PAYMENT_DETAILS[method] : null;
+                        const receiptSubmitted = Boolean(vr.payment?.receiptPdf);
+                        const methodSelectLocked =
+                          vr.payment?.status === "verifying" ||
+                          receiptSubmitted;
+                        const payStatus = vr.payment?.status ?? "none";
+                        const showReceiptForm =
+                          payStatus !== "verified" &&
+                          !vr.payment?.receiptPdf &&
+                          !isStripe &&
+                          method;
+                        const showStripeCheckout =
+                          payStatus === "none" && isStripe;
+                        return (
+                      <div className="space-y-3 border-t border-stone-200 pt-2">
+                        <p className="text-xs font-medium text-stone-700">
+                          Payment ({vr.selectedOption?.priceLabel || "—"})
+                        </p>
+                        <select
+                          className="w-full max-w-xs rounded-lg border border-stone-200 px-2 py-1.5 text-sm disabled:opacity-60"
+                          disabled={methodSelectLocked}
+                          value={method}
+                          onChange={(e) =>
+                            setPaymentMethodVisa((m) => ({
+                              ...m,
+                              [vr._id]: e.target.value,
+                            }))
+                          }
+                        >
+                          {PAYMENT_METHODS.map((m) => (
+                            <option
+                              key={m.id === "" ? "pm-empty" : m.id}
+                              value={m.id}
+                            >
+                              {m.label}
+                            </option>
+                          ))}
+                        </select>
+                        {details ? (
+                          <div className="rounded-xl border border-stone-200 bg-white/70 px-3 py-2 text-sm text-stone-700">
+                            <p className="font-semibold text-stone-900">
+                              {details.title}
+                            </p>
+                            <ul className="mt-1 space-y-0.5 text-xs">
+                              {details.lines.map((line) => (
+                                <li key={line}>{line}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                        {showStripeCheckout ? (
+                          <MiscStripeCheckout
+                            kind="visa"
+                            recordId={vr._id}
+                            onPaid={async () => {
+                              toast.success(
+                                "Payment received. Awaiting admin verification."
+                              );
+                              await loadVisa(true);
+                            }}
+                            onError={(msg) => toast.error(msg)}
+                          />
+                        ) : null}
+                        {showReceiptForm ? (
+                        <form
+                          className="flex flex-col sm:flex-row gap-2 items-start"
+                          onSubmit={(e) => submitVisaReceipt(vr._id, e)}
+                        >
+                          <input
+                            name="receiptPdf"
+                            type="file"
+                            accept="application/pdf"
+                            className="text-sm"
+                            required
+                          />
+                          <button
+                            type="submit"
+                            className="px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-semibold"
+                          >
+                            Submit receipt
+                          </button>
+                        </form>
+                        ) : null}
+                        {vr.payment?.status === "verifying" ? (
+                          <div className="text-xs text-amber-800 space-y-0.5">
+                            <p>Awaiting admin verification</p>
+                            {isStripe ? (
+                              <p className="text-stone-500 font-normal">
+                                Paid with Stripe — no PDF receipt to download here.
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                        );
+                      })()
+                    ) : null}
+
+                    {vr.payment?.status === "verified" ? (
+                      <div className="border-t border-stone-200 pt-2 space-y-1 text-sm text-stone-700">
+                        <p className="font-medium text-emerald-800">
+                          Payment verified
+                        </p>
+                        {vr.payment?.method === "stripe" ? (
+                          <p className="text-xs text-stone-500">
+                            Paid with Stripe — there is no uploaded PDF receipt
+                            for this request.
+                          </p>
+                        ) : vr.payment?.receiptPdf ? (
+                          <a
+                            href={miscReceiptUrl(vr.payment.receiptPdf)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-sm text-amber-700 hover:underline"
+                          >
+                            <FileText className="w-4 h-4" /> View payment
+                            receipt
+                          </a>
+                        ) : null}
+                        <p>
+                          Processing window ends:{" "}
+                          {vr.serviceEndDate
+                            ? new Date(vr.serviceEndDate).toLocaleDateString()
+                            : "—"}
+                        </p>
+                        <p>Travellers: {vr.membersCount}</p>
+                        {isVisaProcessingDone(vr) ? (
+                          <div className="flex flex-wrap items-center gap-2 pt-2">
+                            <p className="text-xs font-medium text-emerald-800">
+                              Processing complete. You can remove this card.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => removeVisa(vr._id)}
+                              className="inline-flex items-center gap-1 text-xs text-red-700 font-semibold"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Remove
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {vr.status === "rejected" ? (
+                      <button
+                        type="button"
+                        onClick={() => removeVisa(vr._id)}
+                        className="inline-flex items-center gap-1 text-xs text-red-700 font-semibold"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Remove
+                      </button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {loadingList || draftBookings.length > 0 ? (
             <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
@@ -963,6 +1554,13 @@ export default function UserDashboard() {
                         >
                           <FileText className="w-4 h-4" /> Payment receipt
                         </a>
+                      ) : b.payment?.method === "stripe" &&
+                        (b.payment?.status === "verifying" ||
+                          b.payment?.status === "verified") ? (
+                        <p className="text-xs text-stone-500 max-w-[18rem] text-right">
+                          Paid with Stripe — no PDF receipt is uploaded or
+                          required.
+                        </p>
                       ) : null}
                     </div>
 

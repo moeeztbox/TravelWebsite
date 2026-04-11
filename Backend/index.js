@@ -35,6 +35,29 @@ import {
 } from "./controllers/adminBookingController.js";
 import { seedPackagesIfEnabled } from "./seed/packagesSeed.js";
 import { seedAdminUserOnStart } from "./seed/adminSeed.js";
+import { seedTransportationAndVisaOptions } from "./seed/transportationVisaSeed.js";
+import transportationRoutes from "./routes/transportationRoutes.js";
+import visaRequestRoutes from "./routes/visaRequestRoutes.js";
+import {
+  adminListTransportationBookings,
+  adminSetTransportationStatus,
+  adminSetTransportationPaymentStatus,
+} from "./controllers/adminTransportationController.js";
+import {
+  adminListVisaRequests,
+  adminSetVisaRequestStatus,
+  adminSetVisaPaymentStatus,
+} from "./controllers/adminVisaRequestController.js";
+import {
+  adminListTransportationOptions,
+  adminCreateTransportationOption,
+  adminUpdateTransportationOption,
+  adminDeleteTransportationOption,
+  adminListVisaOptions,
+  adminCreateVisaOption,
+  adminUpdateVisaOption,
+  adminDeleteVisaOption,
+} from "./controllers/adminServiceOptionsController.js";
 import { protect } from "./middleware/authMiddleware.js";
 import { uploadStoryVideo } from "./middleware/uploadStoryVideo.js";
 import {
@@ -119,6 +142,63 @@ app.get("/api/packages", listPackages);
 app.get("/api/admin/packages", protectAdmin, adminListAllPackages);
 app.use("/api/packages", packageRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/transportation", transportationRoutes);
+app.use("/api/visa", visaRequestRoutes);
+
+app.get(
+  "/api/admin/transportation-bookings",
+  protectAdmin,
+  adminListTransportationBookings
+);
+app.patch(
+  "/api/admin/transportation-bookings/:id",
+  protectAdmin,
+  adminSetTransportationStatus
+);
+app.patch(
+  "/api/admin/transportation-bookings/:id/payment",
+  protectAdmin,
+  adminSetTransportationPaymentStatus
+);
+
+app.get("/api/admin/visa-requests", protectAdmin, adminListVisaRequests);
+app.patch(
+  "/api/admin/visa-requests/:id",
+  protectAdmin,
+  adminSetVisaRequestStatus
+);
+app.patch(
+  "/api/admin/visa-requests/:id/payment",
+  protectAdmin,
+  adminSetVisaPaymentStatus
+);
+
+// Admin: transportation & visa catalog (options shown on booking forms)
+app.get(
+  "/api/admin/transportation-options",
+  protectAdmin,
+  adminListTransportationOptions
+);
+app.post(
+  "/api/admin/transportation-options",
+  protectAdmin,
+  adminCreateTransportationOption
+);
+app.patch(
+  "/api/admin/transportation-options/:id",
+  protectAdmin,
+  adminUpdateTransportationOption
+);
+app.delete(
+  "/api/admin/transportation-options/:id",
+  protectAdmin,
+  adminDeleteTransportationOption
+);
+app.get("/api/admin/visa-options", protectAdmin, adminListVisaOptions);
+app.post("/api/admin/visa-options", protectAdmin, adminCreateVisaOption);
+app.patch("/api/admin/visa-options/:id", protectAdmin, adminUpdateVisaOption);
+app.delete("/api/admin/visa-options/:id", protectAdmin, adminDeleteVisaOption);
+
 // Custom package requests (user)
 app.post("/api/custom-packages", protect, createCustomPackageRequest);
 app.get("/api/custom-packages/me", protect, listMyCustomPackageRequests);
@@ -174,6 +254,9 @@ connectDB()
     );
     seedAdminUserOnStart().catch((e) =>
       console.error("Admin seeding failed:", e)
+    );
+    seedTransportationAndVisaOptions().catch((e) =>
+      console.error("Transport/visa seed failed:", e)
     );
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
