@@ -47,7 +47,7 @@ export const attachDocuments = async (req, res) => {
   }
 };
 
-const PAYMENT_METHODS = ["jazzcash", "easypaisa", "card", "bank_transfer"];
+const PAYMENT_METHODS = ["jazzcash", "easypaisa", "bank_transfer"];
 
 export const attachPaymentReceipt = async (req, res) => {
   try {

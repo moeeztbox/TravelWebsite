@@ -42,12 +42,10 @@ export const NavBody: React.FC<NavBodyProps> = ({
   );
 };
 
-// 3. Navigation Items - With underline hover animation
 export interface NavItem {
   name: string;
   link: string;
   subItems?: NavItem[];
-  /** When set, guests trigger onAuthRequiredClick instead of navigating to link */
   requiresAuth?: boolean;
 }
 
@@ -73,7 +71,6 @@ export const NavItems: React.FC<NavItemsProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -101,7 +98,6 @@ export const NavItems: React.FC<NavItemsProps> = ({
 
   const handleMouseLeave = () => {
     if (!isMobile && !isHoveringDropdown) {
-      // Small delay to allow moving to dropdown
       setTimeout(() => {
         if (!isHoveringDropdown) {
           setHoveredItem(null);
@@ -185,7 +181,6 @@ export const NavItems: React.FC<NavItemsProps> = ({
           </Link>
           )}
 
-          {/* Desktop Dropdown */}
           {!isMobile && item.subItems && item.subItems.length > 0 && (
             <div
               ref={idx === items.findIndex(i => i.name === "Guide") ? dropdownRef : undefined}
@@ -214,7 +209,6 @@ export const NavItems: React.FC<NavItemsProps> = ({
             </div>
           )}
 
-          {/* Mobile Sub-items */}
           {isMobile && item.subItems && item.subItems.length > 0 && (
             <div className="pl-6 bg-gray-50">
               {item.subItems.map((subItem, subIdx) => (
@@ -235,7 +229,6 @@ export const NavItems: React.FC<NavItemsProps> = ({
   );
 };
 
-// 4. Mobile Navigation
 interface MobileNavProps {
   children: ReactNode;
   className?: string;
@@ -255,7 +248,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   );
 };
 
-// 5. Mobile Navigation Header
 interface MobileNavHeaderProps {
   children: ReactNode;
   className?: string;
@@ -275,7 +267,6 @@ export const MobileNavHeader: React.FC<MobileNavHeaderProps> = ({
   );
 };
 
-// 6. Mobile Navigation Menu
 interface MobileNavMenuProps {
   children: ReactNode;
   className?: string;
@@ -293,20 +284,17 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
 
   return (
     <>
-      {/* Backdrop overlay - full width */}
       <div
         className="fixed inset-0 top-16 lg:top-20 bg-black/20 z-40"
         onClick={onClose}
       />
 
-      {/* Menu content - Full width design */}
       <div className={cn(
         "fixed left-0 right-0 z-50",
         "bg-white border-b border-gray-200 shadow-xl",
         className
       )}>
 
-        {/* Menu items container */}
         <div className="w-full py-4 max-h-[70vh] overflow-y-auto text-black">
           {children}
         </div>
@@ -315,7 +303,6 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
   );
 };
 
-// 7. Mobile Navigation Toggle
 interface MobileNavToggleProps {
   isOpen: boolean;
   onClick: () => void;
@@ -338,7 +325,6 @@ export const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
   );
 };
 
-// 8. Responsive Logo
 export const NavbarLogo: React.FC = () => {
   return (
     <Link to="/" className="flex items-center space-x-3 lg:space-x-4 xl:space-x-5">
@@ -361,10 +347,9 @@ export const NavbarLogo: React.FC = () => {
   );
 };
 
-// 9. Responsive Buttons - UPDATED VERSION
 interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href?: string;
-  to?: string; // Add 'to' prop for React Router
+  to?: string; 
   as?: React.ElementType;
   children: ReactNode;
   className?: string;
@@ -374,7 +359,7 @@ interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement
 export const NavbarButton: React.FC<NavbarButtonProps> = ({
   href,
   to,
-  as: Tag = to ? Link : "a", // Use Link if 'to' prop is provided
+  as: Tag = to ? Link : "a", 
   children,
   className,
   variant = "primary",
@@ -387,10 +372,9 @@ export const NavbarButton: React.FC<NavbarButtonProps> = ({
     secondary: "border lg:border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50",
   };
 
-  // Determine the props to pass based on component type
   const linkProps = to 
-    ? { to } // For React Router Link
-    : { href }; // For regular anchor tag
+    ? { to } 
+    : { href }; 
 
   return (
     <Tag
@@ -403,7 +387,7 @@ export const NavbarButton: React.FC<NavbarButtonProps> = ({
   );
 };
 
-// 10. Button Container - Responsive spacing
+
 interface NavbarActionsProps {
   children: ReactNode;
   className?: string;
@@ -423,7 +407,6 @@ export const NavbarActions: React.FC<NavbarActionsProps> = ({
   );
 };
 
-// 11. Mobile-specific actions container
 interface MobileNavActionsProps {
   children: ReactNode;
   className?: string;

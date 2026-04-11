@@ -107,7 +107,7 @@ export const setMyPaymentMethod = async (req, res) => {
   try {
     const userId = req.user._id ?? req.user.id;
     const { method } = req.body || {};
-    const allowed = ["", "jazzcash", "easypaisa", "card", "bank_transfer"];
+    const allowed = ["", "jazzcash", "easypaisa", "bank_transfer"];
     const next = String(method || "").trim();
     if (!allowed.includes(next)) {
       return res.status(400).json({ message: "Invalid payment method" });

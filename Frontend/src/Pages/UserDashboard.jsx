@@ -319,7 +319,8 @@ export default function UserDashboard() {
     const fromDraft = paymentMethodDraft[bookingId];
     const fromServer = bookings.find((x) => x._id === bookingId)?.payment
       ?.method;
-    const method = (fromDraft ?? fromServer ?? "").trim();
+    let method = (fromDraft ?? fromServer ?? "").trim();
+    if (method === "card") method = "bank_transfer";
     if (!method) {
       toast.error("Select a payment method before uploading the receipt.");
       return;
@@ -343,7 +344,6 @@ export default function UserDashboard() {
     { id: "", label: "Select payment method…" },
     { id: "jazzcash", label: "JazzCash" },
     { id: "easypaisa", label: "Easypaisa" },
-    { id: "card", label: "Card" },
     { id: "bank_transfer", label: "Bank transfer" },
   ];
 
@@ -355,10 +355,6 @@ export default function UserDashboard() {
     easypaisa: {
       title: "Easypaisa",
       lines: ["Account number: 03144313206", "Account title: Ali Ahmad"],
-    },
-    card: {
-      title: "Card",
-      lines: ["Card number: 11310112434110", "Card title/name: Ali Ahmad"],
     },
     bank_transfer: {
       title: "Bank transfer",
@@ -915,8 +911,10 @@ export default function UserDashboard() {
                   const canSetMethod =
                     !journeyLocked && b.payment?.status !== "verified";
                   const receiptSubmitted = Boolean(b.payment?.receiptPdf);
-                  const method =
+                  const rawMethod =
                     paymentMethodDraft[b._id] ?? b.payment?.method ?? "";
+                  const method =
+                    rawMethod === "card" ? "bank_transfer" : rawMethod;
                   const details = method ? PAYMENT_DETAILS[method] : null;
                   return (
                     <li
