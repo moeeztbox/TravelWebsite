@@ -15,3 +15,13 @@ export async function acceptCustomPackageRequest(id) {
   return data;
 }
 
+export async function rejectCustomPackageOffer(id) {
+  const { data } = await api.post(`/custom-packages/${id}/reject-offer`);
+  return data;
+}
+
+export async function deleteMyCustomPackageRequest(id) {
+  const { data } = await api.delete(`/custom-packages/${id}`);
+  return data;
+}
+

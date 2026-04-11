@@ -20,6 +20,8 @@ import {
   createCustomPackageRequest,
   listMyCustomPackageRequests,
   acceptApprovedCustomPackage,
+  rejectUserCustomPackageProposal,
+  deleteMyCustomPackageRequest,
 } from "./controllers/customPackageController.js";
 import { adminLogin } from "./controllers/adminController.js";
 import { protectAdmin } from "./middleware/adminMiddleware.js";
@@ -47,6 +49,7 @@ import {
 import {
   adminListCustomPackageRequests,
   adminUpdateCustomPackageRequest,
+  adminDeleteCustomPackageRequest,
 } from "./controllers/adminCustomPackageController.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -104,6 +107,11 @@ app.patch(
   protectAdmin,
   adminUpdateCustomPackageRequest
 );
+app.delete(
+  "/api/admin/custom-packages/:id",
+  protectAdmin,
+  adminDeleteCustomPackageRequest
+);
 app.use("/api/admin/custom-packages", adminCustomPackageRoutes);
 // Must be registered before the mounted router: Express 5 often does not match router.get("/") for GET /api/packages → 404 without this line.
 app.get("/api/packages", listPackages);
@@ -115,6 +123,12 @@ app.use("/api/bookings", bookingRoutes);
 app.post("/api/custom-packages", protect, createCustomPackageRequest);
 app.get("/api/custom-packages/me", protect, listMyCustomPackageRequests);
 app.post("/api/custom-packages/:id/accept", protect, acceptApprovedCustomPackage);
+app.post(
+  "/api/custom-packages/:id/reject-offer",
+  protect,
+  rejectUserCustomPackageProposal
+);
+app.delete("/api/custom-packages/:id", protect, deleteMyCustomPackageRequest);
 app.use("/api/custom-packages", customPackageRoutes);
 // Express 5: mounted Router can fail to match POST / → 404; register explicitly.
 app.post("/api/complain", sendComplainEmail);

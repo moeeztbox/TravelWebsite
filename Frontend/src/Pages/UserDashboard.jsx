@@ -24,6 +24,8 @@ import {
 } from "../Services/bookingService";
 import {
   acceptCustomPackageRequest,
+  rejectCustomPackageOffer,
+  deleteMyCustomPackageRequest,
   listMyCustomPackageRequests,
 } from "../Services/customPackageService";
 import { getBitmojiAvatarUrl, BITMOJI_COUNT } from "../constants/bitmoji";
@@ -233,14 +235,22 @@ export default function UserDashboard() {
   const pendingCustom = customRequests.filter((r) => r.status === "pending");
   const approvedCustom = customRequests.filter((r) => r.status === "approved");
   const rejectedCustom = customRequests.filter((r) => r.status === "rejected");
-  // Once an approved custom request becomes a real booking (bookingId exists),
-  // we treat it as "moved to bookings" and stop showing it in this section.
-  const approvedCustomVisible = approvedCustom.filter((r) => !r.bookingId);
+  // Approved by admin but user has not accepted the booking yet (excludes user-declined offers).
+  const approvedCustomVisible = approvedCustom.filter(
+    (r) => !r.bookingId && r.userProposalStatus !== "rejected"
+  );
+  const userDeclinedCustom = approvedCustom.filter(
+    (r) => r.userProposalStatus === "rejected"
+  );
   const visibleCustomCount =
-    pendingCustom.length + approvedCustomVisible.length + rejectedCustom.length;
+    pendingCustom.length +
+    approvedCustom.filter((r) => !r.bookingId).length +
+    rejectedCustom.length;
 
   const formatPkr = (n) => `PKR ${(Number(n) || 0).toLocaleString()}`;
   const [acceptingCustomId, setAcceptingCustomId] = useState(null);
+  const [rejectingCustomId, setRejectingCustomId] = useState(null);
+  const [deletingCustomId, setDeletingCustomId] = useState(null);
 
   const acceptOffer = async (reqId) => {
     setAcceptingCustomId(reqId);
@@ -254,6 +264,36 @@ export default function UserDashboard() {
       toast.error(err.response?.data?.message || "Could not accept offer");
     } finally {
       setAcceptingCustomId(null);
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
+  const rejectOffer = async (reqId) => {
+    setRejectingCustomId(reqId);
+    setOverlay({ open: true, message: "Declining offer…" });
+    try {
+      await rejectCustomPackageOffer(reqId);
+      toast.success("Offer declined.");
+      await loadCustom();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not decline offer");
+    } finally {
+      setRejectingCustomId(null);
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
+  const deleteCustomRequest = async (reqId) => {
+    setDeletingCustomId(reqId);
+    setOverlay({ open: true, message: "Removing…" });
+    try {
+      await deleteMyCustomPackageRequest(reqId);
+      toast.success("Removed");
+      await loadCustom();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not remove");
+    } finally {
+      setDeletingCustomId(null);
       setOverlay({ open: false, message: "" });
     }
   };
@@ -662,19 +702,37 @@ export default function UserDashboard() {
                                   </span>
                                 )
                               ) : (
-                                <button
-                                  type="button"
-                                  disabled={
-                                    acceptingCustomId === r._id ||
-                                    !r.adminTotal?.amount
-                                  }
-                                  onClick={() => acceptOffer(r._id)}
-                                  className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-emerald-700 px-4 py-2 rounded-xl hover:bg-emerald-800 disabled:opacity-60"
-                                >
-                                  {acceptingCustomId === r._id
-                                    ? "Accepting…"
-                                    : "Accept offer"}
-                                </button>
+                                <div className="flex flex-col items-end gap-2">
+                                  <div className="flex flex-wrap items-center justify-end gap-2">
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        acceptingCustomId === r._id ||
+                                        !r.adminTotal?.amount
+                                      }
+                                      onClick={() => acceptOffer(r._id)}
+                                      className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-emerald-700 px-4 py-2 rounded-xl hover:bg-emerald-800 disabled:opacity-60"
+                                    >
+                                      {acceptingCustomId === r._id
+                                        ? "Accepting…"
+                                        : "Accept offer"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={rejectingCustomId === r._id}
+                                      onClick={() => rejectOffer(r._id)}
+                                      className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-stone-600 px-4 py-2 rounded-xl hover:bg-stone-700 disabled:opacity-60"
+                                    >
+                                      {rejectingCustomId === r._id
+                                        ? "Declining…"
+                                        : "Decline offer"}
+                                    </button>
+                                  </div>
+                                  <p className="text-[11px] text-stone-500 text-right max-w-[14rem]">
+                                    After you accept, this package appears under Approved
+                                    bookings below.
+                                  </p>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -685,10 +743,57 @@ export default function UserDashboard() {
                   </div>
                 ) : null}
 
+                {userDeclinedCustom.length ? (
+                  <div>
+                    <h3 className="text-sm font-semibold text-stone-800 mb-2">
+                      You declined this offer
+                    </h3>
+                    <ul className="space-y-3">
+                      {userDeclinedCustom.map((r) => (
+                        <li
+                          key={r._id}
+                          className="rounded-xl border border-amber-100 bg-amber-50/40 px-4 py-3 flex flex-wrap items-center justify-between gap-3"
+                        >
+                          <div>
+                            <p className="font-semibold text-stone-900">
+                              {r.hotelCategory}★ · {r.passengers} pax
+                            </p>
+                            <p className="text-xs text-stone-600 mt-0.5">
+                              {r.startDate
+                                ? new Date(r.startDate).toLocaleDateString()
+                                : "—"}
+                            </p>
+                            {r.adminTotal?.amount ? (
+                              <p className="text-xs text-stone-600 mt-2">
+                                Was: {formatPkr(r.adminTotal.amount)}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold border bg-amber-100 text-amber-900 border-amber-200">
+                              Declined by you
+                            </span>
+                            <button
+                              type="button"
+                              disabled={deletingCustomId === r._id}
+                              onClick={() => deleteCustomRequest(r._id)}
+                              className="inline-flex items-center justify-center p-2 rounded-xl border border-stone-200 bg-white text-stone-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 disabled:opacity-60"
+                              title="Remove from list"
+                              aria-label="Remove from list"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
                 {rejectedCustom.length ? (
                   <div>
                     <h3 className="text-sm font-semibold text-stone-800 mb-2">
-                      Rejected
+                      Rejected by admin
                     </h3>
                     <ul className="space-y-3">
                       {rejectedCustom.map((r) => (
@@ -711,7 +816,19 @@ export default function UserDashboard() {
                               </p>
                             ) : null}
                           </div>
-                          <StatusBadge status="rejected" />
+                          <div className="flex items-center gap-2">
+                            <StatusBadge status="rejected" />
+                            <button
+                              type="button"
+                              disabled={deletingCustomId === r._id}
+                              onClick={() => deleteCustomRequest(r._id)}
+                              className="inline-flex items-center justify-center p-2 rounded-xl border border-stone-200 bg-white text-stone-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200 disabled:opacity-60"
+                              title="Remove from list"
+                              aria-label="Remove from list"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </li>
                       ))}
                     </ul>

@@ -85,10 +85,9 @@ export const acceptApprovedCustomPackage = async (req, res) => {
         .json({ message: "Only approved requests can be accepted" });
     }
 
-    const total = Number(doc.adminTotal?.amount || 0);
-    if (!Number.isFinite(total) || total <= 0) {
+    if (doc.userProposalStatus === "rejected") {
       return res.status(400).json({
-        message: "Admin must set a final total amount before you can accept",
+        message: "You declined this offer. Ask the admin for a new proposal if needed.",
       });
     }
 
@@ -97,6 +96,13 @@ export const acceptApprovedCustomPackage = async (req, res) => {
       if (existing) return res.json({ booking: existing, request: doc });
       doc.bookingId = null;
       await doc.save();
+    }
+
+    const total = Number(doc.adminTotal?.amount || 0);
+    if (!Number.isFinite(total) || total <= 0) {
+      return res.status(400).json({
+        message: "Admin must set a final total amount before you can accept",
+      });
     }
 
     const booking = await Booking.create({
@@ -115,11 +121,66 @@ export const acceptApprovedCustomPackage = async (req, res) => {
     });
 
     doc.bookingId = booking._id;
+    doc.userProposalStatus = "accepted";
     await doc.save();
 
     res.json({ booking, request: doc });
   } catch (error) {
     console.error("acceptApprovedCustomPackage:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export const rejectUserCustomPackageProposal = async (req, res) => {
+  try {
+    const doc = await CustomPackageRequest.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+    if (!doc) return res.status(404).json({ message: "Request not found" });
+
+    if (doc.status !== "approved") {
+      return res
+        .status(400)
+        .json({ message: "Only an approved offer can be declined" });
+    }
+    if (doc.bookingId) {
+      return res.status(400).json({ message: "You already accepted this offer" });
+    }
+    if (doc.userProposalStatus === "rejected") {
+      return res.status(400).json({ message: "You already declined this offer" });
+    }
+
+    doc.userProposalStatus = "rejected";
+    await doc.save();
+
+    res.json({ request: doc });
+  } catch (error) {
+    console.error("rejectUserCustomPackageProposal:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export const deleteMyCustomPackageRequest = async (req, res) => {
+  try {
+    const doc = await CustomPackageRequest.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+    if (!doc) return res.status(404).json({ message: "Request not found" });
+
+    const canDelete =
+      doc.status === "rejected" || doc.userProposalStatus === "rejected";
+    if (!canDelete) {
+      return res.status(400).json({
+        message: "You can only remove requests that were declined (by you or by admin)",
+      });
+    }
+
+    await CustomPackageRequest.deleteOne({ _id: doc._id });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("deleteMyCustomPackageRequest:", error);
     res.status(500).json({ message: error.message || "Server error" });
   }
 };

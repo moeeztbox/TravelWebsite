@@ -33,6 +33,10 @@ export const adminUpdateCustomPackageRequest = async (req, res) => {
     if (status) update.status = status;
     if (adminNote !== undefined) update.adminNote = String(adminNote || "").trim();
 
+    if (status === "approved") {
+      update.userProposalStatus = "awaiting_response";
+    }
+
     if (extraAmount !== undefined) {
       const m = asMoney(extraAmount);
       if (m === null) return res.status(400).json({ message: "extraAmount must be a positive number" });
@@ -47,9 +51,14 @@ export const adminUpdateCustomPackageRequest = async (req, res) => {
       update["adminTotal.amount"] = m;
     }
 
+    const mongoUpdate = { $set: update };
+    if (status === "rejected") {
+      mongoUpdate.$unset = { userProposalStatus: "" };
+    }
+
     const doc = await CustomPackageRequest.findByIdAndUpdate(
       req.params.id,
-      { $set: update },
+      mongoUpdate,
       { new: true, runValidators: true }
     ).populate("user", "firstName lastName email");
 
@@ -58,6 +67,26 @@ export const adminUpdateCustomPackageRequest = async (req, res) => {
     res.json({ request: doc });
   } catch (error) {
     console.error("adminUpdateCustomPackageRequest:", error);
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export const adminDeleteCustomPackageRequest = async (req, res) => {
+  try {
+    const doc = await CustomPackageRequest.findById(req.params.id);
+    if (!doc) return res.status(404).json({ message: "Request not found" });
+
+    if (doc.userProposalStatus !== "rejected") {
+      return res.status(400).json({
+        message:
+          "Only requests the user declined can be removed here. Reject from the user first, or use admin reject.",
+      });
+    }
+
+    await CustomPackageRequest.deleteOne({ _id: doc._id });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("adminDeleteCustomPackageRequest:", error);
     res.status(500).json({ message: error.message || "Server error" });
   }
 };

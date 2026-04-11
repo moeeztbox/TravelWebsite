@@ -59,6 +59,12 @@ const customPackageRequestSchema = new mongoose.Schema(
     adminExtra: { type: moneySchema, default: () => ({}) },
     adminTotal: { type: moneySchema, default: () => ({}) },
     adminNote: { type: String, default: "", trim: true },
+    /** After admin approves: awaiting user accept/decline; accept creates booking; reject = user declined offer */
+    userProposalStatus: {
+      type: String,
+      enum: ["awaiting_response", "accepted", "rejected"],
+      default: undefined,
+    },
   },
   { timestamps: true }
 );
