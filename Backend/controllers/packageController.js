@@ -49,6 +49,7 @@ export const createPackage = async (req, res) => {
       highlights = [],
       services = {},
       active = true,
+      featured = false,
     } = req.body;
 
     if (!packageId || !title) {
@@ -80,6 +81,7 @@ export const createPackage = async (req, res) => {
         hotel: Boolean(services?.hotel),
       },
       active,
+      featured: Boolean(featured),
     });
 
     res.status(201).json({ package: pkg });
@@ -99,6 +101,9 @@ export const updatePackage = async (req, res) => {
         ticket: Boolean(body.services?.ticket),
         hotel: Boolean(body.services?.hotel),
       };
+    }
+    if (body.featured !== undefined) {
+      body.featured = Boolean(body.featured);
     }
     const pkg = await Package.findOneAndUpdate(
       { packageId: req.params.packageId },

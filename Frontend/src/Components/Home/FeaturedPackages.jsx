@@ -170,7 +170,8 @@ const FeaturedPackages = () => {
       try {
         const raw = await fetchPackages();
         if (!cancelled) {
-          setPackages((raw || []).map(mapApiToCardPackage));
+          const featuredOnly = (raw || []).filter((p) => Boolean(p.featured));
+          setPackages(featuredOnly.map(mapApiToCardPackage));
           setLoadError(null);
         }
       } catch (e) {
@@ -188,6 +189,7 @@ const FeaturedPackages = () => {
   }, []);
 
   return (
+    packages.length === 0 && !loading && !loadError ? null : (
     <section className="relative bg-white overflow-hidden">
       <div
         className="absolute inset-0 opacity-5"
@@ -231,6 +233,7 @@ const FeaturedPackages = () => {
         </div>
       </div>
     </section>
+    )
   );
 };
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useScrollLock } from "../Hooks/useScrollLock";
 import { Pencil, Trash2, Plus, X, Loader2 } from "lucide-react";
@@ -24,6 +24,7 @@ function emptyForm() {
     badge: "",
     image: "",
     active: true,
+    featured: false,
     services: {
       ziyarat: false,
       transport: false,
@@ -49,6 +50,7 @@ function pkgToForm(pkg) {
     badge: pkg.badge ?? "",
     image: pkg.image ?? "",
     active: pkg.active !== false,
+    featured: Boolean(pkg.featured),
     services: {
       ziyarat: Boolean(pkg.services?.ziyarat),
       transport: Boolean(pkg.services?.transport),
@@ -74,6 +76,7 @@ export default function AdminPackages() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const modalScrollRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -92,6 +95,24 @@ export default function AdminPackages() {
   }, [load]);
 
   useScrollLock(Boolean(modalOpen || deleteTarget));
+
+  // React onWheel is passive; when body is scroll-locked, wheel won't scroll the modal.
+  // Use a native wheel listener (passive:false) to keep modal scrolling smooth.
+  useEffect(() => {
+    if (!modalOpen) return undefined;
+    const el = modalScrollRef.current;
+    if (!el) return undefined;
+
+    const onWheel = (e) => {
+      el.scrollTop += e.deltaY;
+      e.preventDefault();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    return () => {
+      el.removeEventListener("wheel", onWheel, { capture: true });
+    };
+  }, [modalOpen]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -152,6 +173,7 @@ export default function AdminPackages() {
       badge: form.badge.trim(),
       image: form.image.trim(),
       active: form.active,
+      featured: Boolean(form.featured),
       services: {
         ziyarat: Boolean(form.services?.ziyarat),
         transport: Boolean(form.services?.transport),
@@ -351,9 +373,7 @@ export default function AdminPackages() {
             aria-hidden="true"
           />
 
-          {/* Scroll container — fills viewport, scrolls independently */}
           <div className="fixed inset-0 z-[101] overflow-hidden overflow-x-hidden">
-            {/* Centering wrapper — min-height ensures the dialog is centered even on short content */}
             <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-4 md:p-6">
               <div
                 className="
@@ -365,7 +385,6 @@ export default function AdminPackages() {
                 style={{ maxHeight: "calc(100dvh - 2rem)" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Sticky header */}
                 <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-zinc-100 px-5 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
                   <div>
                     <h2 className="text-base font-semibold text-zinc-900 leading-tight">
@@ -389,6 +408,7 @@ export default function AdminPackages() {
                 <div
                   className="overflow-y-auto overscroll-contain"
                   style={{ WebkitOverflowScrolling: "touch" }}
+                  ref={modalScrollRef}
                 >
                   <form onSubmit={handleSubmit} className="p-5 space-y-5">
 
@@ -443,6 +463,25 @@ export default function AdminPackages() {
                             <span className="text-sm text-zinc-700">Show on site</span>
                           </label>
                         </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-600 mb-1">
+                          Featured
+                        </label>
+                        <label className="flex items-center gap-2.5 h-[38px] cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(form.featured)}
+                            onChange={(e) =>
+                              setForm((f) => ({ ...f, featured: e.target.checked }))
+                            }
+                            className="h-4 w-4 rounded border-zinc-300 text-amber-500 focus:ring-amber-500"
+                          />
+                          <span className="text-sm text-zinc-700">
+                            Show in featured section
+                          </span>
+                        </label>
                       </div>
                     </fieldset>
 
@@ -644,7 +683,7 @@ export default function AdminPackages() {
                       </div>
                     </fieldset>
 
-                    {/* Sticky footer */}
+                  
                     <div className="sticky bottom-0 -mx-5 -mb-5 px-5 py-4 bg-white/95 backdrop-blur-sm border-t border-zinc-100 flex justify-end gap-2 rounded-b-2xl mt-2">
                       <button
                         type="button"

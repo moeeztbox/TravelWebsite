@@ -61,7 +61,7 @@ function StatusBadge({ status }) {
   };
   return (
     <span
-      className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border ${map[status] || map.pending}`}
+      className={`inline-flex shrink-0 self-start px-2.5 py-0.5 rounded-full text-xs font-semibold border ${map[status] || map.pending}`}
     >
       {status === "pending"
         ? "Awaiting approval"
@@ -1055,7 +1055,7 @@ export default function UserDashboard() {
                     key={hb._id}
                     className="rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3 space-y-2"
                   >
-                    <div className="flex flex-wrap justify-between gap-2">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="font-semibold text-stone-900 truncate">
                           {hb.hotel?.name}
@@ -1099,7 +1099,12 @@ export default function UserDashboard() {
                           )}
                         </p>
                       </div>
-                      <StatusBadge status={hb.status} />
+                      <div className="flex flex-col items-end gap-1">
+                        <StatusBadge status={hb.status} />
+                        {hb.status === "approved" ? (
+                          <PaymentBadge status={hb.payment?.status} />
+                        ) : null}
+                      </div>
                     </div>
 
                     {hb.status === "rejected" ? (

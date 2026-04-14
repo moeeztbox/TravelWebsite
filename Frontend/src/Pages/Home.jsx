@@ -6,6 +6,7 @@ import Reviews from "../Components/Home/Reviews";
 import WhatWeOffer from "../Components/Home/WhatWeOffer";
 import InquireNow from "../Components/Home/InquireNow";
 import { Link } from "react-router-dom";
+import FeaturedPackages from "../Components/Home/FeaturedPackages";
 
 const HomePage = () => {
   return (
@@ -15,6 +16,9 @@ const HomePage = () => {
 
       {/* What We Offer Section*/}
       <WhatWeOffer />
+
+      {/* Featured packages (only featured=true) */}
+      <FeaturedPackages />
 
       {/* Packages CTA */}
       <section className="bg-white py-12">

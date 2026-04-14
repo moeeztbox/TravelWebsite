@@ -18,6 +18,7 @@ const SEED_PACKAGES = [
       { iconKey: "users", text: "Group Support" },
     ],
     active: true,
+    featured: true,
   },
   {
     packageId: "economy-plus-umrah",
@@ -36,6 +37,7 @@ const SEED_PACKAGES = [
       { iconKey: "map-pin", text: "Premium Location" },
     ],
     active: true,
+    featured: true,
   },
   {
     packageId: "three-star-umrah",
@@ -54,6 +56,7 @@ const SEED_PACKAGES = [
       { iconKey: "hotel", text: "Family Rooms" },
     ],
     active: true,
+    featured: true,
   },
   {
     packageId: "four-star-umrah",

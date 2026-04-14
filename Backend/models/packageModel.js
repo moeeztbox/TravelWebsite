@@ -33,6 +33,7 @@ const packageSchema = new mongoose.Schema(
       hotel: { type: Boolean, default: false },
     },
     active: { type: Boolean, default: true },
+    featured: { type: Boolean, default: false, index: true },
   },
   { timestamps: true, collection: "packages" }
 );
