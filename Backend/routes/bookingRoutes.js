@@ -11,7 +11,10 @@ import {
   createBookingPaymentIntent,
   confirmBookingStripePayment,
 } from "../controllers/stripePaymentController.js";
-import { attachDocuments } from "../controllers/bookingDocumentsController.js";
+import {
+  attachCommonDocuments,
+  attachDocuments,
+} from "../controllers/bookingDocumentsController.js";
 import {
   bookingUploadFields,
   bookingPaymentReceiptField,
@@ -34,6 +37,7 @@ router.post(
   bookingUploadFields(),
   attachDocuments
 );
+router.post("/:id/documents/attach-common", attachCommonDocuments);
 router.post(
   "/:id/payment-receipt",
   bookingPaymentReceiptField(),

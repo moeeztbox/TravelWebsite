@@ -56,6 +56,10 @@ const userSchema = new mongoose.Schema(
       min: 0,
       max: 7,
     },
+    commonDocuments: {
+      visaPdf: { type: String, default: "" },
+      otherPdf: { type: String, default: "" },
+    },
   },
   { timestamps: true }
 );

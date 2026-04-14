@@ -75,11 +75,6 @@ export function usePackageBooking() {
       return;
     }
     navigate("/packages");
-    setTimeout(() => {
-      document
-        .getElementById("packages-grid")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 150);
   }, [isAuthenticated, navigate, promptLoginForBooking]);
 
   const bookPackage = useCallback(

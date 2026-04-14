@@ -19,6 +19,7 @@ import {
 import { createPortal } from 'react-dom';
 import { cn } from '../lib/utils';
 import { XIcon, Plus } from 'lucide-react';
+import { useScrollLock } from '../Hooks/useScrollLock';
 
 interface DialogContextType {
   isOpen: boolean;
@@ -163,28 +164,25 @@ function DialogContent({ children, className, style }: DialogContent) {
   }, [setIsOpen, firstFocusableElement, lastFocusableElement]);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-
-      const focusableElements = containerRef.current?.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      if (focusableElements && focusableElements.length > 0) {
-        setFirstFocusableElement(focusableElements[0] as HTMLElement);
-        setLastFocusableElement(
-          focusableElements[focusableElements.length - 1] as HTMLElement
-        );
-        requestAnimationFrame(() => {
-          (focusableElements[0] as HTMLElement).focus();
-        });
-      }
-
-      if (containerRef.current) {
-        containerRef.current.scrollTop = 0;
-      }
-    } else {
-      document.body.style.overflow = '';
+    if (!isOpen) {
       triggerRef.current?.focus();
+      return;
+    }
+    const focusableElements = containerRef.current?.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusableElements && focusableElements.length > 0) {
+      setFirstFocusableElement(focusableElements[0] as HTMLElement);
+      setLastFocusableElement(
+        focusableElements[focusableElements.length - 1] as HTMLElement
+      );
+      requestAnimationFrame(() => {
+        (focusableElements[0] as HTMLElement).focus();
+      });
+    }
+
+    if (containerRef.current) {
+      containerRef.current.scrollTop = 0;
     }
   }, [isOpen, triggerRef]);
 
@@ -228,14 +226,14 @@ function DialogContainer({ children, className }: DialogContainerProps) {
   const { isOpen, setIsOpen, uniqueId } = useDialog();
   const [mounted, setMounted] = useState(false);
 
+  useScrollLock(isOpen);
+
   useEffect(() => {
     const drawerWrapper = document.querySelectorAll('[drawer-wrapper]');
 
     if (isOpen) {
-      document.body.classList.add('overflow-hidden');
       drawerWrapper.forEach((wrapper) => wrapper?.classList.add('open'));
     } else {
-      document.body.classList.remove('overflow-hidden');
       drawerWrapper.forEach((wrapper) => wrapper?.classList.remove('open'));
     }
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -248,7 +246,7 @@ function DialogContainer({ children, className }: DialogContainerProps) {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, setIsOpen]);
 
   useEffect(() => {
     setMounted(true);
@@ -266,7 +264,7 @@ function DialogContainer({ children, className }: DialogContainerProps) {
           <motion.div
             key={`backdrop-${uniqueId}`}
             data-lenis-prevent
-            className='fixed inset-0 h-full z-50 w-full backdrop-blur-sm bg-black/60'
+            className='fixed inset-0 h-full z-50 w-full overflow-hidden backdrop-blur-sm bg-black/60'
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -277,7 +275,7 @@ function DialogContainer({ children, className }: DialogContainerProps) {
             onClick={() => setIsOpen(false)}
           ></motion.div>
           <motion.div
-            className={cn(`fixed inset-0 z-50 w-fit mx-auto flex items-center justify-center p-4`, className)}
+            className={cn(`fixed inset-0 z-50 w-fit mx-auto flex items-center justify-center overflow-hidden p-4`, className)}
             style={{ willChange: 'transform' }}
           >
             {children}

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Filter, Loader2, CheckCircle2, XCircle, X, Trash2 } from "lucide-react";
 import AdminLayout from "../Components/Admin/AdminLayout";
 import { api } from "../Services/authService";
+import { useScrollLock } from "../Hooks/useScrollLock";
 
 function userLabel(user, fallbackEmail) {
   if (user) {
@@ -27,6 +28,8 @@ export default function AdminCustomPackages() {
   const [extraAmount, setExtraAmount] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
   const [adminNote, setAdminNote] = useState("");
+
+  useScrollLock(Boolean(editFor));
 
   const load = useCallback(async () => {
     setLoading(true);

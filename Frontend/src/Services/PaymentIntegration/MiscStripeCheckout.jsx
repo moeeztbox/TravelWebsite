@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
+  CardElement,
   Elements,
-  PaymentElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
@@ -14,11 +14,29 @@ import {
   createVisaStripePaymentIntent,
   confirmVisaStripePayment,
 } from "../visaRequestService";
+import {
+  createHotelStripePaymentIntent,
+  confirmHotelStripePayment,
+} from "../hotelBookingService";
 
 const pk = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.trim();
 const stripePromise = pk ? loadStripe(pk) : null;
 
-function StripePayForm({ onConfirm, onPaid, onFatal }) {
+/** Card fields only — no Bank / Link / wallet tabs (those come from Payment Element) */
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      fontSize: "16px",
+      color: "#1c1917",
+      fontFamily: "system-ui, sans-serif",
+      "::placeholder": { color: "#78716c" },
+    },
+    invalid: { color: "#b91c1c" },
+  },
+  hidePostalCode: false,
+};
+
+function StripePayForm({ clientSecret, onConfirm, onPaid, onFatal }) {
   const stripe = useStripe();
   const elements = useElements();
   const [busy, setBusy] = useState(false);
@@ -26,16 +44,17 @@ function StripePayForm({ onConfirm, onPaid, onFatal }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !clientSecret) return;
+    const card = elements.getElement(CardElement);
+    if (!card) return;
     setBusy(true);
     setLocalError("");
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      redirect: "if_required",
-      confirmParams: {
-        return_url: `${window.location.origin}/dashboard`,
-      },
-    });
+    const { error, paymentIntent } = await stripe.confirmCardPayment(
+      clientSecret,
+      {
+        payment_method: { card },
+      }
+    );
     if (error) {
       setLocalError(error.message || "Payment failed");
       setBusy(false);
@@ -54,7 +73,9 @@ function StripePayForm({ onConfirm, onPaid, onFatal }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement />
+      <div className="rounded-lg border border-stone-200 bg-stone-50/80 px-3 py-3">
+        <CardElement options={CARD_ELEMENT_OPTIONS} />
+      </div>
       {localError ? (
         <p className="text-sm text-red-600" role="alert">
           {localError}
@@ -71,7 +92,7 @@ function StripePayForm({ onConfirm, onPaid, onFatal }) {
   );
 }
 
-/** kind: `transport` (PKR) or `visa` (USD) — totals come from the server record. */
+/** kind: `transport` (PKR), `visa` (USD), or `hotel` (admin-set total, usually USD). */
 export default function MiscStripeCheckout({ kind, recordId, onPaid, onError }) {
   const [clientSecret, setClientSecret] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -81,8 +102,10 @@ export default function MiscStripeCheckout({ kind, recordId, onPaid, onError }) 
     async (paymentIntentId) => {
       if (kind === "transport") {
         await confirmTransportStripePayment(recordId, paymentIntentId);
-      } else {
+      } else if (kind === "visa") {
         await confirmVisaStripePayment(recordId, paymentIntentId);
+      } else {
+        await confirmHotelStripePayment(recordId, paymentIntentId);
       }
     },
     [kind, recordId]
@@ -97,7 +120,9 @@ export default function MiscStripeCheckout({ kind, recordId, onPaid, onError }) 
         const data =
           kind === "transport"
             ? await createTransportStripePaymentIntent(recordId)
-            : await createVisaStripePaymentIntent(recordId);
+            : kind === "visa"
+              ? await createVisaStripePaymentIntent(recordId)
+              : await createHotelStripePaymentIntent(recordId);
         const cs = data?.clientSecret;
         if (!cancelled && cs) setClientSecret(cs);
         else if (!cancelled) setLoadError("Could not start payment session.");
@@ -146,17 +171,10 @@ export default function MiscStripeCheckout({ kind, recordId, onPaid, onError }) 
 
   return (
     <div className="rounded-xl border border-stone-200 bg-white px-3 py-4 sm:px-4">
-      <p className="text-xs font-medium text-stone-800 mb-3">
-        Pay with card (Stripe)
-      </p>
-      <Elements
-        stripe={stripePromise}
-        options={{
-          clientSecret,
-          appearance: { theme: "stripe" },
-        }}
-      >
+      <p className="text-xs font-medium text-stone-800 mb-3">Pay with card</p>
+      <Elements stripe={stripePromise} options={{ clientSecret }}>
         <StripePayForm
+          clientSecret={clientSecret}
           onConfirm={confirmPayment}
           onPaid={onPaid}
           onFatal={(err) =>

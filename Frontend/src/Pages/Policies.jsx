@@ -53,7 +53,7 @@ function Policies() {
 
       container.scrollTo({
         top: offset - 20,
-        behavior: "smooth",
+        behavior: "auto",
       });
     }
   };
@@ -208,7 +208,7 @@ function Policies() {
                     e.stopPropagation();
                   }
                 }}
-                className="p-8 h-[70vh] overflow-y-auto scroll-smooth"
+                className="p-8 h-[70vh] overflow-y-auto"
               >
                 <div className="space-y-8">
                   {policies.map((policy) => {

@@ -10,6 +10,7 @@ import {
   adminScheduleJourney, adminDeleteBooking,
 } from "../Services/adminService";
 import { getApiOrigin } from "../utils/apiOrigin";
+import { useScrollLock } from "../Hooks/useScrollLock";
 
 /** True once the scheduled start time has passed or the journey has moved past "scheduled". */
 function journeyHasStarted(journey) {
@@ -58,15 +59,7 @@ export default function AdminBookings() {
     load();
   }, [load]);
 
-  /** Keeps the viewport on the booking you just acted on (full-page loader was resetting scroll). */
-  const scrollToBookingCard = (bookingId) => {
-    if (!bookingId) return;
-    requestAnimationFrame(() => {
-      document
-        .getElementById(`admin-booking-${bookingId}`)
-        ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    });
-  };
+  useScrollLock(Boolean(scheduleFor));
 
   const grouped = useCallback((rows) => {
     const map = new Map();
@@ -93,7 +86,6 @@ export default function AdminBookings() {
       await adminSetBookingStatus(id, status);
       toast.success(`Booking ${status}`);
       await load({ silent: true });
-      scrollToBookingCard(id);
     } catch (e) {
       toast.error(e.response?.data?.message || "Update failed");
     } finally { setBusyId(null); }
@@ -105,7 +97,6 @@ export default function AdminBookings() {
       await adminSetPaymentStatus(id, "verified");
       toast.success("Payment marked verified");
       await load({ silent: true });
-      scrollToBookingCard(id);
     } catch (e) {
       toast.error(e.response?.data?.message || "Update failed");
     } finally { setBusyId(null); }
@@ -117,7 +108,6 @@ export default function AdminBookings() {
       await adminSetPaymentStatus(id, "rejected");
       toast.success("Payment marked failed");
       await load({ silent: true });
-      scrollToBookingCard(id);
     } catch (e) {
       toast.error(e.response?.data?.message || "Update failed");
     } finally { setBusyId(null); }
@@ -132,7 +122,6 @@ export default function AdminBookings() {
       setScheduleFor(null);
       setStartAt("");
       await load({ silent: true });
-      scrollToBookingCard(id);
     } catch (e) {
       toast.error(e.response?.data?.message || "Schedule failed");
     } finally { setBusyId(null); }

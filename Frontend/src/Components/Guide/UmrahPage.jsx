@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { HelpCircle } from "lucide-react";
 import gsap from "gsap";
+import { useScrollLock } from '../../Hooks/useScrollLock'
 
 function UmrahPage() {
     const [selectedCard, setSelectedCard] = useState(null)
-    const scrollPositionRef = useRef(0)
+    useScrollLock(Boolean(selectedCard))
 
     // Hero Section Refs
     const containerRef = useRef(null);
@@ -45,48 +46,6 @@ function UmrahPage() {
             .to(subtitleRef.current, { opacity: 1, y: 0, duration: 0.4 }, 1.4)
             .to(badgeRef.current, { opacity: 1, y: 0, scale: 1, duration: 0.4 }, 1.75);
     }, []);
-
-    // Modal scroll handling
-    useEffect(() => {
-        if (selectedCard) {
-            scrollPositionRef.current = window.pageYOffset || document.documentElement.scrollTop
-            document.body.style.overflow = 'hidden'
-            document.body.style.position = 'fixed'
-            document.body.style.top = `-${scrollPositionRef.current}px`
-            document.body.style.width = '100%'
-        } else {
-            document.body.style.overflow = 'unset'
-            document.body.style.position = ''
-            document.body.style.top = ''
-            document.body.style.width = ''
-            window.scrollTo(0, scrollPositionRef.current)
-        }
-
-        return () => {
-            document.body.style.overflow = 'unset'
-            document.body.style.position = ''
-            document.body.style.top = ''
-            document.body.style.width = ''
-        }
-    }, [selectedCard])
-
-    useEffect(() => {
-        if (!selectedCard) return;
-
-        const preventScroll = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        };
-
-        const opts = { passive: false };
-        document.addEventListener('wheel', preventScroll, opts);
-        document.addEventListener('touchmove', preventScroll, opts);
-
-        return () => {
-            document.removeEventListener('wheel', preventScroll, opts);
-            document.removeEventListener('touchmove', preventScroll, opts);
-        };
-    }, [selectedCard])
 
     const HeroSection = () => {
         return (
@@ -352,7 +311,7 @@ function UmrahPage() {
 
         return (
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-hidden overscroll-none"
                 onClick={handleBackdropClick}
                 style={{ top: 0, left: 0, right: 0, bottom: 0 }}
             >

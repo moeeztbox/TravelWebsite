@@ -1,4 +1,5 @@
 import Booking from "../models/booking.js";
+import User from "../models/user.js";
 
 export const attachDocuments = async (req, res) => {
   try {
@@ -40,6 +41,46 @@ export const attachDocuments = async (req, res) => {
 
     res.json({
       message: "Documents uploaded successfully",
+      booking: updated,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export const attachCommonDocuments = async (req, res) => {
+  try {
+    const userId = req.user._id ?? req.user.id;
+    const booking = await Booking.findOne({ _id: req.params.id, user: userId });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    if (booking.status !== "approved") {
+      return res.status(400).json({
+        message: "Waiting for admin approval. Attach documents after approval.",
+      });
+    }
+
+    const user = await User.findById(userId).select("commonDocuments");
+    const common = user?.commonDocuments || {};
+    const updates = {};
+    if (common.visaPdf) updates["documents.visaPdf"] = common.visaPdf;
+    if (common.otherPdf) updates["documents.otherPdf"] = common.otherPdf;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        message: "No common documents found. Upload them from Profile tips first.",
+      });
+    }
+
+    const updated = await Booking.findByIdAndUpdate(
+      booking._id,
+      { $set: updates },
+      { new: true }
+    );
+
+    res.json({
+      message: "Common documents attached to booking",
       booking: updated,
     });
   } catch (error) {

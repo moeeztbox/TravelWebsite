@@ -1,5 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import useHotels from "../../Hooks/useHotel";
+import { captureScrollPosition, useScrollLock } from "../../Hooks/useScrollLock";
+import { toast } from "sonner";
+import { createHotelBooking } from "../../Services/hotelBookingService";
 
 const Hotel = () => {
   const {
@@ -7,7 +16,6 @@ const Hotel = () => {
     loading,
     error,
     selectedHotel,
-    isMockData,
     searchHotels,
     getHotelDetails,
     setSelectedHotel,
@@ -15,11 +23,37 @@ const Hotel = () => {
     searchPlaces,
     places,
     loadCountries,
+    ratesByHotelId,
+    ratesLoading,
+    ratesError,
+    fetchHotelRates,
   } = useHotels();
 
   const [searchInput, setSearchInput] = useState("");
   const [showDetails, setShowDetails] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [searchStay, setSearchStay] = useState(() => {
+    const today = new Date();
+    const in1 = new Date(today);
+    in1.setDate(in1.getDate() + 1);
+    const out2 = new Date(today);
+    out2.setDate(out2.getDate() + 2);
+    const fmt = (d) => d.toISOString().slice(0, 10);
+    return {
+      checkIn: fmt(in1),
+      checkOut: fmt(out2),
+      rooms: 1,
+      adults: 2,
+      childrenAges: [],
+      currency: "USD",
+      guestNationality: "SA",
+    };
+  });
+  const [bookModalOpen, setBookModalOpen] = useState(false);
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+
+  const detailsPanelRef = useRef(null);
+  const bookModalPanelRef = useRef(null);
 
   useEffect(() => {
     loadCountries();
@@ -28,6 +62,80 @@ const Hotel = () => {
       setRecentSearches(JSON.parse(saved).slice(0, 5));
     }
   }, []);
+
+  const canQuote = useMemo(() => {
+    if (!searchStay.checkIn || !searchStay.checkOut) return false;
+    const a = new Date(searchStay.checkIn).getTime();
+    const b = new Date(searchStay.checkOut).getTime();
+    if (Number.isNaN(a) || Number.isNaN(b)) return false;
+    return b > a;
+  }, [searchStay.checkIn, searchStay.checkOut]);
+
+  useEffect(() => {
+    if (!hotels?.length) return;
+    if (!canQuote) return;
+    const ids = hotels.map((h) => h.id).filter(Boolean);
+    if (!ids.length) return;
+    fetchHotelRates({
+      hotelIds: ids,
+      checkIn: searchStay.checkIn,
+      checkOut: searchStay.checkOut,
+      adults: searchStay.adults,
+      children: searchStay.childrenAges || [],
+      rooms: searchStay.rooms,
+      currency: searchStay.currency || "USD",
+      guestNationality: searchStay.guestNationality || "SA",
+    });
+  }, [
+    hotels,
+    canQuote,
+    fetchHotelRates,
+    searchStay.checkIn,
+    searchStay.checkOut,
+    searchStay.adults,
+    searchStay.rooms,
+    searchStay.currency,
+    searchStay.guestNationality,
+  ]);
+
+  useScrollLock(Boolean(showDetails || bookModalOpen));
+
+  /* React wheel handlers are passive — with body scroll-locked, wheel must update scrollTop + preventDefault (same as PackagesCard). */
+  useLayoutEffect(() => {
+    if (!showDetails || !selectedHotel) return undefined;
+    const panel = detailsPanelRef.current;
+    if (!panel) return undefined;
+    const onWheel = (e) => {
+      if (panel.scrollHeight <= panel.clientHeight + 1) return;
+      panel.scrollTop += e.deltaY;
+      e.preventDefault();
+    };
+    panel.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    return () =>
+      panel.removeEventListener("wheel", onWheel, { capture: true });
+  }, [showDetails, selectedHotel]);
+
+  useLayoutEffect(() => {
+    if (!bookModalOpen) return undefined;
+    const panel = bookModalPanelRef.current;
+    if (!panel) return undefined;
+    const onWheel = (e) => {
+      if (panel.scrollHeight <= panel.clientHeight + 1) return;
+      panel.scrollTop += e.deltaY;
+      e.preventDefault();
+    };
+    panel.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    return () =>
+      panel.removeEventListener("wheel", onWheel, { capture: true });
+  }, [bookModalOpen]);
+
+  const canBook = useMemo(() => {
+    if (!searchStay.checkIn || !searchStay.checkOut) return false;
+    const a = new Date(searchStay.checkIn).getTime();
+    const b = new Date(searchStay.checkOut).getTime();
+    if (Number.isNaN(a) || Number.isNaN(b)) return false;
+    return b > a;
+  }, [searchStay.checkIn, searchStay.checkOut]);
 
   const getCountryCode = (city) => {
     const cityLower = city.toLowerCase().trim();
@@ -171,8 +279,70 @@ const Hotel = () => {
   };
 
   const handleHotelClick = (hotelId) => {
+    captureScrollPosition();
     getHotelDetails(hotelId);
     setShowDetails(true);
+  };
+
+  const openBookModal = () => {
+    if (!selectedHotel?.id) return;
+    if (!canBook) {
+      toast.error("Please select valid check-in and check-out dates first.");
+      return;
+    }
+    captureScrollPosition();
+    // Close the large details dialog so only booking confirm is visible.
+    setShowDetails(false);
+    setBookModalOpen(true);
+  };
+
+  const submitHotelBooking = async () => {
+    if (!selectedHotel?.id) return;
+    if (!canBook) {
+      toast.error("Please select valid check-in and check-out dates.");
+      return;
+    }
+    setBookingSubmitting(true);
+    try {
+      const rate = ratesByHotelId?.[selectedHotel.id];
+      await createHotelBooking({
+        hotel: {
+          hotelId: selectedHotel.id,
+          name: selectedHotel.name,
+          address: selectedHotel.address,
+          city: selectedHotel.city,
+          country: selectedHotel.country,
+          image: selectedHotel.mainPhoto || selectedHotel.images?.[0] || "",
+          starRating: selectedHotel.starRating,
+          rating: selectedHotel.rating,
+          currency: selectedHotel.currency || "USD",
+        },
+        stay: {
+          checkIn: searchStay.checkIn,
+          checkOut: searchStay.checkOut,
+          rooms: searchStay.rooms,
+          adults: searchStay.adults,
+          children: Array.isArray(searchStay.childrenAges)
+            ? searchStay.childrenAges.length
+            : 0,
+        },
+        ...(rate?.amount && Number(rate.amount) > 0
+          ? {
+              quoteTotal: {
+                amount: Number(rate.amount),
+                currency: String(rate.currency || "USD"),
+                label: "Search quote",
+              },
+            }
+          : {}),
+      });
+      toast.success("Hotel booking request sent. Awaiting admin approval.");
+      setBookModalOpen(false);
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to create booking");
+    } finally {
+      setBookingSubmitting(false);
+    }
   };
 
   const popularCities = [
@@ -246,6 +416,111 @@ const Hotel = () => {
               {loading ? "Searching..." : "Search"}
             </button>
           </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "0.75rem",
+              marginTop: "0.75rem",
+              textAlign: "left",
+            }}
+          >
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#666" }}>
+                Check-in
+              </label>
+              <input
+                type="date"
+                value={searchStay.checkIn}
+                onChange={(e) =>
+                  setSearchStay((s) => ({ ...s, checkIn: e.target.value }))
+                }
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "2px solid #e0e0e0",
+                  borderRadius: "8px",
+                  marginTop: "0.25rem",
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#666" }}>
+                Check-out
+              </label>
+              <input
+                type="date"
+                value={searchStay.checkOut}
+                onChange={(e) =>
+                  setSearchStay((s) => ({ ...s, checkOut: e.target.value }))
+                }
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "2px solid #e0e0e0",
+                  borderRadius: "8px",
+                  marginTop: "0.25rem",
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#666" }}>
+                Rooms
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={searchStay.rooms}
+                onChange={(e) =>
+                  setSearchStay((s) => ({
+                    ...s,
+                    rooms: Number(e.target.value) || 1,
+                  }))
+                }
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "2px solid #e0e0e0",
+                  borderRadius: "8px",
+                  marginTop: "0.25rem",
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: "0.85rem", color: "#666" }}>
+                Adults
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={searchStay.adults}
+                onChange={(e) =>
+                  setSearchStay((s) => ({
+                    ...s,
+                    adults: Number(e.target.value) || 1,
+                  }))
+                }
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "2px solid #e0e0e0",
+                  borderRadius: "8px",
+                  marginTop: "0.25rem",
+                }}
+              />
+            </div>
+          </div>
+
+          {!canQuote ? (
+            <p style={{ marginTop: "0.6rem", color: "#b45309" }}>
+              Check-out must be after check-in to show prices.
+            </p>
+          ) : ratesError ? (
+            <p style={{ marginTop: "0.6rem", color: "#b45309" }}>
+              Could not load prices for these dates.
+            </p>
+          ) : null}
 
           {places.length > 0 && (
             <div
@@ -540,6 +815,31 @@ const Hotel = () => {
                       </span>
                     )}
                   </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "0.75rem",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    <span style={{ color: "#555", fontWeight: "bold" }}>
+                      {ratesByHotelId?.[hotel.id]?.amount
+                        ? `${ratesByHotelId[hotel.id].currency} ${Number(
+                            ratesByHotelId[hotel.id].amount
+                          ).toLocaleString()}`
+                        : ratesLoading && canQuote
+                          ? "Loading price…"
+                          : canQuote
+                            ? "Price unavailable"
+                            : "Select dates"}
+                    </span>
+                    <span style={{ color: "#777", fontSize: "0.85rem" }}>
+                      {canQuote ? "for your stay" : ""}
+                    </span>
+                  </div>
                   {hotel.amenities && hotel.amenities.length > 0 && (
                     <div
                       style={{
@@ -613,6 +913,7 @@ const Hotel = () => {
 
       {showDetails && selectedHotel && (
         <div
+          role="presentation"
           style={{
             position: "fixed",
             top: 0,
@@ -625,6 +926,9 @@ const Hotel = () => {
             alignItems: "center",
             zIndex: 1000,
             padding: "1rem",
+            boxSizing: "border-box",
+            overflow: "hidden",
+            overscrollBehavior: "contain",
           }}
           onClick={() => {
             setShowDetails(false);
@@ -632,15 +936,24 @@ const Hotel = () => {
           }}
         >
           <div
+            ref={detailsPanelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hotel-details-title"
+            tabIndex={-1}
             style={{
               background: "white",
               borderRadius: "12px",
               padding: "2rem",
               maxWidth: "700px",
               width: "100%",
-              maxHeight: "90vh",
+              maxHeight: "min(90vh, 780px)",
               overflowY: "auto",
               position: "relative",
+              overscrollBehavior: "contain",
+              WebkitOverflowScrolling: "touch",
+              isolation: "isolate",
+              outline: "none",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -666,7 +979,10 @@ const Hotel = () => {
               ×
             </button>
 
-            <h2 style={{ marginBottom: "1rem", paddingRight: "2rem" }}>
+            <h2
+              id="hotel-details-title"
+              style={{ marginBottom: "1rem", paddingRight: "2rem" }}
+            >
               {selectedHotel.name}
             </h2>
 
@@ -782,12 +1098,116 @@ const Hotel = () => {
                 cursor: "pointer",
                 marginTop: "1rem",
               }}
+              onClick={openBookModal}
             >
               Book Now
             </button>
           </div>
         </div>
       )}
+
+      {bookModalOpen ? (
+        <div
+          role="presentation"
+          onClick={() => !bookingSubmitting && setBookModalOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1001,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            boxSizing: "border-box",
+            overflow: "hidden",
+            overscrollBehavior: "contain",
+          }}
+        >
+          <div
+            ref={bookModalPanelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hotel-book-modal-title"
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: "520px",
+              background: "white",
+              borderRadius: "14px",
+              padding: "1.25rem",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+              maxHeight: "min(90vh, 780px)",
+              overflowY: "auto",
+              isolation: "isolate",
+              WebkitOverflowScrolling: "touch",
+              overscrollBehavior: "contain",
+              scrollBehavior: "smooth",
+              outline: "none",
+            }}
+          >
+            <h3
+              id="hotel-book-modal-title"
+              style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700 }}
+            >
+              Book this hotel?
+            </h3>
+            <p style={{ marginTop: "0.75rem", color: "#444", fontSize: "1rem", lineHeight: 1.5 }}>
+              Are you sure you want to book{" "}
+              <strong>{selectedHotel?.name}</strong>?
+            </p>
+            <p style={{ marginTop: "0.75rem", color: "#666", fontSize: "0.9rem", lineHeight: 1.5 }}>
+              <strong>Your stay:</strong> {searchStay.checkIn || "—"} → {searchStay.checkOut || "—"}
+              {" · "}
+              {searchStay.rooms} room{searchStay.rooms !== 1 ? "s" : ""}, {searchStay.adults}{" "}
+              adult{searchStay.adults !== 1 ? "s" : ""}
+              {Array.isArray(searchStay.childrenAges) &&
+              searchStay.childrenAges.length > 0
+                ? `, ${searchStay.childrenAges.length} child${
+                    searchStay.childrenAges.length !== 1 ? "ren" : ""
+                  }`
+                : ""}
+            </p>
+
+            <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.25rem" }}>
+              <button
+                type="button"
+                disabled={bookingSubmitting}
+                onClick={() => setBookModalOpen(false)}
+                style={{
+                  flex: 1,
+                  padding: "0.9rem",
+                  borderRadius: "10px",
+                  border: "1px solid #ddd",
+                  background: "white",
+                  fontWeight: 700,
+                  cursor: bookingSubmitting ? "not-allowed" : "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={bookingSubmitting || !canBook}
+                onClick={submitHotelBooking}
+                style={{
+                  flex: 1,
+                  padding: "0.9rem",
+                  borderRadius: "10px",
+                  border: "none",
+                  background: bookingSubmitting || !canBook ? "#9ca3af" : "#16a34a",
+                  color: "white",
+                  fontWeight: 800,
+                  cursor: bookingSubmitting || !canBook ? "not-allowed" : "pointer",
+                }}
+              >
+                {bookingSubmitting ? "Booking…" : "Confirm booking"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <style>{`
                 @keyframes spin {

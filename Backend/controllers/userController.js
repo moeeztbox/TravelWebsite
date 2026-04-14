@@ -226,3 +226,35 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: error.message || "Server error" });
   }
 };
+
+export const uploadCommonDocuments = async (req, res) => {
+  try {
+    const userId = req.user?._id ?? req.user?.id;
+    const base = "/uploads/user-docs";
+    const updates = {};
+
+    if (req.files?.visaPdf?.[0]) {
+      updates["commonDocuments.visaPdf"] = `${base}/${req.files.visaPdf[0].filename}`;
+    }
+    if (req.files?.otherPdf?.[0]) {
+      updates["commonDocuments.otherPdf"] = `${base}/${req.files.otherPdf[0].filename}`;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "No PDF files received" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true }
+    ).select("-password");
+
+    res.json({
+      message: "Documents uploaded successfully",
+      user: toUserPayload(user),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};

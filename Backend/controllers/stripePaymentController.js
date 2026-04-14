@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import Booking from "../models/booking.js";
 import TransportationBooking from "../models/transportationBooking.js";
 import VisaRequest from "../models/visaRequest.js";
+import HotelBooking from "../models/hotelBooking.js";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY?.trim();
@@ -57,7 +58,7 @@ export const createBookingPaymentIntent = async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "pkr",
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
       metadata: {
         bookingId: String(booking._id),
         userId: String(userId),
@@ -174,7 +175,7 @@ export const createTransportStripePaymentIntent = async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "pkr",
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
       metadata: {
         transportBookingId: String(booking._id),
         userId: String(userId),
@@ -278,7 +279,7 @@ export const createVisaStripePaymentIntent = async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: cents,
       currency: "usd",
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
       metadata: {
         visaRequestId: String(doc._id),
         userId: String(userId),
@@ -336,6 +337,137 @@ export const confirmVisaStripePayment = async (req, res) => {
     res.json({ visaRequest: doc });
   } catch (error) {
     console.error("confirmVisaStripePayment:", error);
+    res.status(500).json({
+      message: error.message || "Could not confirm payment",
+    });
+  }
+};
+
+function toStripeSmallestUnit(amount, currency) {
+  const c = String(currency || "").toLowerCase().trim();
+  const n = Number(amount);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  // For our use: PKR and USD are both 2-decimal currencies.
+  if (c === "pkr" || c === "usd") return Math.round(n * 100);
+  // Default to 2-decimals to avoid blocking other currencies.
+  return Math.round(n * 100);
+}
+
+export const createHotelStripePaymentIntent = async (req, res) => {
+  try {
+    const stripe = getStripe();
+    if (!stripe) {
+      return res.status(503).json({
+        message:
+          "Stripe is not configured. Add STRIPE_SECRET_KEY to Backend/.env.",
+      });
+    }
+
+    const userId = req.user._id ?? req.user.id;
+    const booking = await HotelBooking.findOne({
+      _id: req.params.id,
+      user: userId,
+    });
+    if (!booking) {
+      return res.status(404).json({ message: "Hotel booking not found" });
+    }
+    if (booking.status !== "approved") {
+      return res.status(400).json({
+        message: "Payment is only available after the booking is approved.",
+      });
+    }
+    if (booking.payment?.status === "verified") {
+      return res.status(400).json({ message: "This booking is already paid." });
+    }
+
+    const adminAmt = Number(booking.adminTotal?.amount);
+    const useAdmin = Number.isFinite(adminAmt) && adminAmt > 0;
+    const quoteAmt = Number(booking.quoteTotal?.amount);
+    const useQuote = !useAdmin && Number.isFinite(quoteAmt) && quoteAmt > 0;
+
+    const currency = String(
+      useAdmin
+        ? booking.adminTotal?.currency || "usd"
+        : useQuote
+          ? booking.quoteTotal?.currency || "usd"
+          : "usd"
+    ).toLowerCase();
+
+    const amountRaw = useAdmin ? adminAmt : useQuote ? quoteAmt : NaN;
+    const amount = toStripeSmallestUnit(amountRaw, currency);
+    if (!amount || amount < 50) {
+      return res.status(400).json({
+        message:
+          "No chargeable amount on file. The office must confirm a total, or your booking must include the quoted price from search.",
+      });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency,
+      payment_method_types: ["card"],
+      metadata: {
+        hotelBookingId: String(booking._id),
+        userId: String(userId),
+      },
+    });
+
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    console.error("createHotelStripePaymentIntent:", error);
+    res.status(500).json({
+      message: error.message || "Could not start card payment",
+    });
+  }
+};
+
+export const confirmHotelStripePayment = async (req, res) => {
+  try {
+    const stripe = getStripe();
+    if (!stripe) {
+      return res.status(503).json({ message: "Stripe is not configured." });
+    }
+
+    const { paymentIntentId } = req.body || {};
+    if (!paymentIntentId || typeof paymentIntentId !== "string") {
+      return res.status(400).json({ message: "paymentIntentId is required" });
+    }
+
+    const userId = req.user._id ?? req.user.id;
+    const booking = await HotelBooking.findOne({
+      _id: req.params.id,
+      user: userId,
+    });
+    if (!booking) {
+      return res.status(404).json({ message: "Hotel booking not found" });
+    }
+
+    const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (pi.metadata?.hotelBookingId !== String(booking._id)) {
+      return res
+        .status(400)
+        .json({ message: "Payment does not match this booking." });
+    }
+    if (pi.status !== "succeeded") {
+      return res.status(400).json({
+        message:
+          "Payment is not completed. Finish the card flow or try again.",
+      });
+    }
+
+    booking.payment = {
+      ...(booking.payment?.toObject
+        ? booking.payment.toObject()
+        : booking.payment || {}),
+      method: "stripe",
+      status: "verifying",
+      stripePaymentIntentId: pi.id,
+    };
+    await booking.save();
+
+    res.json({ booking });
+  } catch (error) {
+    console.error("confirmHotelStripePayment:", error);
     res.status(500).json({
       message: error.message || "Could not confirm payment",
     });

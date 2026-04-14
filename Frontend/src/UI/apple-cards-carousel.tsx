@@ -15,6 +15,7 @@ import {
 import { cn } from "../lib/utils"; // Make sure this exists in src/lib/utils.ts
 import { AnimatePresence, motion } from "framer-motion";
 import { useOutsideClick } from "../Hooks/use-outside-click"; // Make sure this exists in src/hooks/use-outside-click.ts
+import { useScrollLock } from "../Hooks/useScrollLock";
 
 // Carousel Context Type
 interface CarouselContextType {
@@ -57,11 +58,11 @@ export const Carousel: React.FC<CarouselProps> = ({
   };
 
   const scrollLeft = () => {
-    carouselRef.current?.scrollBy({ left: -300, behavior: "smooth" });
+    carouselRef.current?.scrollBy({ left: -300, behavior: "auto" });
   };
 
   const scrollRight = () => {
-    carouselRef.current?.scrollBy({ left: 300, behavior: "smooth" });
+    carouselRef.current?.scrollBy({ left: 300, behavior: "auto" });
   };
 
   const handleCardClose = (index: number) => {
@@ -71,7 +72,7 @@ export const Carousel: React.FC<CarouselProps> = ({
       const scrollPosition = (cardWidth + gap) * (index + 1);
       carouselRef.current.scrollTo({
         left: scrollPosition,
-        behavior: "smooth",
+        behavior: "auto",
       });
       setCurrentIndex(index);
     }
@@ -87,7 +88,7 @@ export const Carousel: React.FC<CarouselProps> = ({
     >
       <div className="relative w-full">
         <div
-          className="flex w-full overflow-x-scroll overscroll-x-auto scroll-smooth py-10 [scrollbar-width:none] md:py-20"
+          className="flex w-full overflow-x-scroll overscroll-x-auto py-10 [scrollbar-width:none] md:py-20"
           ref={carouselRef}
           onScroll={checkScrollability}
         >
@@ -159,19 +160,17 @@ export const Card: React.FC<CardProps> = ({ card, index, layout = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { onCardClose } = useContext(CarouselContext);
 
+  useScrollLock(open);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") handleClose();
     };
 
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   useOutsideClick(containerRef, () => handleClose());
@@ -186,7 +185,7 @@ export const Card: React.FC<CardProps> = ({ card, index, layout = false }) => {
     <>
       <AnimatePresence>
         {open && (
-          <div className="fixed inset-0 z-50 h-screen overflow-auto">
+          <div className="fixed inset-0 z-50 h-screen overflow-hidden">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -199,7 +198,7 @@ export const Card: React.FC<CardProps> = ({ card, index, layout = false }) => {
               exit={{ opacity: 0 }}
               ref={containerRef}
               layoutId={layout ? `card-${card.title}` : undefined}
-              className="relative z-[60] mx-auto my-10 h-fit max-w-5xl rounded-3xl bg-white p-4 font-sans md:p-10 dark:bg-neutral-900"
+              className="relative z-[60] mx-auto my-10 h-fit max-w-5xl max-h-[85vh] overflow-y-auto overscroll-contain rounded-3xl bg-white p-4 font-sans md:p-10 dark:bg-neutral-900"
             >
               <button
                 className="sticky top-4 right-0 ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-black dark:bg-white"

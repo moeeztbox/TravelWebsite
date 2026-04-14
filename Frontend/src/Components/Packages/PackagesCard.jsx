@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { captureScrollPosition, useScrollLock } from "../../Hooks/useScrollLock";
 import {
   Calendar,
   ArrowRight,
@@ -7,11 +14,13 @@ import {
   Ticket,
   Hotel,
   MapPin,
+  X,
 } from "lucide-react";
 import { usePackageBooking } from "../../Hooks/usePackageBooking";
 import { fetchPackages } from "../../Services/packageService";
 import { iconForHighlightKey } from "../../constants/packageHighlightIcons";
 import { Link } from "react-router-dom";
+import Portal from "../Common/Portal";
 
 function getHighlights(pkg) {
   const raw = Array.isArray(pkg?.highlights) ? pkg.highlights : [];
@@ -40,29 +49,21 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const highlights = getHighlights(pkg);
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);
-  const pageScrollYRef = useRef(0);
+  useScrollLock(Boolean(isOpen || confirmOpen));
 
   useEffect(() => {
-    if (isOpen) {
-      pageScrollYRef.current = window.scrollY || 0;
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "";
-      window.scrollTo({
-        top: pageScrollYRef.current || 0,
-        left: 0,
-        behavior: "auto",
-      });
-    };
+    if (!isOpen) setConfirmOpen(false);
   }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
-    
-    window.setTimeout(() => {
-      contentRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
-    }, 0);
+    const id = requestAnimationFrame(() => {
+      const el = contentRef.current;
+      if (!el) return;
+      /* No scrollTo(0) — a new dialog mount already starts at top; forcing it caused a visible jump. */
+      el.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(id);
   }, [isOpen]);
 
   useEffect(() => {
@@ -82,177 +83,333 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
     };
   }, [isOpen, onClose, confirmOpen]);
 
+  /* React's onWheel is passive — preventDefault does nothing, so wheel won't scroll
+     a nested overflow div while body is scroll-locked. Native listener + passive:false fixes it. */
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined;
+    const dialog = dialogRef.current;
+    if (!dialog) return undefined;
+
+    const onWheel = (e) => {
+      const content = contentRef.current;
+      if (!content) return;
+      if (content.scrollHeight <= content.clientHeight + 1) return;
+      content.scrollTop += e.deltaY;
+      e.preventDefault();
+    };
+
+    dialog.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    return () =>
+      dialog.removeEventListener("wheel", onWheel, { capture: true });
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
-    <div
-      className="fixed inset-0 z-[99999] bg-black/50 backdrop-blur-lg overflow-y-auto animate-overlay-in"
-      onClick={onClose}
-    >
-    
-      <div className="min-h-full flex items-center justify-center px-4 pt-24 pb-10 sm:pt-28 sm:pb-14">
-        <div
-        ref={dialogRef}
-        className="relative flex flex-col bg-white rounded-3xl border border-black/10 shadow-[0_18px_60px_rgba(0,0,0,0.22)] overflow-hidden w-full max-w-[920px] animate-modal-in"
-        onClick={(e) => e.stopPropagation()}
-        style={{ zIndex: 100000 }}
-      >
-   
-        <div className="px-6 py-4 border-b border-gray-100 bg-white flex items-center justify-between">
-          <div className="min-w-0">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-              {pkg.title}
-            </h3>
-            <p className="text-xs sm:text-sm text-gray-500 truncate">
-              {pkg.subtitle || "Package details"}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-black/5 hover:scale-105 transition text-gray-500"
-            aria-label="Close"
-            title="Close"
-          >
-            ✕
-          </button>
-        </div>
+  const overlayStyle = {
+    position: "fixed",
+    inset: 0,
+    zIndex: 99999,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "1rem",
+    overflow: "hidden",
+  };
 
-        <div 
-          ref={contentRef}
-          className="flex-1 overflow-y-auto scroll-smooth"
-          style={{ 
-            maxHeight: "min(560px, calc(100vh - 220px))",
-          }}
+  const dialogShellStyle = {
+    position: "relative",
+    width: "100%",
+    maxWidth: "672px",
+    maxHeight: "85vh",
+    margin: "auto",
+    display: "flex",
+    flexDirection: "column",
+    borderRadius: "16px",
+    overflow: "hidden",
+    background: "#fff",
+    boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
+    border: "1px solid #e7e5e4",
+  };
+
+  const scrollBodyStyle = {
+    flex: 1,
+    minHeight: 0,
+    maxHeight: "100%",
+    overflowY: "auto",
+    overscrollBehavior: "contain",
+    WebkitOverflowScrolling: "touch",
+    padding: "1.5rem",
+    outline: "none",
+  };
+
+  return (
+    <Portal>
+      <>
+      {/* Renders under document.body via Portal — avoids parent overflow / stacking clipping */}
+      <div style={overlayStyle} onClick={onClose} role="presentation">
+        <div
+          ref={dialogRef}
+          style={dialogShellStyle}
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="package-dialog-title"
         >
-          <div className="p-6">
-         
+          <div
+            style={{
+              padding: "1rem 1.5rem",
+              borderBottom: "1px solid #f5f5f4",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexShrink: 0,
+              background: "#fff",
+            }}
+          >
+            <div style={{ minWidth: 0, paddingRight: "0.5rem" }}>
+              <h3
+                id="package-dialog-title"
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  color: "#1c1917",
+                  margin: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {pkg.title}
+              </h3>
+              <p style={{ fontSize: "12px", color: "#78716c", margin: "2px 0 0" }}>
+                {pkg.subtitle || "Package details"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: "6px",
+                borderRadius: "8px",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                color: "#78716c",
+                flexShrink: 0,
+              }}
+              aria-label="Close"
+              title="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div
+            ref={contentRef}
+            tabIndex={0}
+            role="region"
+            aria-label="Package details (use arrow keys or Page Up/Down to scroll)"
+            className="outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 focus-visible:ring-inset rounded-sm"
+            style={scrollBodyStyle}
+          >
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-full sm:w-56 h-32 sm:h-36 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
+              <div className="w-full sm:w-48 h-36 sm:h-40 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 shrink-0">
                 <img
                   src={
                     pkg.image ||
                     "https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800"
                   }
-                  alt={pkg.title}
+                  alt=""
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xs text-gray-500">Package Price</p>
-                    <p className="text-2xl font-bold text-[#B8891B]">
-                      {pkg.price || "—"}
-                    </p>
-                  </div>
-                  <span className="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-[#C9A227]/15 text-[#9A7416] border border-[#C9A227]/25">
-                    {pkg.badge || pkg.duration || "Package"}
-                  </span>
+              <div className="flex-1 min-w-0 space-y-3">
+                <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+                  <p className="text-xs font-medium text-stone-600">Price</p>
+                  <p className="text-lg font-semibold text-amber-800 mt-1">
+                    {pkg.price || "—"}
+                  </p>
                 </div>
-
-                <div className="mt-3 flex items-center gap-2 text-sm text-gray-700">
-                  <Calendar className="w-4 h-4 text-[#C9A227]" />
-                  <span className="font-semibold">Duration:</span>
-                  <span>{pkg.duration || "—"}</span>
+                <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3">
+                  <p className="text-xs font-medium text-stone-600">Duration</p>
+                  <p className="text-sm font-semibold text-stone-900 mt-2 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-amber-600 shrink-0" />
+                    {pkg.duration || "—"}
+                  </p>
                 </div>
-
-                {services.length ? (
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {services.slice(0, 4).map((h, idx) => {
-                      const Icon = h.Icon;
-                      return (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2"
-                        >
-                          <Icon className="w-4 h-4 text-[#C9A227] shrink-0" />
-                          <span className="text-sm text-gray-700 truncate">
-                            {h.label}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : null}
               </div>
             </div>
 
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Package Details</h3>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Experience the journey of a lifetime with our carefully curated package. 
-                This comprehensive Umrah package includes everything you need for a spiritual 
-                and comfortable pilgrimage to the holy cities of Makkah and Madinah.
+            {pkg.badge ? (
+              <p className="mt-4 text-[11px] text-stone-500">
+                <span className="font-medium text-stone-700">{pkg.badge}</span>
+              </p>
+            ) : null}
+
+            <div className="mt-4 rounded-2xl border border-stone-200 bg-white px-5 py-4">
+              <p className="text-xs font-medium text-stone-600">About this package</p>
+              <p className="text-sm text-stone-700 leading-relaxed mt-2">
+                Curated Umrah experience with the services shown below. Our team handles
+                coordination so you can focus on your journey.
               </p>
             </div>
 
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">What's Included</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[...services.map((s) => ({ icon: s.Icon, text: s.label })), ...highlights].map(
-                  (highlight, idx) => {
-                    const Icon = highlight.icon;
-                  return (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 bg-gradient-to-r from-[#C9A227]/5 to-[#DAB83D]/5 p-4 rounded-xl border border-[#C9A227]/20"
-                  >
-                    <Icon className="w-5 h-5 text-[#C9A227] flex-shrink-0" />
-                    <span className="text-gray-700 font-medium">{highlight.text}</span>
-                  </div>
-                  );
-                })}
+            {services.length ? (
+              <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4">
+                <p className="text-xs font-medium text-stone-600">Services</p>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {services.map((h, idx) => {
+                    const Icon = h.Icon;
+                    return (
+                      <div
+                        key={`${h.key}-${idx}`}
+                        className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800"
+                      >
+                        <Icon className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span className="truncate">{h.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            ) : null}
+
+            {highlights.length ? (
+              <div className="mt-4 rounded-2xl border border-stone-200 bg-white px-5 py-4">
+                <p className="text-xs font-medium text-stone-600">Highlights</p>
+                <div className="mt-3 space-y-2">
+                  {highlights.map((highlight, idx) => {
+                    const Icon = highlight.icon;
+                    return (
+                      <div key={idx} className="flex items-start gap-3">
+                        <Icon className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                        <span className="text-sm text-stone-700">{highlight.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div
+            style={{
+              padding: "1rem 1.5rem",
+              borderTop: "1px solid #f5f5f4",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: "8px",
+              flexShrink: 0,
+              background: "#fff",
+            }}
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "10px",
+                border: "1px solid #e7e5e4",
+                background: "#fff",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#44403c",
+                cursor: "pointer",
+              }}
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              disabled={booking}
+              onClick={() => setConfirmOpen(true)}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "10px",
+                border: "none",
+                background: booking ? "#9ca3af" : "#d97706",
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#fff",
+                cursor: booking ? "not-allowed" : "pointer",
+              }}
+            >
+              {booking ? "Adding…" : "Book now"}
+            </button>
           </div>
         </div>
-
-        {/* Footer (like dashboard modal) */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2 bg-white">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:bg-black/5 hover:scale-105 transition"
-          >
-            Close
-          </button>
-          <button
-            type="button"
-            disabled={booking}
-            onClick={() => setConfirmOpen(true)}
-            className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#C9A227] to-[#DAB83D] hover:opacity-95 disabled:opacity-60"
-          >
-            {booking ? "Adding…" : "Book now"}
-          </button>
-        </div>
-        </div>
+      </div>
 
       {confirmOpen ? (
         <div
-          className="fixed inset-0 z-[100001] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          style={{ ...overlayStyle, zIndex: 100001 }}
           onClick={() => (booking ? null : setConfirmOpen(false))}
+          role="presentation"
         >
           <div
-            className="w-full max-w-md rounded-2xl bg-white border border-gray-200 shadow-[0_18px_60px_rgba(0,0,0,0.22)] overflow-hidden"
+            style={{
+              ...dialogShellStyle,
+              maxWidth: "448px",
+              maxHeight: "85vh",
+            }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="package-confirm-title"
           >
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h4 className="text-base font-semibold text-gray-900">
+            <div
+              style={{
+                padding: "1rem 1.5rem",
+                borderBottom: "1px solid #f5f5f4",
+                flexShrink: 0,
+                background: "#fff",
+              }}
+            >
+              <h4
+                id="package-confirm-title"
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  color: "#1c1917",
+                  margin: 0,
+                }}
+              >
                 Confirm booking
               </h4>
-              <p className="text-sm text-gray-600 mt-1">
+              <p style={{ fontSize: "14px", color: "#78716c", margin: "8px 0 0" }}>
                 Are you sure you want to book{" "}
-                <span className="font-semibold text-gray-900">{pkg.title}</span>?
+                <span style={{ fontWeight: 600, color: "#1c1917" }}>{pkg.title}</span>?
               </p>
             </div>
-            <div className="px-5 py-4 flex items-center justify-end gap-2 bg-white">
+            <div
+              style={{
+                padding: "1rem 1.5rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: "8px",
+                borderTop: "1px solid #f5f5f4",
+                background: "#fff",
+              }}
+            >
               <button
                 type="button"
                 disabled={booking}
                 onClick={() => setConfirmOpen(false)}
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 hover:bg-black/5 disabled:opacity-60"
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "10px",
+                  border: "1px solid #e7e5e4",
+                  background: "#fff",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#44403c",
+                  cursor: booking ? "not-allowed" : "pointer",
+                  opacity: booking ? 0.6 : 1,
+                }}
               >
                 Cancel
               </button>
@@ -263,7 +420,16 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
                   setConfirmOpen(false);
                   await onBookPackage?.();
                 }}
-                className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#C9A227] to-[#DAB83D] hover:opacity-95 disabled:opacity-60"
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "10px",
+                  border: "none",
+                  background: booking ? "#9ca3af" : "#d97706",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#fff",
+                  cursor: booking ? "not-allowed" : "pointer",
+                }}
               >
                 {booking ? "Adding…" : "Yes, book it"}
               </button>
@@ -271,38 +437,15 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
           </div>
         </div>
       ) : null}
-
-      <style jsx global>{`
-        @keyframes overlay-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .animate-overlay-in {
-          animation: overlay-in 0.18s ease-out;
-        }
-
-        @keyframes modal-in {
-          from {
-            opacity: 0;
-            transform: translateY(14px) scale(0.97);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-        .animate-modal-in {
-          animation: modal-in 0.22s ease-out;
-        }
-      `}</style>
-      </div>
-    </div>
+      </>
+    </Portal>
   );
 }
 
 function PackageCard({ pkg }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [booking, setBooking] = useState(false);
+  useScrollLock(Boolean(booking));
   const { bookPackage } = usePackageBooking();
   const highlights = getHighlights(pkg).slice(0, 2);
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);
@@ -335,7 +478,10 @@ function PackageCard({ pkg }) {
       ) : null}
       <div 
         className="group relative h-full cursor-pointer"
-        onClick={() => setIsDialogOpen(true)}
+        onClick={() => {
+          captureScrollPosition();
+          setIsDialogOpen(true);
+        }}
       >
   <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl border border-gray-100 hover:border-[#C9A227]/30 transition-all duration-500 hover:scale-101 h-full">
           
@@ -358,6 +504,7 @@ function PackageCard({ pkg }) {
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
+                captureScrollPosition();
                 setIsDialogOpen(true);
               }}
               className="absolute bottom-2 right-2 p-2 bg-white hover:bg-gray-50 rounded-lg shadow-md transition-colors"
@@ -422,6 +569,7 @@ function PackageCard({ pkg }) {
               className="w-full bg-gradient-to-r from-[#C9A227] to-[#DAB83D] text-white font-semibold py-3 px-5 rounded-lg text-sm md:text-base transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg mt-auto"
               onClick={(e) => {
                 e.stopPropagation();
+                captureScrollPosition();
                 setIsDialogOpen(true);
               }}
             >
@@ -503,7 +651,6 @@ export default function PackagesGrid({
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [expanding, setExpanding] = useState(false);
-  const keepScrollYRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -523,17 +670,6 @@ export default function PackagesGrid({
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (!expanded) return;
-    const y = keepScrollYRef.current;
-    if (typeof y !== "number") return;
-    keepScrollYRef.current = null;
-    // Prevent the browser from "jumping" when the grid expands.
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: y, left: 0, behavior: "auto" });
-    });
-  }, [expanded]);
 
   const hasLimit = Number(limit) > 0;
   const limited = hasLimit ? packages.slice(0, Number(limit)) : packages;
@@ -578,7 +714,6 @@ export default function PackagesGrid({
                 type="button"
                 onClick={() => {
                   if (expanded || expanding) return;
-                  keepScrollYRef.current = window.scrollY;
                   setExpanding(true);
                   // UX loader before expanding the list
                   window.setTimeout(() => {

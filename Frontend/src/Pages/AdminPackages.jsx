@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useScrollLock } from "../Hooks/useScrollLock";
 import { Pencil, Trash2, Plus, X, Loader2 } from "lucide-react";
 import AdminLayout from "../Components/Admin/AdminLayout";
 import {
@@ -90,17 +91,7 @@ export default function AdminPackages() {
     load();
   }, [load]);
 
-  /* lock body scroll when modal is open */
-  useEffect(() => {
-    if (modalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [modalOpen]);
+  useScrollLock(Boolean(modalOpen || deleteTarget));
 
   const openCreate = () => {
     setEditingId(null);
@@ -361,7 +352,7 @@ export default function AdminPackages() {
           />
 
           {/* Scroll container — fills viewport, scrolls independently */}
-          <div className="fixed inset-0 z-[101] overflow-y-auto overflow-x-hidden">
+          <div className="fixed inset-0 z-[101] overflow-hidden overflow-x-hidden">
             {/* Centering wrapper — min-height ensures the dialog is centered even on short content */}
             <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-4 md:p-6">
               <div

@@ -145,3 +145,24 @@ export async function adminUpdateVisaOption(id, payload) {
 export async function adminDeleteVisaOption(id) {
   await api.delete(`/admin/visa-options/${encodeURIComponent(id)}`);
 }
+
+/** Hotel bookings (admin) */
+export async function adminListHotelBookings(status = "all") {
+  const { data } = await api.get("/admin/hotel-bookings", { params: { status } });
+  return data.bookings ?? [];
+}
+
+export async function adminSetHotelBookingStatus(id, status, adminTotal) {
+  const { data } = await api.patch(`/admin/hotel-bookings/${id}`, {
+    status,
+    ...(adminTotal ? { adminTotal } : {}),
+  });
+  return data.booking;
+}
+
+export async function adminSetHotelPaymentStatus(id, status) {
+  const { data } = await api.patch(`/admin/hotel-bookings/${id}/payment`, {
+    status,
+  });
+  return data.booking;
+}

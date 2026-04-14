@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useScrollLock } from "../../Hooks/useScrollLock";
 import {
   getTransportationOptions,
   createTransportationBooking,
@@ -52,6 +53,8 @@ function Transportation() {
   const [selectedOpt, setSelectedOpt] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useScrollLock(confirmOpen);
 
   useEffect(() => {
     let cancelled = false;

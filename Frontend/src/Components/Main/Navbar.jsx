@@ -12,6 +12,7 @@ import {
 } from "../../UI/resizable-navbar";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useScrollLock } from "../../Hooks/useScrollLock";
 import { UserCircle } from "lucide-react";
 import LanguageSwitcher from "../../Services/Languages/LanguageSwitcher";
 import { useAuth } from "../../Context/AuthContext";
@@ -46,10 +47,16 @@ export default function NavbarDemo() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
+  const [desktopAccountOpen, setDesktopAccountOpen] = useState(false);
 
   useEffect(() => {
     setMobileAccountOpen(false);
+    setDesktopAccountOpen(false);
   }, [location.pathname]);
+
+  useScrollLock(
+    Boolean(bookingGateOpen || isMobileMenuOpen || mobileAccountOpen)
+  );
 
   const closeMobileAccount = () => setMobileAccountOpen(false);
 
@@ -62,6 +69,7 @@ export default function NavbarDemo() {
     signOut();
     setIsMobileMenuOpen(false);
     setMobileAccountOpen(false);
+    setDesktopAccountOpen(false);
     navigate("/", { replace: true });
   };
 
@@ -129,9 +137,10 @@ export default function NavbarDemo() {
             {isAuthenticated ? (
               <div className="flex items-center gap-2 sm:gap-3">
                 {isAdmin ? (
-                  <div className="relative group">
+                  <div className="relative">
                     <button
                       type="button"
+                      onClick={() => setDesktopAccountOpen((o) => !o)}
                       className={[
                         "flex items-center justify-center rounded-lg p-1.5 transition-colors outline-none",
                         location.pathname.startsWith("/admin") ||
@@ -139,6 +148,7 @@ export default function NavbarDemo() {
                           ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60"
                           : "text-yellow-700 hover:bg-yellow-50",
                       ].join(" ")}
+                      aria-expanded={desktopAccountOpen}
                       aria-haspopup="menu"
                       aria-label="Account menu"
                     >
@@ -147,57 +157,71 @@ export default function NavbarDemo() {
                         strokeWidth={1.5}
                       />
                     </button>
-                    <div
-                      className="absolute right-0 top-full z-[60] pt-1 opacity-0 invisible pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:visible group-focus-within:pointer-events-auto"
-                      role="menu"
-                      aria-label="Admin account"
-                    >
-                      <div className="rounded-xl border border-amber-200 bg-white shadow-lg py-1 min-w-[13rem]">
-                        <Link
-                          to="/admin/packages"
-                          role="menuitem"
-                          className={[
-                            "block px-4 py-2.5 text-sm font-medium transition-colors",
-                            location.pathname.startsWith("/admin")
-                              ? "bg-amber-50 text-amber-950"
-                              : "text-stone-700 hover:bg-amber-50/80",
-                          ].join(" ")}
-                        >
-                          Admin panel
-                        </Link>
-                        <Link
-                          to="/dashboard"
-                          role="menuitem"
-                          className={[
-                            "block px-4 py-2.5 text-sm font-medium transition-colors border-t border-stone-100",
-                            location.pathname === "/dashboard"
-                              ? "bg-amber-50 text-amber-950"
-                              : "text-stone-700 hover:bg-amber-50/80",
-                          ].join(" ")}
-                        >
-                          Member dashboard
-                        </Link>
+                    {desktopAccountOpen ? (
+                      <>
                         <button
                           type="button"
-                          role="menuitem"
-                          onClick={handleLogout}
-                          className="block w-full text-left border-t border-stone-100 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                          className="fixed inset-0 z-[55]"
+                          aria-label="Close account menu"
+                          onClick={() => setDesktopAccountOpen(false)}
+                        />
+                        <div
+                          className="absolute right-0 top-full z-[60] pt-1"
+                          role="menu"
+                          aria-label="Admin account"
                         >
-                          Log out
-                        </button>
-                      </div>
-                    </div>
+                          <div className="rounded-xl border border-amber-200 bg-white shadow-lg py-1 min-w-[13rem]">
+                            <Link
+                              to="/admin/packages"
+                              role="menuitem"
+                              onClick={() => setDesktopAccountOpen(false)}
+                              className={[
+                                "block px-4 py-2.5 text-sm font-medium transition-colors",
+                                location.pathname.startsWith("/admin")
+                                  ? "bg-amber-50 text-amber-950"
+                                  : "text-stone-700 hover:bg-amber-50/80",
+                              ].join(" ")}
+                            >
+                              Admin panel
+                            </Link>
+                            <Link
+                              to="/dashboard"
+                              role="menuitem"
+                              onClick={() => setDesktopAccountOpen(false)}
+                              className={[
+                                "block px-4 py-2.5 text-sm font-medium transition-colors border-t border-stone-100",
+                                location.pathname === "/dashboard"
+                                  ? "bg-amber-50 text-amber-950"
+                                  : "text-stone-700 hover:bg-amber-50/80",
+                              ].join(" ")}
+                            >
+                              Member dashboard
+                            </Link>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={handleLogout}
+                              className="block w-full text-left border-t border-stone-100 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              Log out
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ) : null}
                   </div>
                 ) : (
-                  <div className="relative group">
+                  <div className="relative">
                     <button
                       type="button"
+                      onClick={() => setDesktopAccountOpen((o) => !o)}
                       className={[
                         "flex items-center rounded-lg transition-colors gap-2 px-2 py-1.5 outline-none",
                         location.pathname.startsWith("/dashboard")
                           ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60"
                           : "text-yellow-700 hover:bg-yellow-50",
                       ].join(" ")}
+                      aria-expanded={desktopAccountOpen}
                       aria-haspopup="menu"
                       aria-label="Account menu"
                     >
@@ -209,34 +233,45 @@ export default function NavbarDemo() {
                         {displayName}
                       </span>
                     </button>
-                    <div
-                      className="absolute right-0 top-full z-[60] pt-1 opacity-0 invisible pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:visible group-focus-within:pointer-events-auto"
-                      role="menu"
-                      aria-label="Your account"
-                    >
-                      <div className="rounded-xl border border-amber-200 bg-white shadow-lg py-1 min-w-[13rem]">
-                        <Link
-                          to="/dashboard"
-                          role="menuitem"
-                          className={[
-                            "block px-4 py-2.5 text-sm font-medium transition-colors",
-                            location.pathname.startsWith("/dashboard")
-                              ? "bg-amber-50 text-amber-950"
-                              : "text-stone-700 hover:bg-amber-50/80",
-                          ].join(" ")}
-                        >
-                          My Profile
-                        </Link>
+                    {desktopAccountOpen ? (
+                      <>
                         <button
                           type="button"
-                          role="menuitem"
-                          onClick={handleLogout}
-                          className="block w-full text-left border-t border-stone-100 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                          className="fixed inset-0 z-[55]"
+                          aria-label="Close account menu"
+                          onClick={() => setDesktopAccountOpen(false)}
+                        />
+                        <div
+                          className="absolute right-0 top-full z-[60] pt-1"
+                          role="menu"
+                          aria-label="Your account"
                         >
-                          Log out
-                        </button>
-                      </div>
-                    </div>
+                          <div className="rounded-xl border border-amber-200 bg-white shadow-lg py-1 min-w-[13rem]">
+                            <Link
+                              to="/dashboard"
+                              role="menuitem"
+                              onClick={() => setDesktopAccountOpen(false)}
+                              className={[
+                                "block px-4 py-2.5 text-sm font-medium transition-colors",
+                                location.pathname.startsWith("/dashboard")
+                                  ? "bg-amber-50 text-amber-950"
+                                  : "text-stone-700 hover:bg-amber-50/80",
+                              ].join(" ")}
+                            >
+                              My Profile
+                            </Link>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={handleLogout}
+                              className="block w-full text-left border-t border-stone-100 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              Log out
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ) : null}
                   </div>
                 )}
               </div>

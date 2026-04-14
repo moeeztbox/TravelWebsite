@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useScrollLock } from "../Hooks/useScrollLock";
 import { Pencil, Trash2, Plus, X, Loader2 } from "lucide-react";
 import AdminLayout from "../Components/Admin/AdminLayout";
 import {
@@ -146,16 +147,7 @@ export default function AdminServiceOptions() {
     loadVisa();
   }, [loadTransport, loadVisa]);
 
-  useEffect(() => {
-    if (modalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [modalOpen]);
+  useScrollLock(Boolean(modalOpen || deleteTarget));
 
   const openCreate = () => {
     setEditingId(null);
@@ -529,7 +521,7 @@ export default function AdminServiceOptions() {
             onClick={closeModal}
             aria-hidden
           />
-          <div className="fixed inset-0 z-[101] overflow-y-auto overflow-x-hidden">
+          <div className="fixed inset-0 z-[101] overflow-hidden overflow-x-hidden">
             <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-6">
               <div
                 className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-zinc-200 flex flex-col"
@@ -716,7 +708,7 @@ export default function AdminServiceOptions() {
             onClick={closeModal}
             aria-hidden
           />
-          <div className="fixed inset-0 z-[101] overflow-y-auto overflow-x-hidden">
+          <div className="fixed inset-0 z-[101] overflow-hidden overflow-x-hidden">
             <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-6">
               <div
                 className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-zinc-200 flex flex-col"

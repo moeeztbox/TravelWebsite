@@ -93,6 +93,11 @@ export async function updateProfile(payload) {
   return data;
 }
 
+export async function uploadCommonDocuments(formData) {
+  const { data } = await api.patch("/auth/documents", formData);
+  return data;
+}
+
 /** User-facing message for failed API calls (network, 404 HTML, JSON body). */
 export function formatAxiosError(error) {
   const data = error.response?.data;

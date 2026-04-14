@@ -2,6 +2,82 @@
 import { useState, useCallback } from "react";
 import hotelService from "../Services/HotelApi/HotelService";
 
+function asNumber(v) {
+  const n = typeof v === "string" ? Number(v) : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function extractCheapestOffer(entry) {
+  // LiteAPI response shapes can differ; handle a few common patterns safely.
+  if (!entry) return null;
+
+  const currency =
+    entry.currency ||
+    entry?.price?.currency ||
+    entry?.rates?.[0]?.currency ||
+    entry?.offers?.[0]?.currency ||
+    entry?.roomTypes?.[0]?.offerRetailRate?.currency ||
+    entry?.roomTypes?.[0]?.suggestedSellingPrice?.currency ||
+    entry?.roomTypes?.[0]?.offerInitialPrice?.currency ||
+    "USD";
+
+  const candidates = [];
+
+  const pushAmount = (amt) => {
+    const n = asNumber(amt);
+    if (n !== null && n > 0) candidates.push(n);
+  };
+
+  // Common: entry.rates = [{ total, amount, price, ... }]
+  if (Array.isArray(entry.rates)) {
+    for (const r of entry.rates) {
+      pushAmount(r?.total);
+      pushAmount(r?.amount);
+      pushAmount(r?.price);
+      pushAmount(r?.net);
+      pushAmount(r?.gross);
+      pushAmount(r?.sellingRate);
+      pushAmount(r?.totalAmount);
+      pushAmount(r?.totalPrice);
+    }
+  }
+
+  // Common: entry.offers = [{ price: { total }, total, ... }]
+  if (Array.isArray(entry.offers)) {
+    for (const o of entry.offers) {
+      pushAmount(o?.total);
+      pushAmount(o?.amount);
+      pushAmount(o?.price?.total);
+      pushAmount(o?.price?.amount);
+      pushAmount(o?.price?.net);
+      pushAmount(o?.price?.gross);
+    }
+  }
+
+  // LiteAPI: entry.roomTypes = [{ offerRetailRate: { amount, currency }, ... }]
+  if (Array.isArray(entry.roomTypes)) {
+    for (const rt of entry.roomTypes) {
+      pushAmount(rt?.offerRetailRate?.amount);
+      pushAmount(rt?.suggestedSellingPrice?.amount);
+      pushAmount(rt?.offerInitialPrice?.amount);
+      // sometimes plain numbers
+      pushAmount(rt?.offerRetailRate);
+      pushAmount(rt?.suggestedSellingPrice);
+      pushAmount(rt?.offerInitialPrice);
+    }
+  }
+
+  // Sometimes a single price is present
+  pushAmount(entry?.total);
+  pushAmount(entry?.amount);
+  pushAmount(entry?.price?.total);
+  pushAmount(entry?.price?.amount);
+
+  if (!candidates.length) return null;
+  const min = Math.min(...candidates);
+  return { amount: min, currency: String(currency || "USD").toUpperCase() };
+}
+
 const useHotels = () => {
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -10,6 +86,9 @@ const useHotels = () => {
   const [places, setPlaces] = useState([]);
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
+  const [ratesByHotelId, setRatesByHotelId] = useState({});
+  const [ratesLoading, setRatesLoading] = useState(false);
+  const [ratesError, setRatesError] = useState(null);
 
   const searchHotels = useCallback(async (city, countryCode) => {
     if (!city) return;
@@ -101,11 +180,54 @@ const useHotels = () => {
     }
   }, []);
 
+  const fetchHotelRates = useCallback(async (params) => {
+    try {
+      setRatesLoading(true);
+      setRatesError(null);
+      const response = await hotelService.getHotelRates(params);
+      if (!response.success) {
+        setRatesByHotelId({});
+        setRatesError(response.error || "Failed to fetch rates");
+        return;
+      }
+
+      const data = response.data || [];
+      const next = {};
+
+      // Possible shapes:
+      // - [{ hotelId, rates: [...] }]
+      // - [{ id, rates: [...] }]
+      // - { hotelId: { ... } } (rare)
+      if (Array.isArray(data)) {
+        for (const entry of data) {
+          const id = String(entry?.hotelId || entry?.id || entry?.hotel?.id || "").trim();
+          if (!id) continue;
+          const best = extractCheapestOffer(entry);
+          if (best) next[id] = best;
+        }
+      } else if (data && typeof data === "object") {
+        for (const [id, entry] of Object.entries(data)) {
+          const best = extractCheapestOffer(entry);
+          if (best) next[String(id)] = best;
+        }
+      }
+
+      setRatesByHotelId(next);
+    } catch (err) {
+      setRatesByHotelId({});
+      setRatesError(err.message || "Failed to fetch rates");
+    } finally {
+      setRatesLoading(false);
+    }
+  }, []);
+
   const clearSearch = useCallback(() => {
     setHotels([]);
     setSelectedHotel(null);
     setError(null);
     setPlaces([]);
+    setRatesByHotelId({});
+    setRatesError(null);
   }, []);
 
   return {
@@ -116,6 +238,9 @@ const useHotels = () => {
     places,
     countries,
     cities,
+    ratesByHotelId,
+    ratesLoading,
+    ratesError,
 
     setSelectedHotel,
 
@@ -124,6 +249,7 @@ const useHotels = () => {
     searchPlaces,
     loadCountries,
     loadCitiesByCountry,
+    fetchHotelRates,
     clearSearch,
   };
 };

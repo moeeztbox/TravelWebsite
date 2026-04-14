@@ -10,6 +10,7 @@ import {
   Bus,
   FileText,
   Layers,
+  Hotel,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -37,6 +38,7 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
       icon: Layers,
     },
     { to: "/admin/bookings", label: "Bookings", icon: ClipboardList },
+    { to: "/admin/hotel-bookings", label: "Hotel bookings", icon: Hotel },
     { to: "/admin/transportation", label: "Transportation Bookings", icon: Bus },
     { to: "/admin/visa-requests", label: "Visa requests", icon: FileText },
     { to: "/admin/custom-packages", label: "Custom Packages", icon: PackagePlus },

@@ -3,9 +3,8 @@ import {
   Routes,
   Route,
   Navigate,
-  useLocation,
 } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AuthProvider } from "./Context/AuthContext";
 import RequireAuth from "./components/RequireAuth";
 import RequireAdmin from "./Components/RequireAdmin";
@@ -38,28 +37,42 @@ import AdminCustomPackages from "./Pages/AdminCustomPackages";
 import AdminTransportation from "./Pages/AdminTransportation";
 import AdminVisaRequests from "./Pages/AdminVisaRequests";
 import AdminServiceOptions from "./Pages/AdminServiceOptions";
+import AdminHotelBookings from "./Pages/AdminHotelBookings";
 import Stories from "./Pages/Stories";
 import SubmitStory from "./Pages/SubmitStory";
 
-// ScrollToTop component
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
+function AppRoutes() {
+  const location = useMemo(() => window.location.pathname, []);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [routeLoading, setRouteLoading] = useState(false);
 
   useEffect(() => {
-    // Scroll to top when route changes
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: "auto",
-    });
-  }, [pathname]);
+    const done = () => setInitialLoading(false);
+    if (document.readyState === "complete") done();
+    else window.addEventListener("load", done);
+    return () => window.removeEventListener("load", done);
+  }, []);
 
-  return null;
-};
+  useEffect(() => {
+    // Show a short, consistent loader on route changes.
+    // (With <Routes> we can't reliably know async page readiness, so we use a brief minimum.)
+    setRouteLoading(true);
+    const t = window.setTimeout(() => setRouteLoading(false), 300);
+    return () => window.clearTimeout(t);
+  }, [window.location.pathname]);
 
-function AppRoutes() {
   return (
     <>
+      {initialLoading || routeLoading ? (
+        <div className="fixed inset-0 z-[100000] bg-black/35 backdrop-blur-md flex items-center justify-center">
+          <div className="bg-white/90 backdrop-blur-md border border-white/40 rounded-2xl px-6 py-5 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full border-4 border-[#C9A227]/30 border-t-[#C9A227] animate-spin" />
+              <div className="text-sm font-semibold text-gray-800">Loading…</div>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <Navbar />
       <Routes>
           <Route path="/" element={<Home />} />
@@ -128,6 +141,14 @@ function AppRoutes() {
             }
           />
           <Route
+            path="/admin/hotel-bookings"
+            element={
+              <RequireAdmin>
+                <AdminHotelBookings />
+              </RequireAdmin>
+            }
+          />
+          <Route
             path="/admin/transportation"
             element={
               <RequireAdmin>
@@ -182,7 +203,6 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <ScrollToTop />
         <AppRoutes />
       </AuthProvider>
     </Router>

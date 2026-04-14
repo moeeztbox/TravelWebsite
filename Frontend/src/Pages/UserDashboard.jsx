@@ -15,10 +15,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import { Link } from "react-router-dom";
-import { updateProfile } from "../Services/authService";
+import { updateProfile, uploadCommonDocuments } from "../Services/authService";
 import {
   listMyBookings,
   uploadBookingDocuments,
+  attachCommonDocumentsToBooking,
   uploadPaymentReceipt,
   deleteMyBooking,
 } from "../Services/bookingService";
@@ -35,6 +36,12 @@ import {
   dismissVisaRequest,
 } from "../Services/visaRequestService";
 import {
+  listMyHotelBookings,
+  setHotelPaymentMethod,
+  uploadHotelPaymentReceipt,
+  dismissHotelBooking,
+} from "../Services/hotelBookingService";
+import {
   acceptCustomPackageRequest,
   rejectCustomPackageOffer,
   deleteMyCustomPackageRequest,
@@ -42,6 +49,7 @@ import {
 } from "../Services/customPackageService";
 import { getBitmojiAvatarUrl, BITMOJI_COUNT } from "../constants/bitmoji";
 import { getApiOrigin } from "../utils/apiOrigin";
+import { useScrollLock } from "../Hooks/useScrollLock";
 import BookingStripeCheckout from "../Services/PaymentIntegration/BookingStripeCheckout";
 import MiscStripeCheckout from "../Services/PaymentIntegration/MiscStripeCheckout";
 
@@ -55,7 +63,11 @@ function StatusBadge({ status }) {
     <span
       className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border ${map[status] || map.pending}`}
     >
-      {status === "pending" ? "Draft · Pending approval" : status}
+      {status === "pending"
+        ? "Awaiting approval"
+        : status
+          ? status[0].toUpperCase() + status.slice(1)
+          : "Pending"}
     </span>
   );
 }
@@ -173,17 +185,25 @@ export default function UserDashboard() {
   const [loadingCustom, setLoadingCustom] = useState(true);
   const [transportBookings, setTransportBookings] = useState([]);
   const [loadingTransport, setLoadingTransport] = useState(true);
+  const [hotelBookings, setHotelBookings] = useState([]);
+  const [loadingHotels, setLoadingHotels] = useState(true);
   const [visaRequests, setVisaRequests] = useState([]);
   const [loadingVisa, setLoadingVisa] = useState(true);
   const [paymentMethodTransport, setPaymentMethodTransport] = useState({});
+  const [paymentMethodHotel, setPaymentMethodHotel] = useState({});
   const [paymentMethodVisa, setPaymentMethodVisa] = useState({});
   const [uploadForId, setUploadForId] = useState(null);
   const [receiptForId, setReceiptForId] = useState(null);
+  const [docsModalOpen, setDocsModalOpen] = useState(false);
   /** Local payment method choice per booking — saved when receipt is submitted */
   const [paymentMethodDraft, setPaymentMethodDraft] = useState({});
   const [trackFor, setTrackFor] = useState(null);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [avatarDraft, setAvatarDraft] = useState(user?.bitmojiIndex ?? 0);
+
+  useScrollLock(
+    Boolean(overlay.open || avatarPickerOpen || trackFor || docsModalOpen)
+  );
 
   useEffect(() => {
     setPhone(user?.phone || "");
@@ -251,8 +271,21 @@ export default function UserDashboard() {
     }
   };
 
+  const loadHotels = async (silent) => {
+    if (!silent) setLoadingHotels(true);
+    try {
+      const list = await listMyHotelBookings();
+      setHotelBookings(list || []);
+    } catch {
+      /* optional */
+    } finally {
+      if (!silent) setLoadingHotels(false);
+    }
+  };
+
   useEffect(() => {
     loadTransport();
+    loadHotels();
     loadVisa();
   }, []);
 
@@ -266,6 +299,13 @@ export default function UserDashboard() {
   const isVisaProcessingDone = (v) => {
     if (v.payment?.status !== "verified") return false;
     const t = v.serviceEndDate;
+    if (!t) return false;
+    return Date.now() > new Date(t).getTime();
+  };
+
+  const isHotelStayDone = (h) => {
+    if (h.payment?.status !== "verified") return false;
+    const t = h.stay?.checkOut;
     if (!t) return false;
     return Date.now() > new Date(t).getTime();
   };
@@ -324,12 +364,52 @@ export default function UserDashboard() {
     }
   };
 
+  const submitHotelReceipt = async (id, e) => {
+    e.preventDefault();
+    const method =
+      paymentMethodHotel[id] ||
+      hotelBookings.find((x) => x._id === id)?.payment?.method;
+    if (!method) {
+      toast.error("Select a payment method first.");
+      return;
+    }
+    if (method === "stripe") {
+      toast.error("Use the Stripe card form below—no receipt upload.");
+      return;
+    }
+    await setHotelPaymentMethod(id, method);
+    const fd = new FormData(e.target);
+    setOverlay({ open: true, message: "Uploading receipt…" });
+    try {
+      await uploadHotelPaymentReceipt(id, fd);
+      toast.success("Receipt submitted");
+      await loadHotels(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
   const removeTransport = async (id) => {
     setOverlay({ open: true, message: "Removing…" });
     try {
       await dismissTransportationBooking(id);
       toast.success("Removed");
       await loadTransport(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not remove");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
+  const removeHotel = async (id) => {
+    setOverlay({ open: true, message: "Removing…" });
+    try {
+      await dismissHotelBooking(id);
+      toast.success("Removed");
+      await loadHotels(true);
     } catch (err) {
       toast.error(err.response?.data?.message || "Could not remove");
     } finally {
@@ -380,6 +460,8 @@ export default function UserDashboard() {
     filename
       ? `${origin}/uploads/misc-receipts/${encodeURIComponent(filename)}`
       : "";
+  const commonDocs = user?.commonDocuments || { visaPdf: "", otherPdf: "" };
+  const hasCommonDocs = Boolean(commonDocs?.visaPdf || commonDocs?.otherPdf);
   const pendingCustom = customRequests.filter((r) => r.status === "pending");
   const approvedCustom = customRequests.filter((r) => r.status === "approved");
   const rejectedCustom = customRequests.filter((r) => r.status === "rejected");
@@ -396,6 +478,19 @@ export default function UserDashboard() {
     rejectedCustom.length;
 
   const formatPkr = (n) => `PKR ${(Number(n) || 0).toLocaleString()}`;
+  const formatHotelMoney = (total) => {
+    if (!total || total.amount == null) return null;
+    const n = Number(total.amount);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    const c = (total.currency || "USD").toUpperCase();
+    if (c === "PKR") return formatPkr(n);
+    if (c === "USD")
+      return `USD ${n.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    return `${c} ${n.toLocaleString()}`;
+  };
   const [acceptingCustomId, setAcceptingCustomId] = useState(null);
   const [rejectingCustomId, setRejectingCustomId] = useState(null);
   const [deletingCustomId, setDeletingCustomId] = useState(null);
@@ -457,6 +552,42 @@ export default function UserDashboard() {
       await loadBookings({ silent: true });
     } catch (err) {
       toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
+  const handleDocsModalUpload = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const hasVisa = fd.get("visaPdf") instanceof File && fd.get("visaPdf")?.size;
+    const hasOther =
+      fd.get("otherPdf") instanceof File && fd.get("otherPdf")?.size;
+    if (!hasVisa && !hasOther) {
+      toast.error("Please choose at least one file.");
+      return;
+    }
+    setOverlay({ open: true, message: "Uploading documents…" });
+    try {
+      const { user: u } = await uploadCommonDocuments(fd);
+      updateUser(u);
+      toast.success("Documents saved");
+      setDocsModalOpen(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
+  const attachCommonToBooking = async (bookingId) => {
+    setOverlay({ open: true, message: "Attaching your uploaded documents…" });
+    try {
+      await attachCommonDocumentsToBooking(bookingId);
+      toast.success("Documents attached to this booking");
+      await loadBookings({ silent: true });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not attach documents");
     } finally {
       setOverlay({ open: false, message: "" });
     }
@@ -909,6 +1040,260 @@ export default function UserDashboard() {
             </section>
           ) : null}
 
+          {!loadingHotels && hotelBookings.length > 0 ? (
+            <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8 mt-6">
+              <h2 className="text-xl font-bold text-stone-900 mb-2">
+                Your hotel bookings
+              </h2>
+              <p className="text-sm text-stone-500 mb-6">
+                Track approval, submit payment receipt after approval, and remove
+                the card after your stay ends.
+              </p>
+              <ul className="space-y-4">
+                {hotelBookings.map((hb) => (
+                  <li
+                    key={hb._id}
+                    className="rounded-xl border border-stone-200 bg-stone-50/60 px-4 py-3 space-y-2"
+                  >
+                    <div className="flex flex-wrap justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-stone-900 truncate">
+                          {hb.hotel?.name}
+                        </p>
+                        <p className="text-xs text-stone-500 truncate">
+                          {hb.hotel?.city} {hb.hotel?.country}
+                        </p>
+                        <p className="text-xs text-stone-500">
+                          Stay:{" "}
+                          {hb.stay?.checkIn
+                            ? new Date(hb.stay.checkIn).toLocaleDateString()
+                            : "—"}{" "}
+                          →{" "}
+                          {hb.stay?.checkOut
+                            ? new Date(hb.stay.checkOut).toLocaleDateString()
+                            : "—"}
+                        </p>
+                        <p className="text-xs text-stone-700 mt-1">
+                          {formatHotelMoney(hb.adminTotal) ? (
+                            <>
+                              <span className="font-semibold text-stone-900">
+                                Final amount:{" "}
+                              </span>
+                              {formatHotelMoney(hb.adminTotal)}
+                              {hb.adminTotal?.label
+                                ? ` (${hb.adminTotal.label})`
+                                : ""}
+                            </>
+                          ) : formatHotelMoney(hb.quoteTotal) ? (
+                            <>
+                              <span className="font-semibold text-stone-900">
+                                {hb.quoteTotal?.label || "Quoted"}:{" "}
+                              </span>
+                              {formatHotelMoney(hb.quoteTotal)}
+                            </>
+                          ) : (
+                            <span className="text-stone-500">
+                              Payment amount will show after admin sets the total
+                              or from your search quote.
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <StatusBadge status={hb.status} />
+                    </div>
+
+                    {hb.status === "rejected" ? (
+                      <p className="text-sm text-red-700">
+                        Booking was rejected. You can remove this card.
+                      </p>
+                    ) : null}
+
+                    {hb.status === "approved" &&
+                    hb.payment?.status !== "verified" ? (
+                      (() => {
+                        const rawMethod =
+                          paymentMethodHotel[hb._id] ??
+                          hb.payment?.method ??
+                          "";
+                        const method =
+                          rawMethod === "card" ? "bank_transfer" : rawMethod;
+                        const isStripe = method === "stripe";
+                        const details = method ? PAYMENT_DETAILS[method] : null;
+                        const receiptSubmitted = Boolean(hb.payment?.receiptPdf);
+                        const methodSelectLocked =
+                          hb.payment?.status === "verifying" || receiptSubmitted;
+                        const payStatus = hb.payment?.status ?? "none";
+                        const showReceiptForm =
+                          payStatus !== "verified" &&
+                          !hb.payment?.receiptPdf &&
+                          !isStripe &&
+                          method;
+                        const showStripeCheckout =
+                          payStatus === "none" && isStripe;
+
+                        return (
+                          <div className="space-y-3 border-t border-stone-200 pt-2">
+                            <p className="text-xs font-medium text-stone-700">
+                              Payment
+                              {formatHotelMoney(hb.adminTotal) ||
+                              formatHotelMoney(hb.quoteTotal)
+                                ? ` · ${formatHotelMoney(hb.adminTotal) || formatHotelMoney(hb.quoteTotal)}`
+                                : ""}
+                              {hb.adminTotal?.label
+                                ? ` (${hb.adminTotal.label})`
+                                : ""}
+                            </p>
+                            <p className="text-[11px] text-stone-500">
+                              {methodSelectLocked
+                                ? "Payment method is locked after you submit payment."
+                                : "Your choice is saved when you upload the receipt—no separate save."}
+                            </p>
+                            <select
+                              className="w-full max-w-xs rounded-lg border border-stone-200 px-2 py-1.5 text-sm disabled:opacity-60"
+                              disabled={methodSelectLocked}
+                              value={method}
+                              onChange={(e) =>
+                                setPaymentMethodHotel((m) => ({
+                                  ...m,
+                                  [hb._id]: e.target.value,
+                                }))
+                              }
+                            >
+                              {PAYMENT_METHODS.map((m) => (
+                                <option
+                                  key={m.id === "" ? "pm-empty-hotel" : m.id}
+                                  value={m.id}
+                                >
+                                  {m.label}
+                                </option>
+                              ))}
+                            </select>
+                            {details ? (
+                              <div className="rounded-xl border border-stone-200 bg-white/70 px-3 py-2 text-sm text-stone-700">
+                                <p className="font-semibold text-stone-900">
+                                  {details.title}
+                                </p>
+                                <ul className="mt-1 space-y-0.5 text-xs">
+                                  {details.lines.map((line) => (
+                                    <li key={line}>{line}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {showStripeCheckout ? (
+                              <MiscStripeCheckout
+                                kind="hotel"
+                                recordId={hb._id}
+                                onPaid={async () => {
+                                  toast.success(
+                                    "Payment received. Awaiting admin verification."
+                                  );
+                                  await loadHotels(true);
+                                }}
+                                onError={(msg) => toast.error(msg)}
+                              />
+                            ) : null}
+                            {showReceiptForm ? (
+                              <form
+                                className="flex flex-col sm:flex-row gap-2 items-start"
+                                onSubmit={(e) =>
+                                  submitHotelReceipt(hb._id, e)
+                                }
+                              >
+                                <input
+                                  name="receiptPdf"
+                                  type="file"
+                                  accept="application/pdf"
+                                  className="text-sm"
+                                  required
+                                />
+                                <button
+                                  type="submit"
+                                  className="px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-semibold"
+                                >
+                                  Submit receipt
+                                </button>
+                              </form>
+                            ) : null}
+                            {hb.payment?.status === "verifying" ? (
+                              <div className="text-xs text-amber-800 space-y-0.5">
+                                <p>Awaiting admin verification</p>
+                                {isStripe ? (
+                                  <p className="text-stone-500 font-normal">
+                                    Paid with Stripe — no PDF receipt to download
+                                    here.
+                                  </p>
+                                ) : null}
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })()
+                    ) : null}
+
+                    {hb.payment?.status === "verified" ? (
+                      <div className="border-t border-stone-200 pt-2 space-y-1 text-sm text-stone-700">
+                        <p className="font-medium text-emerald-800">
+                          Payment verified
+                        </p>
+                        {formatHotelMoney(hb.adminTotal) ||
+                        formatHotelMoney(hb.quoteTotal) ? (
+                          <p className="text-xs text-stone-600">
+                            Amount:{" "}
+                            {formatHotelMoney(hb.adminTotal) ||
+                              formatHotelMoney(hb.quoteTotal)}
+                          </p>
+                        ) : null}
+                        {hb.payment?.method === "stripe" ? (
+                          <p className="text-xs text-stone-500">
+                            Paid with Stripe — there is no uploaded PDF receipt
+                            for this booking.
+                          </p>
+                        ) : hb.payment?.receiptPdf ? (
+                          <a
+                            href={miscReceiptUrl(hb.payment.receiptPdf)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-sm text-amber-700 hover:underline"
+                          >
+                            <FileText className="w-4 h-4" /> View payment
+                            receipt
+                          </a>
+                        ) : null}
+                        {isHotelStayDone(hb) ? (
+                          <div className="flex flex-wrap items-center gap-2 pt-2">
+                            <p className="text-xs font-medium text-emerald-800">
+                              Stay completed. You can remove this reminder.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => removeHotel(hb._id)}
+                              className="inline-flex items-center gap-1 text-xs text-red-700 font-semibold"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Remove
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {hb.status === "rejected" ? (
+                      <button
+                        type="button"
+                        onClick={() => removeHotel(hb._id)}
+                        className="inline-flex items-center gap-1 text-xs text-red-700 font-semibold"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Remove
+                      </button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {!loadingVisa && visaRequests.length > 0 ? (
             <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
               <h2 className="text-xl font-bold text-stone-900 mb-2">
@@ -1259,14 +1644,6 @@ export default function UserDashboard() {
                                       type="button"
                                       onClick={() => {
                                         setUploadForId(linkedBooking._id);
-                                        document
-                                          .getElementById(
-                                            `booking-${linkedBooking._id}`
-                                          )
-                                          ?.scrollIntoView({
-                                            behavior: "smooth",
-                                            block: "center",
-                                          });
                                       }}
                                       className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-amber-600 px-4 py-2 rounded-xl hover:bg-amber-700"
                                     >
@@ -1276,14 +1653,6 @@ export default function UserDashboard() {
                                       type="button"
                                       onClick={() => {
                                         setReceiptForId(linkedBooking._id);
-                                        document
-                                          .getElementById(
-                                            `booking-${linkedBooking._id}`
-                                          )
-                                          ?.scrollIntoView({
-                                            behavior: "smooth",
-                                            block: "center",
-                                          });
                                       }}
                                       className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-emerald-700 px-4 py-2 rounded-xl hover:bg-emerald-800"
                                     >
@@ -1505,6 +1874,9 @@ export default function UserDashboard() {
                   const showDocsForm =
                     !journeyLocked &&
                     (!b.documents?.visaPdf || !b.documents?.otherPdf);
+                  const missingDocs =
+                    !b.documents?.visaPdf || !b.documents?.otherPdf;
+                  const canAttachCommon = !journeyLocked && missingDocs && hasCommonDocs;
                   const canSetMethod =
                     !journeyLocked && b.payment?.status !== "verified";
                   const receiptSubmitted = Boolean(b.payment?.receiptPdf);
@@ -1608,7 +1980,34 @@ export default function UserDashboard() {
                         ) : null}
                       </div>
                     ) : null}
-                    {showDocsForm ? (
+                    {canAttachCommon ? (
+                      <div className="border-t border-emerald-100 pt-3 mt-2 space-y-2">
+                        <p className="text-xs font-medium text-stone-700">
+                          Uploaded documents
+                        </p>
+                        <p className="text-[11px] text-stone-500">
+                          You already uploaded common documents in Profile tips. Use
+                          them here to avoid uploading again.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => attachCommonToBooking(b._id)}
+                            className="inline-flex items-center gap-2 bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-amber-700"
+                          >
+                            <Upload className="w-4 h-4" />
+                            Use uploaded documents
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDocsModalOpen(true)}
+                            className="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 hover:underline"
+                          >
+                            Update your documents
+                          </button>
+                        </div>
+                      </div>
+                    ) : showDocsForm ? (
                       <form
                         onSubmit={(e) => handleUpload(b._id, e)}
                         className="space-y-3 border-t border-emerald-100 pt-3 mt-2"
@@ -1794,10 +2193,48 @@ export default function UserDashboard() {
             ) : (
               <>
                 <p className="text-sm text-stone-600">
-                  Add your phone number and pick an avatar so we can recognize your
-                  account easily. After a booking is approved, return here to upload
-                  visa and travel documents as PDFs.
+                  Users can upload their documents here or upload them after the admin
+                  approves their bookings.
                 </p>
+                {hasCommonDocs ? (
+                  <div className="mt-4 text-sm text-stone-600 space-y-1">
+                    {commonDocs?.visaPdf ? (
+                      <a
+                        href={`${origin}${commonDocs.visaPdf}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 text-amber-700 hover:underline"
+                      >
+                        <FileText className="w-4 h-4" /> Visa PDF
+                      </a>
+                    ) : null}
+                    {commonDocs?.otherPdf ? (
+                      <a
+                        href={`${origin}${commonDocs.otherPdf}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 text-amber-700 hover:underline"
+                      >
+                        <FileText className="w-4 h-4" /> Other document
+                      </a>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200/80 px-3 py-2.5 text-xs text-amber-950">
+                    <span className="font-semibold">Tip:</span> Upload your visa and
+                    other PDF once here.
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDocsModalOpen(true);
+                  }}
+                  className="mt-4 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-amber-600 text-white font-semibold hover:bg-amber-700"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {hasCommonDocs ? "Update your documents" : "Upload Documents"}
+                </button>
                 <div className="mt-4 h-2 rounded-full bg-stone-100 overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all"
@@ -1834,6 +2271,106 @@ export default function UserDashboard() {
           </div>
         </aside>
       </div>
+
+      {docsModalOpen ? (
+        <div className="fixed inset-0 z-[105] bg-black/50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-stone-900">
+                  Upload Documents
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Upload visa and other document PDFs.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDocsModalOpen(false)}
+                className="p-2 rounded-lg hover:bg-stone-100 text-stone-500"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {hasCommonDocs ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50/70 px-4 py-3 mb-4">
+                  <p className="text-sm font-semibold text-stone-900">
+                    Your common documents
+                  </p>
+                  <p className="text-xs text-stone-600 mt-0.5">
+                    Upload once — reuse for future bookings.
+                  </p>
+                  <div className="mt-2 text-sm text-stone-600 space-y-1">
+                    {commonDocs?.visaPdf ? (
+                      <a
+                        href={`${origin}${commonDocs.visaPdf}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 text-amber-700 hover:underline"
+                      >
+                        <FileText className="w-4 h-4" /> Visa PDF
+                      </a>
+                    ) : null}
+                    {commonDocs?.otherPdf ? (
+                      <a
+                        href={`${origin}${commonDocs.otherPdf}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-2 text-amber-700 hover:underline"
+                      >
+                        <FileText className="w-4 h-4" /> Other document
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl bg-amber-50 border border-amber-200/80 px-4 py-3 text-sm text-amber-950 mb-4">
+                  No common documents uploaded yet.
+                </div>
+              )}
+
+              <form onSubmit={handleDocsModalUpload} className="space-y-3">
+                <div>
+                  <label className="block text-xs text-stone-600 mb-1">
+                    Visa (PDF)
+                  </label>
+                  <input
+                    name="visaPdf"
+                    type="file"
+                    accept="application/pdf"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-stone-600 mb-1">
+                    Other document (PDF)
+                  </label>
+                  <input
+                    name="otherPdf"
+                    type="file"
+                    accept="application/pdf"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center w-full gap-2 bg-amber-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-amber-700 disabled:opacity-60"
+                >
+                  <Upload className="w-4 h-4" />
+                  {hasCommonDocs ? "Update your documents" : "Upload documents"}
+                </button>
+                <p className="text-[11px] text-stone-500">
+                  Tip: You can upload now, or upload again after admin approves your
+                  booking.
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {avatarPickerOpen ? (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">

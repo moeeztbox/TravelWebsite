@@ -38,6 +38,7 @@ import { seedAdminUserOnStart } from "./seed/adminSeed.js";
 import { seedTransportationAndVisaOptions } from "./seed/transportationVisaSeed.js";
 import transportationRoutes from "./routes/transportationRoutes.js";
 import visaRequestRoutes from "./routes/visaRequestRoutes.js";
+import hotelBookingRoutes from "./routes/hotelBookingRoutes.js";
 import {
   adminListTransportationBookings,
   adminSetTransportationStatus,
@@ -74,6 +75,11 @@ import {
   adminUpdateCustomPackageRequest,
   adminDeleteCustomPackageRequest,
 } from "./controllers/adminCustomPackageController.js";
+import {
+  adminListHotelBookings,
+  adminSetHotelBookingStatus,
+  adminSetHotelPaymentStatus,
+} from "./controllers/adminHotelBookingController.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Always load Backend/.env even if you run `node Backend/index.js` from the repo root
@@ -144,6 +150,7 @@ app.use("/api/packages", packageRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/transportation", transportationRoutes);
 app.use("/api/visa", visaRequestRoutes);
+app.use("/api/hotels", hotelBookingRoutes);
 
 app.get(
   "/api/admin/transportation-bookings",
@@ -171,6 +178,15 @@ app.patch(
   "/api/admin/visa-requests/:id/payment",
   protectAdmin,
   adminSetVisaPaymentStatus
+);
+
+// Admin hotel bookings
+app.get("/api/admin/hotel-bookings", protectAdmin, adminListHotelBookings);
+app.patch("/api/admin/hotel-bookings/:id", protectAdmin, adminSetHotelBookingStatus);
+app.patch(
+  "/api/admin/hotel-bookings/:id/payment",
+  protectAdmin,
+  adminSetHotelPaymentStatus
 );
 
 // Admin: transportation & visa catalog (options shown on booking forms)

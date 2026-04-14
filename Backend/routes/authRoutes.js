@@ -4,10 +4,12 @@ import {
   loginUser,
   getMe,
   updateProfile,
+  uploadCommonDocuments,
   requestPasswordReset,
   resetPasswordWithToken,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { userDocsUploadFields } from "../middleware/uploadUserDocs.js";
 import {
   validateRegister,
   validateLogin,
@@ -23,5 +25,6 @@ router.post("/forgot-password", validateForgotPassword, requestPasswordReset);
 router.post("/reset-password", validateResetPassword, resetPasswordWithToken);
 router.get("/me", protect, getMe);
 router.patch("/profile", protect, updateProfile);
+router.patch("/documents", protect, userDocsUploadFields(), uploadCommonDocuments);
 
 export default router;
