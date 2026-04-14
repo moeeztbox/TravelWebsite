@@ -5,7 +5,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { captureScrollPosition, useScrollLock } from "../../Hooks/useScrollLock";
+import {
+  captureScrollPosition,
+  forceReleaseScrollLock,
+  getScrollLockState,
+  useScrollLock,
+} from "../../Hooks/useScrollLock";
 import {
   Calendar,
   ArrowRight,
@@ -54,6 +59,21 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
   useEffect(() => {
     if (!isOpen) setConfirmOpen(false);
   }, [isOpen]);
+
+  // Safety net: if scroll-lock remains stuck after closing, force release it.
+  useEffect(() => {
+    if (isOpen || confirmOpen || booking) return undefined;
+    const t = window.setTimeout(() => {
+      if (document.body.getAttribute("data-scroll-locked") !== "true") return;
+      const st = getScrollLockState();
+      // If the ref-count says "no locks" but body is still locked, force unlock.
+      // (Sometimes a component unmount or strict-mode timing can leave it stuck.)
+      if (st.lockCount === 0) {
+        forceReleaseScrollLock();
+      }
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [isOpen, confirmOpen, booking]);
 
   useEffect(() => {
     if (!isOpen) return;

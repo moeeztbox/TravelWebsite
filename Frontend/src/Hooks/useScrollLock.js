@@ -70,7 +70,14 @@ function releaseLock() {
   document.documentElement.style.overflow = prevHtml.overflow ?? "";
   document.documentElement.style.overscrollBehavior =
     prevHtml.overscrollBehavior ?? "";
+  // If the page has `scroll-behavior: smooth`, a programmatic scrollTo will animate
+  // and looks like a "jump" after closing a modal. Force instant restore.
+  const prevScrollBehavior = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
   window.scrollTo(0, savedScrollY);
+  requestAnimationFrame(() => {
+    document.documentElement.style.scrollBehavior = prevScrollBehavior ?? "";
+  });
 }
 
 export function useScrollLock(active) {
@@ -92,4 +99,22 @@ export function useScrollLock(active) {
       }
     };
   }, [active]);
+}
+
+/** Debug/escape hatch: current scroll-lock state. */
+export function getScrollLockState() {
+  return { lockCount, locked, savedScrollY };
+}
+
+/**
+ * Escape hatch: forcefully release scroll lock even if ref-count got stuck.
+ * Use sparingly — only when you detect the UI should be unlocked but isn't.
+ */
+export function forceReleaseScrollLock() {
+  if (pendingReleaseRaf != null) {
+    cancelAnimationFrame(pendingReleaseRaf);
+    pendingReleaseRaf = null;
+  }
+  lockCount = 0;
+  releaseLock();
 }

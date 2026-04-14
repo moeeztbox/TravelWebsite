@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import HomeHeroSection from "../Components/Home/HomeHeroSection";
 import TimelineSection from "../Components/Home/TimelineSection";
 import WhyChooseUs from "../Components/Home/WhyChooseUs";
@@ -9,6 +9,14 @@ import { Link } from "react-router-dom";
 import FeaturedPackages from "../Components/Home/FeaturedPackages";
 
 const HomePage = () => {
+  useEffect(() => {
+    const prev = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = "smooth";
+    return () => {
+      document.documentElement.style.scrollBehavior = prev;
+    };
+  }, []);
+
   return (
     <div className="font-sans text-gray-800">
       {/* Hero Banner */}

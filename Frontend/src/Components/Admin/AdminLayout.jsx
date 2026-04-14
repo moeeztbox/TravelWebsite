@@ -47,7 +47,7 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
   ];
 
   return (
-    <div className="h-screen overflow-hidden box-border pt-16 lg:pt-20 flex bg-gradient-to-b from-amber-50/40 via-stone-50 to-stone-100">
+    <div className="min-h-screen box-border pt-16 lg:pt-20 flex bg-gradient-to-b from-amber-50/40 via-stone-50 to-stone-100">
       <button
         type="button"
         onClick={() => setSidebarOpen(true)}
@@ -103,7 +103,7 @@ export default function AdminLayout({ title, subtitle, children, headerRight }) 
       <div className="flex-1 flex flex-col min-w-0">
         <main
           id="admin-scroll-container"
-          className="flex-1 px-4 py-4 sm:px-6 sm:py-6 pl-14 lg:pl-6 overflow-y-auto overscroll-contain"
+          className="flex-1 px-4 py-4 sm:px-6 sm:py-6 pl-14 lg:pl-6"
         >
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">

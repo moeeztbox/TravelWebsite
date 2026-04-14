@@ -42,6 +42,14 @@ export default function AdminBookings() {
   const [startAt, setStartAt] = useState("");
   const origin = getApiOrigin();
 
+  useEffect(() => {
+    const prev = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = "smooth";
+    return () => {
+      document.documentElement.style.scrollBehavior = prev;
+    };
+  }, []);
+
   const load = useCallback(async (opts = {}) => {
     const silent = Boolean(opts.silent);
     if (!silent) setLoading(true);
@@ -79,6 +87,14 @@ export default function AdminBookings() {
   const approvedCount = useMemo(() => bookings.filter(b => b.status === "approved").length, [bookings]);
   const rejectedCount = useMemo(() => bookings.filter(b => b.status === "rejected").length, [bookings]);
   const totalCount = pendingCount + approvedCount + rejectedCount;
+
+  const scrollToSection = useCallback((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const headerOffset = window.innerWidth >= 1024 ? 96 : 80; // match fixed top nav spacing
+    const top = el.getBoundingClientRect().top + window.scrollY - headerOffset;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, []);
 
   const setStatus = async (id, status) => {
     setBusyId(id);
@@ -400,20 +416,43 @@ export default function AdminBookings() {
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
       {[
         { label: "Total",    count: totalCount,    color: "text-zinc-700",    bg: "bg-white border-zinc-200" },
-        { label: "Pending",  count: pendingCount,  color: "text-amber-700",   bg: "bg-amber-50 border-amber-200" },
-        { label: "Approved", count: approvedCount, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
-        { label: "Rejected", count: rejectedCount, color: "text-red-700",     bg: "bg-red-50 border-red-200" },
+        { label: "Pending",  count: pendingCount,  color: "text-amber-700",   bg: "bg-amber-50 border-amber-200", scrollId: "pending-requests" },
+        { label: "Approved", count: approvedCount, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200", scrollId: "approved-bookings" },
+        { label: "Rejected", count: rejectedCount, color: "text-red-700",     bg: "bg-red-50 border-red-200", scrollId: "rejected-requests" },
       ].map(({ label, count, color, bg }) => (
-        <div key={label} className={`rounded-xl border px-4 py-3 ${bg}`}>
-          <p className="text-xs text-zinc-500 mb-1">{label}</p>
-          <p className={`text-2xl font-semibold ${color}`}>{count}</p>
-        </div>
+        label === "Total" ? (
+          <div key={label} className={`rounded-xl border px-4 py-3 ${bg}`}>
+            <p className="text-xs text-zinc-500 mb-1">{label}</p>
+            <p className={`text-2xl font-semibold ${color}`}>{count}</p>
+          </div>
+        ) : (
+          <button
+            key={label}
+            type="button"
+            onClick={() => scrollToSection(
+              label === "Pending"
+                ? "pending-requests"
+                : label === "Approved"
+                  ? "approved-bookings"
+                  : "rejected-requests"
+            )}
+            className={`rounded-xl border px-4 py-3 ${bg} text-left hover:shadow-sm active:scale-[0.99] transition`}
+            aria-label={`Scroll to ${label} section`}
+          >
+            <p className="text-xs text-zinc-500 mb-1">{label}</p>
+            <p className={`text-2xl font-semibold ${color}`}>{count}</p>
+            <p className="text-[11px] text-zinc-500 mt-1">Click to view</p>
+          </button>
+        )
       ))}
     </div>
   );
 
-  const Section = ({ title, subtitle, count, countColor, borderColor, bgColor, badgeColor, children }) => (
-    <section className={`rounded-2xl border ${borderColor} ${bgColor} p-4 sm:p-5`}>
+  const Section = ({ id, title, subtitle, count, countColor, borderColor, bgColor, badgeColor, children }) => (
+    <section
+      id={id}
+      className={`rounded-2xl border ${borderColor} ${bgColor} p-4 sm:p-5 scroll-mt-24`}
+    >
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
           <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
@@ -450,6 +489,7 @@ export default function AdminBookings() {
 
             {pendingCount > 0 && (
               <Section
+                id="pending-requests"
                 title="Pending" subtitle="Awaiting admin review."
                 count={pendingCount} countColor="text-amber-800"
                 borderColor="border-amber-200/70" bgColor="bg-amber-50/30"
@@ -461,6 +501,7 @@ export default function AdminBookings() {
 
             {approvedCount > 0 && (
               <Section
+                id="approved-bookings"
                 title="Approved" subtitle="Verify payment then schedule journey."
                 count={approvedCount} countColor="text-emerald-800"
                 borderColor="border-emerald-200/70" bgColor="bg-emerald-50/30"
@@ -472,6 +513,7 @@ export default function AdminBookings() {
 
             {rejectedCount > 0 && (
               <Section
+                id="rejected-requests"
                 title="Rejected" subtitle="Remove entries no longer needed."
                 count={rejectedCount} countColor="text-red-800"
                 borderColor="border-red-200/70" bgColor="bg-red-50/30"
