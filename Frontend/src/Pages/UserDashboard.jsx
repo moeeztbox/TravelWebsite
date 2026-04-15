@@ -197,6 +197,8 @@ export default function UserDashboard() {
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   /** Local payment method choice per booking — saved when receipt is submitted */
   const [paymentMethodDraft, setPaymentMethodDraft] = useState({});
+  const [docUploading, setDocUploading] = useState({});
+  const [docDraft, setDocDraft] = useState({});
   const [trackFor, setTrackFor] = useState(null);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [avatarDraft, setAvatarDraft] = useState(user?.bitmojiIndex ?? 0);
@@ -557,6 +559,65 @@ export default function UserDashboard() {
     }
   };
 
+  const fileNameFromPath = (p) => {
+    const s = String(p || "");
+    const name = s.split("/").pop() || "";
+    try {
+      return decodeURIComponent(name);
+    } catch {
+      return name;
+    }
+  };
+
+  const uploadBookingDocs = async (bookingId, files) => {
+    if (!bookingId) return;
+    const visa = files?.visaPdf;
+    const other = files?.otherPdf;
+    const hasVisa = visa instanceof File && visa.size;
+    const hasOther = other instanceof File && other.size;
+    if (!hasVisa && !hasOther) return;
+
+    const keyVisa = `${bookingId}:visaPdf`;
+    const keyOther = `${bookingId}:otherPdf`;
+    setDocUploading((m) => ({
+      ...m,
+      ...(hasVisa ? { [keyVisa]: true } : {}),
+      ...(hasOther ? { [keyOther]: true } : {}),
+    }));
+    setOverlay({ open: true, message: "Uploading documents…" });
+    try {
+      const fd = new FormData();
+      if (hasVisa) fd.set("visaPdf", visa);
+      if (hasOther) fd.set("otherPdf", other);
+      await uploadBookingDocuments(bookingId, fd);
+      toast.success("Documents uploaded");
+      await loadBookings({ silent: true });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
+      setDocUploading((m) => ({
+        ...m,
+        ...(hasVisa ? { [keyVisa]: false } : {}),
+        ...(hasOther ? { [keyOther]: false } : {}),
+      }));
+    }
+  };
+
+  const finalizeBookingDocsFromProfile = async (bookingId) => {
+    if (!bookingId) return;
+    setOverlay({ open: true, message: "Finalizing documents…" });
+    try {
+      await attachCommonDocumentsToBooking(bookingId);
+      toast.success("Documents finalized for this booking");
+      await loadBookings({ silent: true });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not finalize documents");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
   const handleDocsModalUpload = async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -580,18 +641,7 @@ export default function UserDashboard() {
     }
   };
 
-  const attachCommonToBooking = async (bookingId) => {
-    setOverlay({ open: true, message: "Attaching your uploaded documents…" });
-    try {
-      await attachCommonDocumentsToBooking(bookingId);
-      toast.success("Documents attached to this booking");
-      await loadBookings({ silent: true });
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Could not attach documents");
-    } finally {
-      setOverlay({ open: false, message: "" });
-    }
-  };
+  // Common documents are stored on the profile; booking uploads remain booking-specific.
 
   const handleReceiptUpload = async (bookingId, e) => {
     e.preventDefault();
@@ -1876,12 +1926,15 @@ export default function UserDashboard() {
                 <ul className="space-y-4">
                   {approvedBookings.map((b) => {
                   const journeyLocked = Boolean(b.journey?.startAt);
-                  const showDocsForm =
+                  const draft = docDraft[b._id] || {};
+                  const missingVisa = !b.documents?.visaPdf;
+                  const missingOther = !b.documents?.otherPdf;
+                  const profileHasVisa = Boolean(commonDocs?.visaPdf);
+                  const profileHasOther = Boolean(commonDocs?.otherPdf);
+                  const canFinalizeFromProfile =
                     !journeyLocked &&
-                    (!b.documents?.visaPdf || !b.documents?.otherPdf);
-                  const missingDocs =
-                    !b.documents?.visaPdf || !b.documents?.otherPdf;
-                  const canAttachCommon = !journeyLocked && missingDocs && hasCommonDocs;
+                    ((missingVisa && profileHasVisa) ||
+                      (missingOther && profileHasOther));
                   const canSetMethod =
                     !journeyLocked && b.payment?.status !== "verified";
                   const receiptSubmitted = Boolean(b.payment?.receiptPdf);
@@ -1961,102 +2014,155 @@ export default function UserDashboard() {
                         </button>
                       </div>
                     ) : null}
-                    {b.documents?.visaPdf || b.documents?.otherPdf ? (
-                      <div className="text-sm text-stone-600 space-y-1 mb-3">
-                        {b.documents?.visaPdf ? (
-                          <a
-                            href={`${origin}${b.documents.visaPdf}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-2 text-amber-700 hover:underline"
-                          >
-                            <FileText className="w-4 h-4" /> Visa PDF
-                          </a>
-                        ) : null}
-                        {b.documents?.otherPdf ? (
-                          <a
-                            href={`${origin}${b.documents.otherPdf}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-2 text-amber-700 hover:underline"
-                          >
-                            <FileText className="w-4 h-4" /> Other document
-                          </a>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {canAttachCommon ? (
-                      <div className="border-t border-emerald-100 pt-3 mt-2 space-y-2">
-                        <p className="text-xs font-medium text-stone-700">
-                          Uploaded documents
-                        </p>
-                        <p className="text-[11px] text-stone-500">
-                          You already uploaded common documents in Profile tips. Use
-                          them here to avoid uploading again.
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => attachCommonToBooking(b._id)}
-                            className="inline-flex items-center gap-2 bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-amber-700"
-                          >
-                            <Upload className="w-4 h-4" />
-                            Use uploaded documents
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDocsModalOpen(true)}
-                            className="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 hover:underline"
-                          >
-                            Update your documents
-                          </button>
+                    <div className="border-t border-emerald-100 pt-3 mt-2 space-y-3">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-medium text-stone-700">
+                            Documents
+                          </p>
+                          <p className="text-[11px] text-stone-500">
+                            Choose a file to update documents for this booking only.
+                            This won’t change your Profile uploaded documents.
+                          </p>
                         </div>
                       </div>
-                    ) : showDocsForm ? (
-                      <form
-                        onSubmit={(e) => handleUpload(b._id, e)}
-                        className="space-y-3 border-t border-emerald-100 pt-3 mt-2"
-                      >
-                        <p className="text-xs font-medium text-stone-700">
-                          Upload required documents (PDF)
-                        </p>
-                        {!b.documents?.visaPdf ? (
-                          <div>
-                            <label className="block text-xs text-stone-600 mb-1">
-                              Visa (PDF)
-                            </label>
-                            <input
-                              name="visaPdf"
-                              type="file"
-                              accept="application/pdf"
-                              className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
-                              required
-                            />
+
+                      {[
+                        {
+                          field: "visaPdf",
+                          label: "Visa (PDF)",
+                          path: b.documents?.visaPdf,
+                        },
+                        {
+                          field: "otherPdf",
+                          label: "Other document (PDF)",
+                          path: b.documents?.otherPdf,
+                        },
+                      ].map((d) => {
+                        const key = `${b._id}:${d.field}`;
+                        const isUploading = Boolean(docUploading[key]);
+                        const bookingPath = d.path || "";
+                        const profilePath = commonDocs?.[d.field] || "";
+                        const effectivePath = bookingPath || profilePath || "";
+                        const isFromProfile = !bookingPath && Boolean(profilePath);
+                        const showChooser =
+                          !journeyLocked &&
+                          !bookingPath && // once booking doc exists, only show view link
+                          !isUploading;
+                        return (
+                          <div
+                            key={d.field}
+                            className="rounded-xl border border-stone-200 bg-white/70 px-4 py-3"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-xs font-medium text-stone-700">
+                                  {d.label}
+                                </p>
+                                {effectivePath ? (
+                                  <a
+                                    href={`${origin}${effectivePath}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="mt-1 inline-flex items-center gap-2 text-sm text-amber-700 hover:underline"
+                                  >
+                                    <FileText className="w-4 h-4" />
+                                    <span className="truncate max-w-[18rem]">
+                                      {fileNameFromPath(effectivePath)}
+                                    </span>
+                                    {isFromProfile ? (
+                                      <span className="text-[11px] text-stone-500">
+                                        (Profile)
+                                      </span>
+                                    ) : null}
+                                  </a>
+                                ) : (
+                                  <p className="mt-1 text-xs text-stone-500">
+                                    Not uploaded yet.
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                {showChooser ? (
+                                  <input
+                                    type="file"
+                                    accept="application/pdf"
+                                    disabled={journeyLocked || isUploading}
+                                    className="text-sm"
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      // allow re-selecting same file later
+                                      e.target.value = "";
+                                      if (!f) return;
+                                      setDocDraft((m) => ({
+                                        ...m,
+                                        [b._id]: {
+                                          ...(m[b._id] || {}),
+                                          [d.field]: f,
+                                        },
+                                      }));
+                                    }}
+                                  />
+                                ) : null}
+                                {journeyLocked ? (
+                                  <span className="text-[11px] text-stone-500">
+                                    Locked after scheduling.
+                                  </span>
+                                ) : isUploading ? (
+                                  <span className="text-[11px] text-amber-700">
+                                    Uploading…
+                                  </span>
+                                ) : draft?.[d.field] ? (
+                                  <span className="text-[11px] text-stone-500">
+                                    Selected: {draft[d.field].name}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
                           </div>
-                        ) : null}
-                        {!b.documents?.otherPdf ? (
-                          <div>
-                            <label className="block text-xs text-stone-600 mb-1">
-                              Other document (PDF)
-                            </label>
-                            <input
-                              name="otherPdf"
-                              type="file"
-                              accept="application/pdf"
-                              className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
-                              required
-                            />
-                          </div>
-                        ) : null}
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-2 bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg"
-                        >
-                          <Upload className="w-4 h-4" />
-                          Upload documents
-                        </button>
-                      </form>
-                    ) : null}
+                        );
+                      })}
+
+                      {!journeyLocked &&
+                      (missingVisa || missingOther) ? (
+                        <div className="flex flex-wrap items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            disabled={
+                              Boolean(docUploading[`${b._id}:visaPdf`]) ||
+                              Boolean(docUploading[`${b._id}:otherPdf`]) ||
+                              !(
+                                draft?.visaPdf ||
+                                draft?.otherPdf ||
+                                canFinalizeFromProfile
+                              )
+                            }
+                            onClick={async () => {
+                              if (draft?.visaPdf || draft?.otherPdf) {
+                                await uploadBookingDocs(b._id, draft);
+                                setDocDraft((m) => ({ ...m, [b._id]: {} }));
+                              } else if (canFinalizeFromProfile) {
+                                await finalizeBookingDocsFromProfile(b._id);
+                              }
+                            }}
+                            className="inline-flex items-center gap-2 bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-60 hover:bg-amber-700"
+                          >
+                            <Upload className="w-4 h-4" />
+                            Upload documents
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!(draft?.visaPdf || draft?.otherPdf)}
+                            onClick={() =>
+                              setDocDraft((m) => ({ ...m, [b._id]: {} }))
+                            }
+                            className="text-sm font-semibold text-stone-600 hover:underline disabled:opacity-60"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
 
                     {/* Payment method */}
                     <div className="mt-3">
