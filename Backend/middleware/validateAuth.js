@@ -35,6 +35,11 @@ export const validateLogin = [
   handleValidation,
 ];
 
+export const validateFirebaseLogin = [
+  body("idToken").trim().notEmpty().withMessage("Firebase idToken is required"),
+  handleValidation,
+];
+
 export const validateForgotPassword = [
   body("email").isEmail().normalizeEmail().withMessage("Valid email is required"),
   handleValidation,

@@ -10,6 +10,7 @@ import bookingRoutes from "./routes/bookingRoutes.js";
 import packageRoutes from "./routes/packageRoutes.js";
 import complainRoutes from "./routes/complainRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import newsletterRoutes from "./routes/newsletterRoutes.js";
 import customPackageRoutes from "./routes/customPackageRoutes.js";
 import adminCustomPackageRoutes from "./routes/adminCustomPackageRoutes.js";
 import { listPackages } from "./controllers/packageController.js";
@@ -43,11 +44,13 @@ import {
   adminListTransportationBookings,
   adminSetTransportationStatus,
   adminSetTransportationPaymentStatus,
+  adminDeleteTransportationBooking,
 } from "./controllers/adminTransportationController.js";
 import {
   adminListVisaRequests,
   adminSetVisaRequestStatus,
   adminSetVisaPaymentStatus,
+  adminDeleteVisaRequest,
 } from "./controllers/adminVisaRequestController.js";
 import {
   adminListTransportationOptions,
@@ -79,6 +82,7 @@ import {
   adminListHotelBookings,
   adminSetHotelBookingStatus,
   adminSetHotelPaymentStatus,
+  adminDeleteHotelBooking,
 } from "./controllers/adminHotelBookingController.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -167,6 +171,11 @@ app.patch(
   protectAdmin,
   adminSetTransportationPaymentStatus
 );
+app.delete(
+  "/api/admin/transportation-bookings/:id",
+  protectAdmin,
+  adminDeleteTransportationBooking
+);
 
 app.get("/api/admin/visa-requests", protectAdmin, adminListVisaRequests);
 app.patch(
@@ -179,6 +188,7 @@ app.patch(
   protectAdmin,
   adminSetVisaPaymentStatus
 );
+app.delete("/api/admin/visa-requests/:id", protectAdmin, adminDeleteVisaRequest);
 
 // Admin hotel bookings
 app.get("/api/admin/hotel-bookings", protectAdmin, adminListHotelBookings);
@@ -188,6 +198,7 @@ app.patch(
   protectAdmin,
   adminSetHotelPaymentStatus
 );
+app.delete("/api/admin/hotel-bookings/:id", protectAdmin, adminDeleteHotelBooking);
 
 // Admin: transportation & visa catalog (options shown on booking forms)
 app.get(
@@ -233,6 +244,7 @@ app.use("/api/complain", complainRoutes);
 // Contact (complaint + inquiry) - shared nodemailer logic
 app.post("/api/contact", sendContactEmail);
 app.use("/api/contact", contactRoutes);
+app.use("/api/newsletter", newsletterRoutes);
 
 // Stories (public + user)
 app.get("/api/stories", listApprovedStories);

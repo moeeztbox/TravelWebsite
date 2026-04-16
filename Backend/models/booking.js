@@ -21,12 +21,12 @@ const bookingSchema = new mongoose.Schema(
     badge: { type: String, default: "" },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected", "cancelled"],
       default: "pending",
     },
     statusReason: {
       type: String,
-      enum: ["", "admin_rejected", "payment_failed"],
+      enum: ["", "admin_rejected", "payment_failed", "admin_cancelled"],
       default: "",
     },
     documents: {
@@ -55,8 +55,12 @@ const bookingSchema = new mongoose.Schema(
           "not_started",
           "scheduled",
           "flight_takeoff",
+          "jeddah_airport",
+          "in_jeddah",
+          "ziyarat",
           "in_makkah",
           "in_madinah",
+          "makkah_airport",
           "return_flight",
           "completed",
         ],

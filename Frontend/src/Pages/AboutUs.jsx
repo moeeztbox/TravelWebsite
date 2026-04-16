@@ -6,10 +6,12 @@ import OurVision from "../Components/AboutUs/OurVision";
 import AboutCEO from "../Components/AboutUs/AboutCEO"; // ✅ CEO Section
 import OurTeam from "../Components/AboutUs/OurTeam"; // ✅ Import Our Team Section
 import Partners from "../Components/AboutUs/Partners"; // ✅ Import Partners Section
+import GoBackButton from "../Components/Common/GoBackButton";
 
 function AboutPage() {
   return (
     <div className="font-sans text-gray-800">
+      
       <AboutUsHeroSection />
 
       <section className="max-w-auto bg-[#f5f7f8] mx-auto px-6 py-16">

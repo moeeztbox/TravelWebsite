@@ -24,8 +24,9 @@ import {
 import { usePackageBooking } from "../../Hooks/usePackageBooking";
 import { fetchPackages } from "../../Services/packageService";
 import { iconForHighlightKey } from "../../constants/packageHighlightIcons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Portal from "../Common/Portal";
+import { useAuth } from "../../Context/AuthContext";
 
 function getHighlights(pkg) {
   const raw = Array.isArray(pkg?.highlights) ? pkg.highlights : [];
@@ -48,13 +49,51 @@ function serviceBadges(services) {
   ].filter((x) => x.on);
 }
 
+const JOURNEY_STAGE_LABEL = {
+  scheduled: "Scheduled",
+  flight_takeoff: "Flight takeoff",
+  jeddah_airport: "Jeddah airport",
+  in_jeddah: "In Jeddah",
+  ziyarat: "Ziyarat",
+  in_makkah: "In Makkah",
+  in_madinah: "In Madinah",
+  makkah_airport: "Makkah airport",
+  return_flight: "Return flight",
+  completed: "Completed",
+};
+
+const JOURNEY_STAGE_ORDER = [
+  "scheduled",
+  "flight_takeoff",
+  "jeddah_airport",
+  "in_jeddah",
+  "ziyarat",
+  "in_madinah",
+  "in_makkah",
+  "makkah_airport",
+  "return_flight",
+  "completed",
+];
+
+function journeyChain(pkg) {
+  const raw = Array.isArray(pkg?.journeyStages) ? pkg.journeyStages : [];
+  const selected = new Set(raw.map((s) => String(s || "").trim()).filter(Boolean));
+  const ordered = JOURNEY_STAGE_ORDER.filter((id) => selected.has(id));
+  const labels = ordered.map((id) => JOURNEY_STAGE_LABEL[id] || id);
+  return labels.join(" \u2192 ");
+}
+
 function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
   const dialogRef = useRef(null);
   const contentRef = useRef(null);
+  const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [registerPromptOpen, setRegisterPromptOpen] = useState(false);
   const highlights = getHighlights(pkg);
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);
-  useScrollLock(Boolean(isOpen || confirmOpen));
+  const includesJourney = useMemo(() => journeyChain(pkg), [pkg]);
+  const { isAuthenticated } = useAuth();
+  useScrollLock(Boolean(isOpen || confirmOpen || registerPromptOpen));
 
   useEffect(() => {
     if (!isOpen) setConfirmOpen(false);
@@ -62,7 +101,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
 
   // Safety net: if scroll-lock remains stuck after closing, force release it.
   useEffect(() => {
-    if (isOpen || confirmOpen || booking) return undefined;
+    if (isOpen || confirmOpen || registerPromptOpen || booking) return undefined;
     const t = window.setTimeout(() => {
       if (document.body.getAttribute("data-scroll-locked") !== "true") return;
       const st = getScrollLockState();
@@ -73,7 +112,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
       }
     }, 50);
     return () => window.clearTimeout(t);
-  }, [isOpen, confirmOpen, booking]);
+  }, [isOpen, confirmOpen, registerPromptOpen, booking]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -296,6 +335,13 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
               </div>
             ) : null}
 
+            {includesJourney ? (
+              <div className="mt-4 rounded-2xl border border-stone-200 bg-white px-5 py-4">
+                <p className="text-xs font-medium text-stone-600">This package includes</p>
+                <p className="text-sm text-stone-700 mt-2">{includesJourney}</p>
+              </div>
+            ) : null}
+
             {highlights.length ? (
               <div className="mt-4 rounded-2xl border border-stone-200 bg-white px-5 py-4">
                 <p className="text-xs font-medium text-stone-600">Highlights</p>
@@ -345,7 +391,13 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
             <button
               type="button"
               disabled={booking}
-              onClick={() => setConfirmOpen(true)}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  setRegisterPromptOpen(true);
+                  return;
+                }
+                setConfirmOpen(true);
+              }}
               style={{
                 padding: "8px 16px",
                 borderRadius: "10px",
@@ -362,6 +414,97 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
           </div>
         </div>
       </div>
+
+      {registerPromptOpen ? (
+        <div
+          style={{ ...overlayStyle, zIndex: 100002 }}
+          onClick={() => setRegisterPromptOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="register-prompt-title"
+        >
+          <div
+            style={{
+              ...dialogShellStyle,
+              maxWidth: "520px",
+              padding: 0,
+              overflow: "hidden",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: "1.25rem 1.5rem", background: "#fff" }}>
+              <h3
+                id="register-prompt-title"
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  color: "#111827",
+                  margin: 0,
+                }}
+              >
+                Please register yourself for booking
+              </h3>
+              <p
+                style={{
+                  margin: "0.75rem 0 0",
+                  fontSize: "14px",
+                  color: "#4b5563",
+                  lineHeight: 1.5,
+                }}
+              >
+                You can browse packages, but you need an account to place a booking request.
+              </p>
+            </div>
+            <div
+              style={{
+                padding: "1rem 1.5rem",
+                borderTop: "1px solid #f5f5f4",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+                background: "#fff",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setRegisterPromptOpen(false)}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "12px",
+                  border: "2px solid #d1d5db",
+                  background: "#fff",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: "#1f2937",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRegisterPromptOpen(false);
+                  onClose?.();
+                  navigate("/register", { state: { from: "/packages" } });
+                }}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "12px",
+                  border: "none",
+                  background: "#d97706",
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                Register yourself
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {confirmOpen ? (
         <div
@@ -466,9 +609,11 @@ function PackageCard({ pkg }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [booking, setBooking] = useState(false);
   useScrollLock(Boolean(booking));
+  const navigate = useNavigate();
   const { bookPackage } = usePackageBooking();
   const highlights = getHighlights(pkg).slice(0, 2);
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);
+  const includesJourney = useMemo(() => journeyChain(pkg), [pkg]);
 
   const handleBook = async () => {
     if (booking) return;
@@ -520,19 +665,6 @@ function PackageCard({ pkg }) {
                 {pkg.badge || pkg.duration || "Package"}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                captureScrollPosition();
-                setIsDialogOpen(true);
-              }}
-              className="absolute bottom-2 right-2 p-2 bg-white hover:bg-gray-50 rounded-lg shadow-md transition-colors"
-              aria-label="View package details"
-              title="View details"
-            >
-              <span className="text-xl">+</span>
-            </button>
           </div>
 
           <div className="p-5 bg-gradient-to-b from-white to-[#C9A227]/5 flex flex-col h-[calc(100%-12rem)]">
@@ -569,6 +701,13 @@ function PackageCard({ pkg }) {
                     {label}
                   </span>
                 ))}
+              </div>
+            ) : null}
+
+            {includesJourney ? (
+              <div className="mb-3 text-[11px] text-gray-600">
+                <span className="font-semibold text-gray-700">Includes:</span>{" "}
+                {includesJourney}
               </div>
             ) : null}
 

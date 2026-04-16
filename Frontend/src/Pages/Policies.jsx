@@ -9,6 +9,7 @@ import RefundPolicy from "../Components/Policies/RefundPolicy";
 import TermsAndConditions from "../Components/Policies/TermsAndConditions";
 import PaymentPolicy from "../Components/Policies/PaymentPolicy";
 import UserResponsibilities from "../Components/Policies/UserResponsibilities";
+import GoBackButton from "../Components/Common/GoBackButton";
 
 function Policies() {
   const [activePolicy, setActivePolicy] = useState("privacy");
@@ -106,6 +107,7 @@ function Policies() {
 
   return (
     <div className="min-h-screen bg-[#F5F7F8]">
+      
       <PolicyHeroSection />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

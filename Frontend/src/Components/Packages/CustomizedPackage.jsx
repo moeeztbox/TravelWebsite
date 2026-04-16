@@ -22,7 +22,7 @@ function CustomizePackage() {
       [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || "",
     city: user?.city || "",
     phone: user?.phone || "",
-    passengers: 1,
+    passengers: 0,
     startDate: "",
     hotelCategory: 3,
     email: user?.email || "",
@@ -33,7 +33,7 @@ function CustomizePackage() {
   const estimate = useMemo(() => {
     // Simple, predictable pricing (you can tweak later)
     const base = 185000; // roughly matches your Economy Umrah price
-    const pax = clampInt(form.passengers, 1, 20);
+    const pax = clampInt(form.passengers, 0, 20);
     const cat = clampInt(form.hotelCategory, 2, 5);
     const hotelMultiplier = cat === 2 ? 1 : cat === 3 ? 1.15 : cat === 4 ? 1.35 : 1.6;
     const total = Math.round(base * hotelMultiplier * pax);
@@ -54,6 +54,12 @@ function CustomizePackage() {
       return;
     }
 
+    const pax = clampInt(form.passengers, 0, 20);
+    if (pax <= 0) {
+      setStatus({ type: "error", message: "Please select passengers (1–20) to continue." });
+      return;
+    }
+
     setSending(true);
     try {
       await api.post("/custom-packages", {
@@ -61,7 +67,7 @@ function CustomizePackage() {
         city: form.city.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
-        passengers: clampInt(form.passengers, 1, 20),
+        passengers: pax,
         startDate: form.startDate,
         hotelCategory: clampInt(form.hotelCategory, 2, 5),
         packageType: form.packageType === "group" ? "group" : "customize",
@@ -70,7 +76,14 @@ function CustomizePackage() {
       });
 
       setStatus({ type: "success", message: "Request submitted. Admin will review it soon." });
-      setForm((p) => ({ ...p, passengers: 1, startDate: "", hotelCategory: 3, packageType: "customize", notes: "" }));
+      setForm((p) => ({
+        ...p,
+        passengers: 0,
+        startDate: "",
+        hotelCategory: 3,
+        packageType: "customize",
+        notes: "",
+      }));
     } catch (err) {
       setStatus({ type: "error", message: formatAxiosError(err) });
     } finally {
@@ -114,6 +127,7 @@ function CustomizePackage() {
           value={form.city}
           onChange={handleChange}
           className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
         />
         <input
           type="tel"
@@ -122,12 +136,13 @@ function CustomizePackage() {
           value={form.phone}
           onChange={handleChange}
           className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
         />
         <input
           type="number"
           name="passengers"
           placeholder="Passengers"
-          min="1"
+          min="0"
           max="20"
           value={form.passengers}
           onChange={handleChange}
@@ -149,11 +164,12 @@ function CustomizePackage() {
           onChange={handleChange}
           className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
+          aria-label="Select your hotel category"
         >
-          <option value="2">2 Star</option>
-          <option value="3">3 Star</option>
-          <option value="4">4 Star</option>
-          <option value="5">5 Star</option>
+          <option value="2">Select your hotel: ★★ (2 Star)</option>
+          <option value="3">Select your hotel: ★★★ (3 Star)</option>
+          <option value="4">Select your hotel: ★★★★ (4 Star)</option>
+          <option value="5">Select your hotel: ★★★★★ (5 Star)</option>
         </select>
 
         <input
@@ -171,6 +187,7 @@ function CustomizePackage() {
           value={form.packageType}
           onChange={handleChange}
           className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
         >
           <option value="group">Group</option>
           <option value="customize">Customize</option>
@@ -183,6 +200,7 @@ function CustomizePackage() {
           onChange={handleChange}
           className="md:col-span-2 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           rows="4"
+          required
         />
 
         <div className="md:col-span-2 rounded-xl border border-blue-100 bg-blue-50/40 p-4">

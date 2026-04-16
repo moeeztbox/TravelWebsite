@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import HeroSection from "../Components/FAQ/HeroSection";
 import FAQSection from '../Components/FAQ/FaqSection';
+import GoBackButton from "../Components/Common/GoBackButton";
 
 function FAQ() {
   const overlayRef = useRef(null);
@@ -27,6 +28,7 @@ function FAQ() {
 
       {/* Only the page content fades in */}
       <div className="relative z-0">
+        
         <HeroSection />
         <FAQSection/>
       </div>

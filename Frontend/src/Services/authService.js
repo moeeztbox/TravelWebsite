@@ -73,6 +73,11 @@ export async function login(payload) {
   return data;
 }
 
+export async function loginWithFirebase(idToken) {
+  const { data } = await api.post("/auth/firebase", { idToken });
+  return data;
+}
+
 export async function forgotPassword(payload) {
   const { data } = await api.post("/auth/forgot-password", payload);
   return data;

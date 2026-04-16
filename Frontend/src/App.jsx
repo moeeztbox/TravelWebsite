@@ -3,6 +3,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { AuthProvider } from "./Context/AuthContext";
@@ -40,11 +41,11 @@ import AdminServiceOptions from "./Pages/AdminServiceOptions";
 import AdminHotelBookings from "./Pages/AdminHotelBookings";
 import Stories from "./Pages/Stories";
 import SubmitStory from "./Pages/SubmitStory";
+import { forceReleaseScrollLock } from "./Hooks/useScrollLock";
 
 function AppRoutes() {
-  const location = useMemo(() => window.location.pathname, []);
+  const location = useLocation();
   const [initialLoading, setInitialLoading] = useState(true);
-  const [routeLoading, setRouteLoading] = useState(false);
 
   useEffect(() => {
     const done = () => setInitialLoading(false);
@@ -54,16 +55,27 @@ function AppRoutes() {
   }, []);
 
   useEffect(() => {
-    // Show a short, consistent loader on route changes.
-    // (With <Routes> we can't reliably know async page readiness, so we use a brief minimum.)
-    setRouteLoading(true);
-    const t = window.setTimeout(() => setRouteLoading(false), 300);
-    return () => window.clearTimeout(t);
-  }, [window.location.pathname]);
+    // Safety net: if any modal left the scroll locked, force-release on navigation.
+    forceReleaseScrollLock();
+  }, [location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
+    // Keep navigation natural but always land at the top of the new page.
+    // If there's a hash, scroll to that section instead.
+    if (location.hash) {
+      const id = location.hash.replace(/^#/, "");
+      const el = id ? document.getElementById(id) : null;
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.hash]);
 
   return (
     <>
-      {initialLoading || routeLoading ? (
+      {initialLoading ? (
         <div className="fixed inset-0 z-[100000] bg-black/35 backdrop-blur-md flex items-center justify-center">
           <div className="bg-white/90 backdrop-blur-md border border-white/40 rounded-2xl px-6 py-5 shadow-xl">
             <div className="flex items-center gap-3">
@@ -110,11 +122,7 @@ function AppRoutes() {
           />
           <Route
             path="/booking"
-            element={
-              <RequireAuth redirectTo="/login">
-                <Booking />
-              </RequireAuth>
-            }
+            element={<Booking />}
           />
           <Route
             path="/admin/packages"

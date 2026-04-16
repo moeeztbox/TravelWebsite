@@ -11,6 +11,14 @@ const transportationOptionSchema = new mongoose.Schema(
     serviceTypes: [{ type: String, trim: true }],
     /** Match when user's vehicle type equals one of these */
     vehicleTypes: [{ type: String, trim: true }],
+    /** Match when user's trip type equals one of these (oneway/round) */
+    tripTypes: [{ type: String, trim: true }],
+    /** Match passenger type requirement (adult/child/infant) */
+    passengerType: {
+      type: String,
+      enum: ["any", "adult", "child", "infant"],
+      default: "any",
+    },
     active: { type: Boolean, default: true },
   },
   { timestamps: true }

@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import AboutHeroImage from "../../Assets/Images/aboutus images/about-hero.jpg";
+import { useNavigate } from "react-router-dom";
 
 function PolicyHeroSection() {
+  const navigate = useNavigate();
   const titleRef = useRef(null);
   const welcomeRef = useRef(null);
   const bookingRef = useRef(null);
@@ -57,8 +59,7 @@ function PolicyHeroSection() {
   }, []);
 
   const handleBookNow = () => {
-    // Add your booking logic here
-    console.log("Book Now clicked");
+    navigate("/booking");
   };
 
   return (

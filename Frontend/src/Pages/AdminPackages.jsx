@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useScrollLock } from "../Hooks/useScrollLock";
-import { Pencil, Trash2, Plus, X, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Plus, X, Loader2, Star } from "lucide-react";
 import AdminLayout from "../Components/Admin/AdminLayout";
 import {
   adminCreatePackage,
@@ -12,6 +12,18 @@ import {
 import { HIGHLIGHT_ICON_MAP } from "../constants/packageHighlightIcons";
 
 const ICON_OPTIONS = Object.keys(HIGHLIGHT_ICON_MAP);
+const JOURNEY_STAGE_OPTIONS = [
+  ["scheduled", "Scheduled"],
+  ["flight_takeoff", "Flight takeoff"],
+  ["jeddah_airport", "Jeddah airport"],
+  ["in_jeddah", "In Jeddah"],
+  ["ziyarat", "Ziyarat"],
+  ["in_madinah", "In Madinah"],
+  ["in_makkah", "In Makkah"],
+  ["makkah_airport", "Makkah airport"],
+  ["return_flight", "Return flight"],
+  ["completed", "Completed"],
+];
 
 function emptyForm() {
   return {
@@ -19,8 +31,8 @@ function emptyForm() {
     order: 0,
     title: "",
     subtitle: "",
-    price: "",
-    duration: "",
+    price: "PKR ",
+    duration: "0 Days",
     badge: "",
     image: "",
     active: true,
@@ -32,6 +44,7 @@ function emptyForm() {
       ticket: false,
       hotel: false,
     },
+    journeyStages: [],
     highlights: [
       { iconKey: "map-pin", text: "" },
       { iconKey: "hotel", text: "" },
@@ -45,8 +58,8 @@ function pkgToForm(pkg) {
     order: pkg.order ?? 0,
     title: pkg.title ?? "",
     subtitle: pkg.subtitle ?? "",
-    price: pkg.price ?? "",
-    duration: pkg.duration ?? "",
+    price: String(pkg.price ?? "").trim() || "PKR ",
+    duration: String(pkg.duration ?? "").trim() || "0 Days",
     badge: pkg.badge ?? "",
     image: pkg.image ?? "",
     active: pkg.active !== false,
@@ -58,6 +71,7 @@ function pkgToForm(pkg) {
       ticket: Boolean(pkg.services?.ticket),
       hotel: Boolean(pkg.services?.hotel),
     },
+    journeyStages: Array.isArray(pkg.journeyStages) ? pkg.journeyStages : [],
     highlights:
       Array.isArray(pkg.highlights) && pkg.highlights.length > 0
         ? pkg.highlights.map((h) => ({
@@ -181,6 +195,9 @@ export default function AdminPackages() {
         ticket: Boolean(form.services?.ticket),
         hotel: Boolean(form.services?.hotel),
       },
+      journeyStages: Array.isArray(form.journeyStages)
+        ? form.journeyStages.filter(Boolean)
+        : [],
       highlights,
     };
 
@@ -253,6 +270,10 @@ export default function AdminPackages() {
                   <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide">
                     Title
                   </th>
+              
+<th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide hidden sm:table-cell">
+  Featured
+</th>
                   <th className="px-4 py-3 font-medium text-zinc-500 text-xs uppercase tracking-wide hidden sm:table-cell">
                     Price
                   </th>
@@ -303,9 +324,24 @@ export default function AdminPackages() {
                       <td className="px-4 py-3.5 font-mono text-xs text-zinc-700 max-w-[130px] truncate">
                         {pkg.packageId}
                       </td>
-                      <td className="px-4 py-3.5 text-zinc-900 font-medium max-w-[180px] truncate">
-                        {pkg.title}
+                      <td className="px-4 py-3.5 text-zinc-900 font-medium max-w-[220px]">
+                        <div className="flex items-center gap-2 min-w-0">
+                          
+                          <span className="truncate">{pkg.title}</span>
+                        </div>
                       </td>
+
+<td className="px-4 py-3.5 hidden sm:table-cell">
+  {pkg.featured ? (
+    <Star
+      className="h-4 w-4 text-amber-500 fill-amber-400"
+      aria-label="Featured"
+      title="Featured"
+    />
+  ) : (
+    <span className="text-zinc-300 text-xs">—</span>
+  )}
+</td>
                       <td className="px-4 py-3.5 text-zinc-500 whitespace-nowrap hidden sm:table-cell text-sm">
                         {pkg.price || "—"}
                       </td>
@@ -524,27 +560,47 @@ export default function AdminPackages() {
                           <label className="block text-xs font-medium text-zinc-600 mb-1">
                             Price
                           </label>
-                          <input
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
-                            value={form.price}
-                            onChange={(e) =>
-                              setForm((f) => ({ ...f, price: e.target.value }))
-                            }
-                            placeholder="e.g. PKR 85,000"
-                          />
+                          <div className="flex items-center rounded-xl border border-zinc-200 bg-white focus-within:ring-2 focus-within:ring-amber-500/30 focus-within:border-amber-400 transition-colors">
+                            <div className="px-3 py-2 text-sm font-semibold text-zinc-600 border-r border-zinc-200">
+                              PKR
+                            </div>
+                            <input
+                              inputMode="numeric"
+                              className="w-full rounded-xl bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none"
+                              value={String(form.price || "").replace(/^PKR\s*/i, "")}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                const digits = raw.replace(/[^\d,]/g, "");
+                                setForm((f) => ({ ...f, price: `PKR ${digits}` }));
+                              }}
+                              placeholder="e.g. 85,000"
+                            />
+                          </div>
                         </div>
                         <div>
                           <label className="block text-xs font-medium text-zinc-600 mb-1">
                             Duration
                           </label>
-                          <input
-                            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-colors"
-                            value={form.duration}
-                            onChange={(e) =>
-                              setForm((f) => ({ ...f, duration: e.target.value }))
-                            }
-                            placeholder="e.g. 14 days"
-                          />
+                          <div className="flex items-center rounded-xl border border-zinc-200 bg-white focus-within:ring-2 focus-within:ring-amber-500/30 focus-within:border-amber-400 transition-colors">
+                            <input
+                              inputMode="numeric"
+                              className="w-full rounded-xl bg-white px-3 py-2 text-sm text-zinc-800 focus:outline-none"
+                              value={String(form.duration || "")
+                                .replace(/days?/i, "")
+                                .trim()}
+                              onChange={(e) => {
+                                const n = e.target.value.replace(/[^\d]/g, "");
+                                setForm((f) => ({
+                                  ...f,
+                                  duration: `${n || 0} Days`,
+                                }));
+                              }}
+                              placeholder="e.g. 14"
+                            />
+                            <div className="px-3 py-2 text-sm font-semibold text-zinc-600 border-l border-zinc-200">
+                              Days
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -623,6 +679,54 @@ export default function AdminPackages() {
                             <span className="text-sm text-zinc-700">{label}</span>
                           </label>
                         ))}
+                      </div>
+                    </fieldset>
+
+                    {/* Divider */}
+                    <hr className="border-zinc-100" />
+
+                    {/* Section: Journey stages */}
+                    <fieldset className="space-y-2">
+                      <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                        Package includes (journey)
+                      </legend>
+                      <p className="text-xs text-zinc-400">
+                        These will be shown on the package card like: Flight takeoff → In Madinah → In Makkah → Return flight.
+                      </p>
+                      <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
+                        {JOURNEY_STAGE_OPTIONS.map(([id, label]) => {
+                          const checked = Array.isArray(form.journeyStages)
+                            ? form.journeyStages.includes(id)
+                            : false;
+                          return (
+                            <label
+                              key={id}
+                              className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
+                                checked
+                                  ? "border-amber-200 bg-amber-50/60"
+                                  : "border-zinc-200 bg-zinc-50 hover:bg-white"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(e) =>
+                                  setForm((f) => {
+                                    const current = Array.isArray(f.journeyStages)
+                                      ? f.journeyStages
+                                      : [];
+                                    const next = e.target.checked
+                                      ? Array.from(new Set([...current, id]))
+                                      : current.filter((x) => x !== id);
+                                    return { ...f, journeyStages: next };
+                                  })
+                                }
+                                className="h-4 w-4 rounded border-zinc-300 text-amber-500 focus:ring-amber-500"
+                              />
+                              <span className="text-sm text-zinc-700">{label}</span>
+                            </label>
+                          );
+                        })}
                       </div>
                     </fieldset>
 

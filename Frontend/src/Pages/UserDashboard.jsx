@@ -58,6 +58,7 @@ function StatusBadge({ status }) {
     pending: "bg-amber-100 text-amber-900 border-amber-200",
     approved: "bg-emerald-100 text-emerald-900 border-emerald-200",
     rejected: "bg-red-100 text-red-800 border-red-200",
+    cancelled: "bg-zinc-100 text-zinc-800 border-zinc-200",
   };
   return (
     <span
@@ -102,8 +103,12 @@ function stageLabel(stage) {
     not_started: "Not started",
     scheduled: "Scheduled",
     flight_takeoff: "Flight takeoff",
+    jeddah_airport: "Jeddah airport",
+    in_jeddah: "In Jeddah",
+    ziyarat: "Ziyarat",
     in_makkah: "In Makkah",
     in_madinah: "In Madinah",
+    makkah_airport: "Makkah airport",
     return_flight: "Return flight",
     completed: "Completed",
   };
@@ -114,8 +119,12 @@ function JourneyStepper({ stage }) {
   const steps = [
     { id: "scheduled", label: "Scheduled" },
     { id: "flight_takeoff", label: "Flight takeoff" },
-    { id: "in_makkah", label: "In Makkah" },
+    { id: "jeddah_airport", label: "Jeddah airport" },
+    { id: "in_jeddah", label: "In Jeddah" },
+    { id: "ziyarat", label: "Ziyarat" },
     { id: "in_madinah", label: "In Madinah" },
+    { id: "in_makkah", label: "In Makkah" },
+    { id: "makkah_airport", label: "Makkah airport" },
     { id: "return_flight", label: "Return flight" },
     { id: "completed", label: "Completed" },
   ];
@@ -457,6 +466,7 @@ export default function UserDashboard() {
   const draftBookings = bookings.filter((b) => b.status === "pending");
   const approvedBookings = bookings.filter((b) => b.status === "approved");
   const rejectedBookings = bookings.filter((b) => b.status === "rejected");
+  const cancelledBookings = bookings.filter((b) => b.status === "cancelled");
   const origin = getApiOrigin();
   const miscReceiptUrl = (filename) =>
     filename
@@ -717,6 +727,19 @@ export default function UserDashboard() {
     }
   };
 
+  const handleDeleteCancelled = async (id) => {
+    setOverlay({ open: true, message: "Removing…" });
+    try {
+      await deleteMyBooking(id);
+      toast.success("Removed");
+      await loadBookings();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Remove failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
   const avatarSrc = getBitmojiAvatarUrl(bitmojiIndex, user?._id || user?.email);
   const avatarSeed = user?._id || user?.email;
   const avatarOptions = useMemo(
@@ -891,6 +914,8 @@ export default function UserDashboard() {
                             ? "bg-emerald-100 text-emerald-900 border-emerald-200"
                             : tb.status === "rejected"
                               ? "bg-red-100 text-red-800 border-red-200"
+                              : tb.status === "cancelled"
+                                ? "bg-zinc-100 text-zinc-800 border-zinc-200"
                               : "bg-amber-100 text-amber-900 border-amber-200"
                         }`}
                       >
@@ -905,6 +930,23 @@ export default function UserDashboard() {
                         Request was rejected. You can remove this card.
                       </p>
                     ) : null}
+                    {tb.status === "cancelled" ? (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
+                          <Trash2 className="w-4 h-4" />
+                          Admin cancelled
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => removeTransport(tb._id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-800 text-xs font-semibold hover:bg-zinc-50"
+                          title="Remove"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remove
+                        </button>
+                      </div>
+                    ) : null}
 
                     {tb.status === "approved" &&
                     tb.payment?.status !== "verified" ? (
@@ -918,22 +960,37 @@ export default function UserDashboard() {
                         const isStripe = method === "stripe";
                         const details = method ? PAYMENT_DETAILS[method] : null;
                         const receiptSubmitted = Boolean(tb.payment?.receiptPdf);
+                        const serviceExpired =
+                          (() => {
+                            const t = tb.endAt || tb.pickupAt;
+                            if (!t) return false;
+                            const ms = new Date(t).getTime();
+                            if (Number.isNaN(ms)) return false;
+                            return Date.now() > ms;
+                          })();
                         const methodSelectLocked =
                           tb.payment?.status === "verifying" ||
-                          receiptSubmitted;
+                          receiptSubmitted ||
+                          (serviceExpired && tb.payment?.status !== "verified");
                         const payStatus = tb.payment?.status ?? "none";
                         const showReceiptForm =
                           payStatus !== "verified" &&
                           !tb.payment?.receiptPdf &&
                           !isStripe &&
-                          method;
+                          method &&
+                          !(serviceExpired && tb.payment?.status !== "verified");
                         const showStripeCheckout =
-                          payStatus === "none" && isStripe;
+                          payStatus === "none" && isStripe && !(serviceExpired && tb.payment?.status !== "verified");
                         return (
                       <div className="space-y-3 border-t border-stone-200 pt-2">
                         <p className="text-xs font-medium text-stone-700">
                           Payment ({tb.selectedOption?.priceLabel || "—"})
                         </p>
+                        {serviceExpired && tb.payment?.status !== "verified" ? (
+                          <p className="text-xs font-semibold text-red-700">
+                            Date has passed — you didn’t upload documents/payment in time.
+                          </p>
+                        ) : null}
                         <p className="text-[11px] text-stone-500">
                           {methodSelectLocked
                             ? "Payment method is locked after you submit payment."
@@ -1162,6 +1219,23 @@ export default function UserDashboard() {
                         Booking was rejected. You can remove this card.
                       </p>
                     ) : null}
+                    {hb.status === "cancelled" ? (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
+                          <Trash2 className="w-4 h-4" />
+                          Admin cancelled
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => removeHotel(hb._id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-800 text-xs font-semibold hover:bg-zinc-50"
+                          title="Remove"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remove
+                        </button>
+                      </div>
+                    ) : null}
 
                     {hb.status === "approved" &&
                     hb.payment?.status !== "verified" ? (
@@ -1175,16 +1249,27 @@ export default function UserDashboard() {
                         const isStripe = method === "stripe";
                         const details = method ? PAYMENT_DETAILS[method] : null;
                         const receiptSubmitted = Boolean(hb.payment?.receiptPdf);
+                        const stayExpired =
+                          (() => {
+                            const t = hb.stay?.checkOut;
+                            if (!t) return false;
+                            const ms = new Date(t).getTime();
+                            if (Number.isNaN(ms)) return false;
+                            return Date.now() > ms;
+                          })();
                         const methodSelectLocked =
-                          hb.payment?.status === "verifying" || receiptSubmitted;
+                          hb.payment?.status === "verifying" ||
+                          receiptSubmitted ||
+                          (stayExpired && hb.payment?.status !== "verified");
                         const payStatus = hb.payment?.status ?? "none";
                         const showReceiptForm =
                           payStatus !== "verified" &&
                           !hb.payment?.receiptPdf &&
                           !isStripe &&
-                          method;
+                          method &&
+                          !(stayExpired && hb.payment?.status !== "verified");
                         const showStripeCheckout =
-                          payStatus === "none" && isStripe;
+                          payStatus === "none" && isStripe && !(stayExpired && hb.payment?.status !== "verified");
 
                         return (
                           <div className="space-y-3 border-t border-stone-200 pt-2">
@@ -1198,6 +1283,11 @@ export default function UserDashboard() {
                                 ? ` (${hb.adminTotal.label})`
                                 : ""}
                             </p>
+                            {stayExpired && hb.payment?.status !== "verified" ? (
+                              <p className="text-xs font-semibold text-red-700">
+                                Date has passed — you didn’t upload documents/payment in time.
+                              </p>
+                            ) : null}
                             <p className="text-[11px] text-stone-500">
                               {methodSelectLocked
                                 ? "Payment method is locked after you submit payment."
@@ -1380,6 +1470,8 @@ export default function UserDashboard() {
                             ? "bg-emerald-100 text-emerald-900 border-emerald-200"
                             : vr.status === "rejected"
                               ? "bg-red-100 text-red-800 border-red-200"
+                              : vr.status === "cancelled"
+                                ? "bg-zinc-100 text-zinc-800 border-zinc-200"
                               : "bg-amber-100 text-amber-900 border-amber-200"
                         }`}
                       >
@@ -1394,6 +1486,23 @@ export default function UserDashboard() {
                         Request was rejected. You can remove this card.
                       </p>
                     ) : null}
+                    {vr.status === "cancelled" ? (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
+                          <Trash2 className="w-4 h-4" />
+                          Admin cancelled
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => removeVisa(vr._id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-800 text-xs font-semibold hover:bg-zinc-50"
+                          title="Remove"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remove
+                        </button>
+                      </div>
+                    ) : null}
 
                     {vr.status === "approved" &&
                     vr.payment?.status !== "verified" ? (
@@ -1407,22 +1516,37 @@ export default function UserDashboard() {
                         const isStripe = method === "stripe";
                         const details = method ? PAYMENT_DETAILS[method] : null;
                         const receiptSubmitted = Boolean(vr.payment?.receiptPdf);
+                        const serviceExpired =
+                          (() => {
+                            const t = vr.serviceEndDate;
+                            if (!t) return false;
+                            const ms = new Date(t).getTime();
+                            if (Number.isNaN(ms)) return false;
+                            return Date.now() > ms;
+                          })();
                         const methodSelectLocked =
                           vr.payment?.status === "verifying" ||
-                          receiptSubmitted;
+                          receiptSubmitted ||
+                          (serviceExpired && vr.payment?.status !== "verified");
                         const payStatus = vr.payment?.status ?? "none";
                         const showReceiptForm =
                           payStatus !== "verified" &&
                           !vr.payment?.receiptPdf &&
                           !isStripe &&
-                          method;
+                          method &&
+                          !(serviceExpired && vr.payment?.status !== "verified");
                         const showStripeCheckout =
-                          payStatus === "none" && isStripe;
+                          payStatus === "none" && isStripe && !(serviceExpired && vr.payment?.status !== "verified");
                         return (
                       <div className="space-y-3 border-t border-stone-200 pt-2">
                         <p className="text-xs font-medium text-stone-700">
                           Payment ({vr.selectedOption?.priceLabel || "—"})
                         </p>
+                        {serviceExpired && vr.payment?.status !== "verified" ? (
+                          <p className="text-xs font-semibold text-red-700">
+                            Date has passed — you didn’t upload documents/payment in time.
+                          </p>
+                        ) : null}
                         <select
                           className="w-full max-w-xs rounded-lg border border-stone-200 px-2 py-1.5 text-sm disabled:opacity-60"
                           disabled={methodSelectLocked}
@@ -1911,6 +2035,54 @@ export default function UserDashboard() {
             </section>
           ) : null}
 
+          {loadingList || cancelledBookings.length > 0 ? (
+            <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
+              <h2 className="text-xl font-bold text-stone-900 mb-2">
+                Cancelled bookings
+              </h2>
+              <p className="text-sm text-stone-500 mb-6">
+                Admin cancelled these bookings. You can remove them from your dashboard.
+              </p>
+              {loadingList ? (
+                <p className="text-stone-500 text-sm">Loading…</p>
+              ) : (
+                <ul className="space-y-3">
+                  {cancelledBookings.map((b) => (
+                    <li
+                      key={b._id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50/60 px-4 py-3"
+                    >
+                      <div>
+                        <p className="font-semibold text-stone-900">
+                          {b.packageTitle}
+                        </p>
+                        <p className="text-xs text-stone-600">
+                          {b.packagePrice} · {b.packageDuration}
+                        </p>
+                        <p className="text-xs text-zinc-700 mt-1 inline-flex items-center gap-1">
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Admin cancelled
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={b.status} />
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCancelled(b._id)}
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-zinc-200 text-zinc-800 hover:bg-zinc-50"
+                          aria-label="Remove cancelled booking"
+                          title="Remove"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+
           {loadingList || approvedBookings.length > 0 ? (
             <section className="bg-white rounded-2xl shadow border border-stone-200 p-6 md:p-8">
               <h2 className="text-xl font-bold text-stone-900 mb-2">
@@ -1925,7 +2097,12 @@ export default function UserDashboard() {
               ) : (
                 <ul className="space-y-4">
                   {approvedBookings.map((b) => {
-                  const journeyLocked = Boolean(b.journey?.startAt);
+                  const startMs = b.journey?.startAt
+                    ? new Date(b.journey.startAt).getTime()
+                    : NaN;
+                  const journeyScheduled = Number.isFinite(startMs);
+                  const journeyStarted = journeyScheduled && Date.now() >= startMs;
+                  const journeyLocked = journeyStarted;
                   const draft = docDraft[b._id] || {};
                   const missingVisa = !b.documents?.visaPdf;
                   const missingOther = !b.documents?.otherPdf;
@@ -2012,6 +2189,22 @@ export default function UserDashboard() {
                         >
                           Track your status
                         </button>
+                      </div>
+                    ) : null}
+
+                    {journeyStarted && (!b.documents?.visaPdf || !b.documents?.otherPdf || b.payment?.status !== "verified") ? (
+                      <div className="rounded-xl border border-red-200 bg-red-50/60 px-4 py-3 mb-3 text-sm text-red-800">
+                        Date has passed — you didn’t upload required documents/payment in time. All actions are now disabled.
+                      </div>
+                    ) : null}
+
+                    {journeyScheduled && !journeyStarted ? (
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/50 px-4 py-3 mb-3 text-sm text-amber-800">
+                        Your journey is scheduled for{" "}
+                        <span className="font-semibold">
+                          {new Date(b.journey.startAt).toLocaleString()}
+                        </span>
+                        . Please upload documents and complete payment before this time.
                       </div>
                     ) : null}
                     <div className="border-t border-emerald-100 pt-3 mt-2 space-y-3">
@@ -2106,7 +2299,7 @@ export default function UserDashboard() {
                                 ) : null}
                                 {journeyLocked ? (
                                   <span className="text-[11px] text-stone-500">
-                                    Locked after scheduling.
+                                    Locked after start date is reached.
                                   </span>
                                 ) : isUploading ? (
                                   <span className="text-[11px] text-amber-700">
@@ -2367,7 +2560,7 @@ export default function UserDashboard() {
 
           <div className="bg-white rounded-2xl shadow border border-stone-200 p-6">
             <h3 className="font-semibold text-stone-900 mb-2">
-              Share your journey
+              Share your review
             </h3>
             <p className="text-sm text-stone-600">
               Share your Hajj/Umrah experience as a story (text or video). After

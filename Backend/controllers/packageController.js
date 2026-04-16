@@ -48,6 +48,7 @@ export const createPackage = async (req, res) => {
       image = "",
       highlights = [],
       services = {},
+      journeyStages = [],
       active = true,
       featured = false,
     } = req.body;
@@ -80,6 +81,11 @@ export const createPackage = async (req, res) => {
         ticket: Boolean(services?.ticket),
         hotel: Boolean(services?.hotel),
       },
+      journeyStages: Array.isArray(journeyStages)
+        ? journeyStages
+            .map((s) => String(s || "").trim())
+            .filter(Boolean)
+        : [],
       active,
       featured: Boolean(featured),
     });
@@ -104,6 +110,13 @@ export const updatePackage = async (req, res) => {
     }
     if (body.featured !== undefined) {
       body.featured = Boolean(body.featured);
+    }
+    if (body.journeyStages !== undefined) {
+      body.journeyStages = Array.isArray(body.journeyStages)
+        ? body.journeyStages
+            .map((s) => String(s || "").trim())
+            .filter(Boolean)
+        : [];
     }
     const pkg = await Package.findOneAndUpdate(
       { packageId: req.params.packageId },

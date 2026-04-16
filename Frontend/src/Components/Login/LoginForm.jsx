@@ -4,6 +4,7 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { login } from "../../Services/authService";
 import { useAuth } from "../../Context/AuthContext";
+import GoogleLoginButton from "./GoogleLoginButton";
 
 function getErrorMessage(error) {
   const data = error.response?.data;
@@ -136,8 +137,29 @@ function LoginForm() {
               </Link>
             </div>
           </div>
-
+            
+            
           <div className="text-center pt-2 sm:pt-4">
+
+          <button
+              type="submit"
+              disabled={loading}
+              className="bg-yellow-600 hover:bg-yellow-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-2 sm:py-3 px-8 sm:px-10 rounded-full shadow-lg text-sm sm:text-base transition duration-300"
+            >
+              {loading ? "Signing in…" : "Login"}
+
+            </button>
+
+            <div className="flex items-center gap-3 my-4">
+                <div className="h-px bg-gray-200 flex-1" />
+                <span className="text-xs text-gray-500">OR</span>
+                <div className="h-px bg-gray-200 flex-1" />
+              </div>
+
+              <div className="mb-4">
+              <GoogleLoginButton />
+              
+            </div>
             <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
               Don’t have an account?{" "}
               <Link
@@ -149,14 +171,12 @@ function LoginForm() {
               </Link>
             </p>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-yellow-600 hover:bg-yellow-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-2 sm:py-3 px-8 sm:px-10 rounded-full shadow-lg text-sm sm:text-base transition duration-300"
-            >
-              {loading ? "Signing in…" : "Login"}
-            </button>
+            
+
+           
+           
           </div>
+            
         </form>
       </motion.div>
     </div>

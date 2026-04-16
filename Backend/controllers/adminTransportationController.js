@@ -17,17 +17,17 @@ export const adminListTransportationBookings = async (req, res) => {
 export const adminSetTransportationStatus = async (req, res) => {
   try {
     const { status } = req.body || {};
-    if (!["approved", "rejected", "pending"].includes(status)) {
+    if (!["approved", "rejected", "pending", "cancelled"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
 
     const existing = await TransportationBooking.findById(req.params.id);
     if (!existing) return res.status(404).json({ message: "Not found" });
 
-    if (existing.status === "rejected" && status === "approved") {
+    if (status !== "cancelled" && existing.status === "rejected" && status === "approved") {
       return res.status(400).json({ message: "Cannot approve a rejected request." });
     }
-    if (existing.status === "approved" && status === "rejected") {
+    if (status !== "cancelled" && existing.status === "approved" && status === "rejected") {
       return res.status(400).json({ message: "Cannot reject an approved request." });
     }
     const payOk = existing.payment?.status === "verified";
@@ -45,7 +45,12 @@ export const adminSetTransportationStatus = async (req, res) => {
       {
         $set: {
           status,
-          statusReason: status === "rejected" ? "admin_rejected" : "",
+          statusReason:
+            status === "rejected"
+              ? "admin_rejected"
+              : status === "cancelled"
+                ? "admin_cancelled"
+                : "",
           ...(shouldResetPayment
             ? {
                 "payment.status": "none",
@@ -115,6 +120,23 @@ export const adminSetTransportationPaymentStatus = async (req, res) => {
 
     if (!booking) return res.status(404).json({ message: "Not found" });
     res.json({ booking });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: e.message || "Server error" });
+  }
+};
+
+export const adminDeleteTransportationBooking = async (req, res) => {
+  try {
+    const existing = await TransportationBooking.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: "Not found" });
+    if (existing.status !== "cancelled") {
+      return res.status(400).json({
+        message: "Only cancelled bookings can be deleted.",
+      });
+    }
+    await TransportationBooking.deleteOne({ _id: existing._id });
+    res.json({ ok: true });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: e.message || "Server error" });

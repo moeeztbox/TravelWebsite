@@ -11,7 +11,7 @@ const inputClass =
 const selectClass =
   "w-full bg-white border border-stone-200 rounded-xl py-3 px-4 text-stone-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 shadow-sm transition";
 
-function filterOptions(options, serviceType, vehicleType) {
+function filterOptions(options, { serviceType, vehicleType }) {
   if (!options?.length) return [];
   return options.filter((o) => {
     const s =
@@ -22,7 +22,7 @@ function filterOptions(options, serviceType, vehicleType) {
   });
 }
 
-function Transportation() {
+function Transportation({ isAuthenticated = false, onRequireRegister }) {
   const [options, setOptions] = useState([]);
   const [loadingOpts, setLoadingOpts] = useState(true);
   const [serviceType, setServiceType] = useState("");
@@ -117,17 +117,12 @@ function Transportation() {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
-  const isFormValid = () => {
-    if (
-      !serviceType ||
-      !vehicleType ||
-      !tripType ||
-      !pickup ||
-      !dropoff ||
-      !pickupDate ||
-      !pickupTime
-    )
-      return false;
+  const isSearchValid = () => {
+    return Boolean(serviceType && vehicleType);
+  };
+
+  const isBookingDetailsValid = () => {
+    if (!tripType || !pickup || !dropoff || !pickupDate || !pickupTime) return false;
     return true;
   };
 
@@ -145,17 +140,14 @@ function Transportation() {
     "Bus (15–30 pax)",
   ];
 
-  const matched = useMemo(
-    () => filterOptions(options, serviceType, vehicleType),
-    [options, serviceType, vehicleType]
-  );
+  const matched = useMemo(() => {
+    return filterOptions(options, { serviceType, vehicleType });
+  }, [options, serviceType, vehicleType]);
 
   const handleSearch = () => {
-    if (!isFormValid()) {
-      Object.keys(touched).forEach((k) =>
-        setTouched((p) => ({ ...p, [k]: true }))
-      );
-      toast.error("Fill all required fields");
+    if (!isSearchValid()) {
+      setTouched((p) => ({ ...p, serviceType: true, vehicleType: true }));
+      toast.error("Select service type and vehicle type");
       return;
     }
     if (!matched.length) {
@@ -170,6 +162,18 @@ function Transportation() {
   const handleBookNow = async () => {
     if (!selectedOpt) {
       toast.error("Select an option first");
+      return;
+    }
+    if (!isBookingDetailsValid()) {
+      setTouched((p) => ({
+        ...p,
+        tripType: true,
+        pickup: true,
+        dropoff: true,
+        pickupDate: true,
+        pickupTime: true,
+      }));
+      toast.error("Fill booking details (trip type, locations, date & time)");
       return;
     }
     setSubmitting(true);
@@ -364,7 +368,7 @@ function Transportation() {
         {[
           { key: "child", label: "Child Seat Required" },
           { key: "wheelchair", label: "Wheelchair Accessible" },
-          { key: "flighttrack", label: "Flight Tracking" },
+        
         ].map(({ key, label }) => (
           <label key={key} className="flex items-center gap-2 cursor-pointer">
             <button
@@ -388,9 +392,9 @@ function Transportation() {
       <button
         type="button"
         onClick={handleSearch}
-        disabled={!isFormValid()}
+        disabled={!isSearchValid()}
         className={`w-full mt-6 py-4 text-white font-bold text-sm uppercase tracking-widest rounded-xl shadow-lg transition-all duration-200 ${
-          isFormValid()
+          isSearchValid()
             ? "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 hover:shadow-amber-200 cursor-pointer"
             : "bg-stone-300 cursor-not-allowed opacity-60"
         }`}
@@ -440,7 +444,13 @@ function Transportation() {
           <button
             type="button"
             disabled={!selectedOpt}
-            onClick={() => setConfirmOpen(true)}
+            onClick={() => {
+              if (!isAuthenticated) {
+                onRequireRegister?.();
+                return;
+              }
+              setConfirmOpen(true);
+            }}
             className="w-full mt-2 py-3 rounded-xl bg-stone-900 text-white font-semibold disabled:opacity-50"
           >
             Continue to booking

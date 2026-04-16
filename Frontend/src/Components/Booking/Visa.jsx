@@ -15,12 +15,65 @@ const visaNames = {
   transit: "Transit Visa",
 };
 
-function filterVisaOptions(options, visaType) {
-  if (!options?.length || !visaType) return [];
-  return options.filter((o) => o.visaTypes?.includes(visaType));
+function parseDurationDays(duration) {
+  const m = String(duration || "").match(/(\d+)/);
+  return m ? Number(m[1]) : 0;
 }
 
-export default function VisaSection() {
+function filterVisaOptions(
+  options,
+  { visaType, nationality, duration, massar, adults, children, infants }
+) {
+  if (!options?.length || !visaType) return [];
+  const durDays = parseDurationDays(duration);
+  const nat = String(nationality || "").trim().toLowerCase();
+  const neededTypes = new Set();
+  if (Number(adults) > 0) neededTypes.add("adult");
+  if (Number(children) > 0) neededTypes.add("child");
+  if (Number(infants) > 0) neededTypes.add("infant");
+
+  return options.filter((o) => {
+    if (o.visaTypes?.length && !o.visaTypes.includes(visaType)) return false;
+
+    // nationality match (if configured)
+    if (Array.isArray(o.nationalities) && o.nationalities.length > 0) {
+      const list = o.nationalities.map((x) => String(x).trim().toLowerCase());
+      if (nat && !list.includes(nat)) return false;
+    }
+
+    // duration match (if configured)
+    const minD =
+      o.durationMinDays !== undefined && o.durationMinDays !== null
+        ? Number(o.durationMinDays)
+        : null;
+    const maxD =
+      o.durationMaxDays !== undefined && o.durationMaxDays !== null
+        ? Number(o.durationMaxDays)
+        : null;
+    if (durDays && (minD !== null || maxD !== null)) {
+      if (minD !== null && durDays < minD) return false;
+      if (maxD !== null && durDays > maxD) return false;
+    }
+
+    // massar match (if configured)
+    const m = o.massar === "with" || o.massar === "without" ? o.massar : "any";
+    if (m !== "any" && massar && m !== massar) return false;
+
+    // passenger type match (if configured)
+    const p =
+      o.passengerType === "adult" ||
+      o.passengerType === "child" ||
+      o.passengerType === "infant"
+        ? o.passengerType
+        : "any";
+    if (p !== "any" && neededTypes.size > 0 && !neededTypes.has(p))
+      return false;
+
+    return true;
+  });
+}
+
+export default function VisaSection({ isAuthenticated = false, onRequireRegister }) {
   const [options, setOptions] = useState([]);
   const [loadingOpts, setLoadingOpts] = useState(true);
   const [visaType, setVisaType] = useState("");
@@ -124,7 +177,15 @@ export default function VisaSection() {
       toast.error("Fill all required fields");
       return;
     }
-    const m = filterVisaOptions(options, visaType);
+    const m = filterVisaOptions(options, {
+      visaType,
+      nationality,
+      duration,
+      massar,
+      adults,
+      children,
+      infants,
+    });
     if (!m.length) {
       toast.error("No visa packages for this type yet.");
       setShowResults(false);
@@ -137,8 +198,17 @@ export default function VisaSection() {
   const totalPax = adults + children + infants;
 
   const matched = useMemo(
-    () => filterVisaOptions(options, visaType),
-    [options, visaType]
+    () =>
+      filterVisaOptions(options, {
+        visaType,
+        nationality,
+        duration,
+        massar,
+        adults,
+        children,
+        infants,
+      }),
+    [options, visaType, nationality, duration, massar, adults, children, infants]
   );
 
   const passengerSummary = () => {
@@ -363,7 +433,13 @@ export default function VisaSection() {
           <button
             type="button"
             disabled={!selectedOpt}
-            onClick={() => setConfirmOpen(true)}
+            onClick={() => {
+              if (!isAuthenticated) {
+                onRequireRegister?.();
+                return;
+              }
+              setConfirmOpen(true);
+            }}
             className="w-full py-3 rounded-xl bg-stone-900 text-white font-semibold disabled:opacity-50"
           >
             Continue to request

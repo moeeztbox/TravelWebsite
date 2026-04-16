@@ -325,9 +325,17 @@ export const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
   );
 };
 
-export const NavbarLogo: React.FC = () => {
+interface NavbarLogoProps {
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+}
+
+export const NavbarLogo: React.FC<NavbarLogoProps> = ({ onClick }) => {
   return (
-    <Link to="/" className="flex items-center space-x-3 lg:space-x-4 xl:space-x-5">
+    <Link
+      to="/"
+      onClick={onClick}
+      className="flex items-center space-x-3 lg:space-x-4 xl:space-x-5"
+    >
       <div className="w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 flex items-center justify-center">
         <img
           src="./src/Assets/Images/logo/AL-BURAQ.png"

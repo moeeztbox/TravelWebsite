@@ -10,7 +10,7 @@ const transportationBookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "approved", "rejected", "cancelled"],
       default: "pending",
     },
     statusReason: { type: String, default: "" },

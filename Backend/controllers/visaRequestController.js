@@ -164,7 +164,7 @@ export const dismissVisaRequest = async (req, res) => {
     const doc = await VisaRequest.findOne({ _id: req.params.id, user: userId });
     if (!doc) return res.status(404).json({ message: "Request not found" });
 
-    if (doc.status === "rejected") {
+    if (doc.status === "rejected" || doc.status === "cancelled") {
       doc.dismissedByUser = true;
       await doc.save();
       return res.json({ message: "Removed", visaRequest: doc });
@@ -172,7 +172,7 @@ export const dismissVisaRequest = async (req, res) => {
 
     if (doc.payment?.status !== "verified") {
       return res.status(400).json({
-        message: "Only completed or rejected requests can be removed.",
+        message: "Only completed, rejected, or cancelled requests can be removed.",
       });
     }
 

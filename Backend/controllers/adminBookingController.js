@@ -20,7 +20,7 @@ export const listAllBookings = async (req, res) => {
 export const setBookingStatus = async (req, res) => {
   try {
     const { status } = req.body || {};
-    if (!["approved", "rejected", "pending"].includes(status)) {
+    if (!["approved", "rejected", "pending", "cancelled"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
 
@@ -29,13 +29,13 @@ export const setBookingStatus = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    if (existing.status === "rejected" && status === "approved") {
+    if (status !== "cancelled" && existing.status === "rejected" && status === "approved") {
       return res.status(400).json({
         message: "Rejected bookings cannot be approved.",
       });
     }
 
-    if (existing.status === "approved" && status === "rejected") {
+    if (status !== "cancelled" && existing.status === "approved" && status === "rejected") {
       return res.status(400).json({
         message: "Approved bookings cannot be rejected.",
       });
@@ -59,7 +59,12 @@ export const setBookingStatus = async (req, res) => {
       {
         $set: {
           status,
-          statusReason: status === "rejected" ? "admin_rejected" : "",
+          statusReason:
+            status === "rejected"
+              ? "admin_rejected"
+              : status === "cancelled"
+                ? "admin_cancelled"
+                : "",
           ...(shouldResetPayment
             ? {
                 "payment.status": "none",
@@ -183,8 +188,12 @@ export const scheduleJourney = async (req, res) => {
       : null;
     const journeyInProgressStages = new Set([
       "flight_takeoff",
+      "jeddah_airport",
+      "in_jeddah",
+      "ziyarat",
       "in_makkah",
       "in_madinah",
+      "makkah_airport",
       "return_flight",
       "completed",
     ]);
@@ -221,8 +230,12 @@ export const setJourneyStage = async (req, res) => {
     const allowed = [
       "scheduled",
       "flight_takeoff",
+      "jeddah_airport",
+      "in_jeddah",
+      "ziyarat",
       "in_makkah",
       "in_madinah",
+      "makkah_airport",
       "return_flight",
       "completed",
     ];
@@ -277,9 +290,9 @@ export const adminDeleteBooking = async (req, res) => {
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
-    if (booking.status !== "rejected") {
+    if (!["rejected", "cancelled"].includes(booking.status)) {
       return res.status(400).json({
-        message: "Only rejected bookings can be removed.",
+        message: "Only rejected or cancelled bookings can be removed.",
       });
     }
     await Booking.deleteOne({ _id: booking._id });

@@ -40,6 +40,8 @@ export const adminCreateTransportationOption = async (req, res) => {
       priceAmount = 0,
       serviceTypes,
       vehicleTypes,
+      tripTypes,
+      passengerType = "any",
       active = true,
     } = req.body;
 
@@ -62,6 +64,11 @@ export const adminCreateTransportationOption = async (req, res) => {
       priceAmount: Number(priceAmount) || 0,
       serviceTypes: toStrArr(serviceTypes),
       vehicleTypes: toStrArr(vehicleTypes),
+      tripTypes: toStrArr(tripTypes),
+      passengerType:
+        passengerType === "adult" || passengerType === "child" || passengerType === "infant"
+          ? passengerType
+          : "any",
       active: active !== false,
     });
 
@@ -105,6 +112,15 @@ export const adminUpdateTransportationOption = async (req, res) => {
     if (body.priceAmount !== undefined) patch.priceAmount = Number(body.priceAmount) || 0;
     if (body.serviceTypes !== undefined) patch.serviceTypes = toStrArr(body.serviceTypes);
     if (body.vehicleTypes !== undefined) patch.vehicleTypes = toStrArr(body.vehicleTypes);
+    if (body.tripTypes !== undefined) patch.tripTypes = toStrArr(body.tripTypes);
+    if (body.passengerType !== undefined) {
+      patch.passengerType =
+        body.passengerType === "adult" ||
+        body.passengerType === "child" ||
+        body.passengerType === "infant"
+          ? body.passengerType
+          : "any";
+    }
     if (body.active !== undefined) patch.active = Boolean(body.active);
 
     const mergedTitle =
@@ -160,6 +176,11 @@ export const adminCreateVisaOption = async (req, res) => {
       priceAmount = 0,
       tier = "standard",
       visaTypes,
+      nationalities,
+      durationMinDays,
+      durationMaxDays,
+      massar = "any",
+      passengerType = "any",
       active = true,
     } = req.body;
 
@@ -183,6 +204,20 @@ export const adminCreateVisaOption = async (req, res) => {
       priceAmount: Number(priceAmount) || 0,
       tier: tierOk,
       visaTypes: toStrArr(visaTypes),
+      nationalities: toStrArr(nationalities),
+      durationMinDays:
+        durationMinDays !== undefined && durationMinDays !== null && durationMinDays !== ""
+          ? Number(durationMinDays) || 0
+          : undefined,
+      durationMaxDays:
+        durationMaxDays !== undefined && durationMaxDays !== null && durationMaxDays !== ""
+          ? Number(durationMaxDays) || 0
+          : undefined,
+      massar: massar === "with" || massar === "without" ? massar : "any",
+      passengerType:
+        passengerType === "adult" || passengerType === "child" || passengerType === "infant"
+          ? passengerType
+          : "any",
       active: active !== false,
     });
 
@@ -228,6 +263,30 @@ export const adminUpdateVisaOption = async (req, res) => {
       patch.tier = body.tier === "premium" ? "premium" : "standard";
     }
     if (body.visaTypes !== undefined) patch.visaTypes = toStrArr(body.visaTypes);
+    if (body.nationalities !== undefined) patch.nationalities = toStrArr(body.nationalities);
+    if (body.durationMinDays !== undefined) {
+      patch.durationMinDays =
+        body.durationMinDays === "" || body.durationMinDays === null
+          ? undefined
+          : Number(body.durationMinDays) || 0;
+    }
+    if (body.durationMaxDays !== undefined) {
+      patch.durationMaxDays =
+        body.durationMaxDays === "" || body.durationMaxDays === null
+          ? undefined
+          : Number(body.durationMaxDays) || 0;
+    }
+    if (body.massar !== undefined) {
+      patch.massar = body.massar === "with" || body.massar === "without" ? body.massar : "any";
+    }
+    if (body.passengerType !== undefined) {
+      patch.passengerType =
+        body.passengerType === "adult" ||
+        body.passengerType === "child" ||
+        body.passengerType === "infant"
+          ? body.passengerType
+          : "any";
+    }
     if (body.active !== undefined) patch.active = Boolean(body.active);
 
     const mergedTitle =

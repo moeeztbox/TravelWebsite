@@ -21,8 +21,24 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       select: false,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "firebase"],
+      default: "local",
+      index: true,
+    },
+    firebaseUid: {
+      type: String,
+      default: "",
+      index: true,
+    },
+    photoURL: {
+      type: String,
+      default: "",
+      trim: true,
     },
     role: {
       type: String,

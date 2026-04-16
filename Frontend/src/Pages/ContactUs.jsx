@@ -9,6 +9,7 @@ function ContactUs() {
 
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
+  
       <ContactUsHeroSection />
 
       <div className="flex justify-center gap-4 mt-6">

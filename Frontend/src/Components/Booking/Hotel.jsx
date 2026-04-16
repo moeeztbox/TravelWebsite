@@ -10,7 +10,17 @@ import { captureScrollPosition, useScrollLock } from "../../Hooks/useScrollLock"
 import { toast } from "sonner";
 import { createHotelBooking } from "../../Services/hotelBookingService";
 
-const Hotel = () => {
+const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
+  const USD_TO_PKR = 280;
+  const todayIso = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const toPkrLabel = (amount, currency) => {
+    const n = Number(amount) || 0;
+    const c = String(currency || "").toUpperCase();
+    if (!n) return "";
+    if (c !== "USD") return "";
+    const pkr = Math.round(n * USD_TO_PKR);
+    return `PKR ${pkr.toLocaleString()}`;
+  };
   const {
     hotels,
     loading,
@@ -134,7 +144,8 @@ const Hotel = () => {
     const a = new Date(searchStay.checkIn).getTime();
     const b = new Date(searchStay.checkOut).getTime();
     if (Number.isNaN(a) || Number.isNaN(b)) return false;
-    return b > a;
+    const today = new Date(todayIso).getTime();
+    return a >= today && b > a;
   }, [searchStay.checkIn, searchStay.checkOut]);
 
   const getCountryCode = (city) => {
@@ -285,6 +296,10 @@ const Hotel = () => {
   };
 
   const openBookModal = () => {
+    if (!isAuthenticated) {
+      onRequireRegister?.();
+      return;
+    }
     if (!selectedHotel?.id) return;
     if (!canBook) {
       toast.error("Please select valid check-in and check-out dates first.");
@@ -433,6 +448,7 @@ const Hotel = () => {
               <input
                 type="date"
                 value={searchStay.checkIn}
+                min={todayIso}
                 onChange={(e) =>
                   setSearchStay((s) => ({ ...s, checkIn: e.target.value }))
                 }
@@ -452,6 +468,7 @@ const Hotel = () => {
               <input
                 type="date"
                 value={searchStay.checkOut}
+                min={searchStay.checkIn || todayIso}
                 onChange={(e) =>
                   setSearchStay((s) => ({ ...s, checkOut: e.target.value }))
                 }
@@ -515,6 +532,10 @@ const Hotel = () => {
           {!canQuote ? (
             <p style={{ marginTop: "0.6rem", color: "#b45309" }}>
               Check-out must be after check-in to show prices.
+            </p>
+          ) : searchStay.checkIn && searchStay.checkIn < todayIso ? (
+            <p style={{ marginTop: "0.6rem", color: "#b45309" }}>
+              Check-in date must be today or later.
             </p>
           ) : ratesError ? (
             <p style={{ marginTop: "0.6rem", color: "#b45309" }}>
@@ -827,9 +848,13 @@ const Hotel = () => {
                   >
                     <span style={{ color: "#555", fontWeight: "bold" }}>
                       {ratesByHotelId?.[hotel.id]?.amount
-                        ? `${ratesByHotelId[hotel.id].currency} ${Number(
-                            ratesByHotelId[hotel.id].amount
-                          ).toLocaleString()}`
+                        ? (() => {
+                            const cur = ratesByHotelId[hotel.id].currency;
+                            const amt = Number(ratesByHotelId[hotel.id].amount);
+                            const usdLabel = `${cur} ${amt.toLocaleString()}`;
+                            const pkrLabel = toPkrLabel(amt, cur);
+                            return pkrLabel ? `${usdLabel} (${pkrLabel})` : usdLabel;
+                          })()
                         : ratesLoading && canQuote
                           ? "Loading price…"
                           : canQuote
@@ -1056,9 +1081,21 @@ const Hotel = () => {
             {selectedHotel.description && (
               <div style={{ marginBottom: "1.5rem" }}>
                 <h3 style={{ marginBottom: "0.5rem" }}>About this hotel</h3>
-                <p style={{ color: "#666", lineHeight: "1.6" }}>
-                  {selectedHotel.description}
-                </p>
+                {String(selectedHotel.description).includes("<") ? (
+                  <div
+                    style={{ color: "#666", lineHeight: "1.6" }}
+                    dangerouslySetInnerHTML={{
+                      __html: String(selectedHotel.description)
+                        // very small safety net: drop script/style tags
+                        .replace(/<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, "")
+                        .replace(/<\s*style[^>]*>[\s\S]*?<\s*\/\s*style\s*>/gi, ""),
+                    }}
+                  />
+                ) : (
+                  <p style={{ color: "#666", lineHeight: "1.6" }}>
+                    {selectedHotel.description}
+                  </p>
+                )}
               </div>
             )}
 
@@ -1143,7 +1180,6 @@ const Hotel = () => {
               isolation: "isolate",
               WebkitOverflowScrolling: "touch",
               overscrollBehavior: "contain",
-              scrollBehavior: "smooth",
               outline: "none",
             }}
           >

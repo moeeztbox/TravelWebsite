@@ -91,9 +91,9 @@ export const deleteMyBooking = async (req, res) => {
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
-    if (booking.status !== "rejected") {
+    if (!["rejected", "cancelled"].includes(booking.status)) {
       return res.status(400).json({
-        message: "Only rejected bookings can be removed.",
+        message: "Only rejected or cancelled bookings can be removed.",
       });
     }
     await Booking.deleteOne({ _id: booking._id });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useScrollLock } from "../Hooks/useScrollLock";
 import { Pencil, Trash2, Plus, X, Loader2 } from "lucide-react";
@@ -36,60 +36,109 @@ const VISA_TYPE_CHOICES = [
   { val: "transit", label: "Transit" },
 ];
 
+const NATIONALITY_CHOICES = ["Pakistani", "Indian", "Bangladeshi", "Egyptian", "Other"];
+
+const TRIP_TYPE_CHOICES = [
+  { val: "oneway", label: "One Way" },
+  { val: "round", label: "Round Trip" },
+];
+
+const PASSENGER_TYPE_CHOICES = [
+  { val: "adult", label: "Adult" },
+  { val: "child", label: "Child" },
+  { val: "infant", label: "Infant" },
+];
+
+// Simple admin-side FX rate for display/conversion.
+// If you want this live, we can later fetch from a backend settings endpoint.
+const USD_TO_PKR = 280;
+
+const DURATION_CHOICES = [
+  { val: 15, label: "15 Days" },
+  { val: 30, label: "30 Days" },
+  { val: 45, label: "45 Days" },
+  { val: 90, label: "90 Days" },
+];
+
+function slugifyPart(v) {
+  return String(v || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 function emptyTransportForm() {
   return {
-    key: "",
-    title: "",
-    description: "",
+    serviceType: "",
+    vehicleType: "",
+    tripType: "",
     priceLabel: "",
     priceAmount: "",
-    serviceTypes: [],
-    vehicleTypes: [],
+    passengerType: "adult",
     active: true,
   };
 }
 
 function emptyVisaForm() {
   return {
-    key: "",
-    title: "",
-    description: "",
+    visaType: "",
+    nationality: "",
+    durationDays: "",
     priceLabel: "",
-    priceAmount: "",
+    priceAmountPkr: "",
     tier: "standard",
-    visaTypes: [],
+    massar: "",
+    passengerType: "adult",
     active: true,
   };
 }
 
 function transportDocToForm(doc) {
   return {
-    key: doc.key ?? "",
-    title: doc.title ?? "",
-    description: doc.description ?? "",
+    serviceType: Array.isArray(doc.serviceTypes) && doc.serviceTypes.length ? doc.serviceTypes[0] : "",
+    vehicleType: Array.isArray(doc.vehicleTypes) && doc.vehicleTypes.length ? doc.vehicleTypes[0] : "",
+    tripType: Array.isArray(doc.tripTypes) && doc.tripTypes.length ? doc.tripTypes[0] : "",
     priceLabel: doc.priceLabel ?? "",
     priceAmount:
       doc.priceAmount !== undefined && doc.priceAmount !== null
         ? String(doc.priceAmount)
         : "",
-    serviceTypes: Array.isArray(doc.serviceTypes) ? [...doc.serviceTypes] : [],
-    vehicleTypes: Array.isArray(doc.vehicleTypes) ? [...doc.vehicleTypes] : [],
+    passengerType:
+      doc.passengerType === "adult" ||
+      doc.passengerType === "child" ||
+      doc.passengerType === "infant"
+        ? doc.passengerType
+        : "adult",
     active: doc.active !== false,
   };
 }
 
 function visaDocToForm(doc) {
+  const usd = Number(doc.priceAmount) || 0;
+  const pkr = Math.round(usd * USD_TO_PKR);
   return {
-    key: doc.key ?? "",
-    title: doc.title ?? "",
-    description: doc.description ?? "",
-    priceLabel: doc.priceLabel ?? "",
-    priceAmount:
-      doc.priceAmount !== undefined && doc.priceAmount !== null
-        ? String(doc.priceAmount)
+    visaType: Array.isArray(doc.visaTypes) && doc.visaTypes.length ? doc.visaTypes[0] : "",
+    nationality:
+      Array.isArray(doc.nationalities) && doc.nationalities.length ? doc.nationalities[0] : "",
+    durationDays:
+      doc.durationMinDays !== undefined &&
+      doc.durationMinDays !== null &&
+      doc.durationMaxDays !== undefined &&
+      doc.durationMaxDays !== null &&
+      Number(doc.durationMinDays) === Number(doc.durationMaxDays)
+        ? String(doc.durationMinDays)
         : "",
+    priceLabel: doc.priceLabel ?? "",
+    priceAmountPkr: usd ? String(pkr) : "",
     tier: doc.tier === "premium" ? "premium" : "standard",
-    visaTypes: Array.isArray(doc.visaTypes) ? [...doc.visaTypes] : [],
+    massar: doc.massar === "with" || doc.massar === "without" ? doc.massar : "",
+    passengerType:
+      doc.passengerType === "adult" ||
+      doc.passengerType === "child" ||
+      doc.passengerType === "infant"
+        ? doc.passengerType
+        : "adult",
     active: doc.active !== false,
   };
 }
@@ -117,6 +166,82 @@ export default function AdminServiceOptions() {
   const [vForm, setVForm] = useState(emptyVisaForm);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const transportMeta = useMemo(() => {
+    const key = [
+      "transport",
+      tForm.serviceType,
+      tForm.vehicleType,
+      tForm.tripType,
+      tForm.passengerType,
+    ]
+      .map(slugifyPart)
+      .filter(Boolean)
+      .join("-");
+    const title = [
+      "Transportation",
+      SERVICE_TYPE_CHOICES.find((x) => x.val === tForm.serviceType)?.label || "",
+      tForm.vehicleType || "",
+      TRIP_TYPE_CHOICES.find((x) => x.val === tForm.tripType)?.label || "",
+      tForm.passengerType ? `(${tForm.passengerType})` : "",
+    ]
+      .filter(Boolean)
+      .join(" - ");
+    const price = Number(tForm.priceAmount) || 0;
+    const priceLabel = price ? `PKR ${price.toLocaleString()} / pax` : "";
+    return { key, title, priceLabel, price };
+  }, [
+    tForm.serviceType,
+    tForm.vehicleType,
+    tForm.tripType,
+    tForm.passengerType,
+    tForm.priceAmount,
+  ]);
+
+  const visaMeta = useMemo(() => {
+    const pkr = Number(vForm.priceAmountPkr) || 0;
+    const usd = pkr > 0 ? Number((pkr / USD_TO_PKR).toFixed(2)) : 0;
+    const key = [
+      "visa",
+      vForm.visaType,
+      vForm.nationality,
+      vForm.durationDays,
+      vForm.massar,
+      vForm.passengerType,
+      vForm.tier,
+    ]
+      .map(slugifyPart)
+      .filter(Boolean)
+      .join("-");
+    const title = [
+      "Visa",
+      VISA_TYPE_CHOICES.find((x) => x.val === vForm.visaType)?.label || "",
+      vForm.nationality || "",
+      vForm.durationDays ? `${vForm.durationDays} Days` : "",
+      vForm.massar === "with"
+        ? "With Massar"
+        : vForm.massar === "without"
+          ? "Without Massar"
+          : "",
+      vForm.passengerType ? `(${vForm.passengerType})` : "",
+      vForm.tier === "premium" ? "Premium" : "Standard",
+    ]
+      .filter(Boolean)
+      .join(" - ");
+    const priceLabel =
+      pkr && usd
+        ? `USD ${usd} / person (PKR ${pkr.toLocaleString()} / person)`
+        : "";
+    return { key, title, priceLabel, pkr, usd };
+  }, [
+    vForm.visaType,
+    vForm.nationality,
+    vForm.durationDays,
+    vForm.massar,
+    vForm.passengerType,
+    vForm.tier,
+    vForm.priceAmountPkr,
+  ]);
 
   const loadTransport = useCallback(async () => {
     setLoadingT(true);
@@ -181,18 +306,26 @@ export default function AdminServiceOptions() {
 
   const submitTransport = async (e) => {
     e.preventDefault();
+    const { key, title, priceLabel, price } = transportMeta;
+
     const payload = {
-      key: tForm.key.trim(),
-      title: tForm.title.trim(),
-      description: tForm.description.trim(),
-      priceLabel: tForm.priceLabel.trim(),
-      priceAmount: Number(tForm.priceAmount) || 0,
-      serviceTypes: tForm.serviceTypes,
-      vehicleTypes: tForm.vehicleTypes,
+      key,
+      title,
+      description: "",
+      priceLabel,
+      priceAmount: price,
+      serviceTypes: tForm.serviceType ? [tForm.serviceType] : [],
+      vehicleTypes: tForm.vehicleType ? [tForm.vehicleType] : [],
+      tripTypes: tForm.tripType ? [tForm.tripType] : [],
+      passengerType: tForm.passengerType,
       active: tForm.active,
     };
-    if (!payload.key || !payload.title) {
-      toast.error("Key and title are required");
+    if (!tForm.serviceType || !tForm.vehicleType || !tForm.tripType || !tForm.passengerType) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    if (!price || price <= 0) {
+      toast.error("Enter PKR price per passenger");
       return;
     }
     setSaving(true);
@@ -215,18 +348,29 @@ export default function AdminServiceOptions() {
 
   const submitVisa = async (e) => {
     e.preventDefault();
+    const { key, title, priceLabel, pkr, usd } = visaMeta;
+
     const payload = {
-      key: vForm.key.trim(),
-      title: vForm.title.trim(),
-      description: vForm.description.trim(),
-      priceLabel: vForm.priceLabel.trim(),
-      priceAmount: Number(vForm.priceAmount) || 0,
+      key,
+      title,
+      description: "",
+      priceLabel,
+      priceAmount: usd,
       tier: vForm.tier,
-      visaTypes: vForm.visaTypes,
+      visaTypes: vForm.visaType ? [vForm.visaType] : [],
+      nationalities: vForm.nationality ? [vForm.nationality] : [],
+      durationMinDays: vForm.durationDays ? Number(vForm.durationDays) : "",
+      durationMaxDays: vForm.durationDays ? Number(vForm.durationDays) : "",
+      massar: vForm.massar,
+      passengerType: vForm.passengerType,
       active: vForm.active,
     };
-    if (!payload.key || !payload.title) {
-      toast.error("Key and title are required");
+    if (!vForm.visaType || !vForm.nationality || !vForm.durationDays || !vForm.massar || !vForm.passengerType) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    if (!pkr || pkr <= 0) {
+      toast.error("Enter PKR price per person");
       return;
     }
     setSaving(true);
@@ -533,9 +677,11 @@ export default function AdminServiceOptions() {
                     <h2 className="text-base font-semibold text-zinc-900">
                       {editingId ? "Edit transportation option" : "New transportation option"}
                     </h2>
-                    {editingId ? (
-                      <p className="text-xs text-zinc-400 font-mono mt-0.5">{tForm.key}</p>
-                    ) : null}
+                    {editingId ? null : (
+                      <p className="text-xs text-zinc-400 mt-0.5">
+                        Pick the same dropdowns as users. Key/title are auto-generated.
+                      </p>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -550,62 +696,114 @@ export default function AdminServiceOptions() {
                   onSubmit={submitTransport}
                   className="px-5 py-4 space-y-4 overflow-y-auto flex-1"
                 >
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-500 mb-1">
-                      Key <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      className={inputClass}
-                      value={tForm.key}
-                      onChange={(e) => setTForm((f) => ({ ...f, key: e.target.value }))}
-                      placeholder="e.g. tr-air-econ"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-500 mb-1">
-                      Title <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      className={inputClass}
-                      value={tForm.title}
-                      onChange={(e) => setTForm((f) => ({ ...f, title: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-500 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      className={`${inputClass} min-h-[80px]`}
-                      value={tForm.description}
-                      onChange={(e) =>
-                        setTForm((f) => ({ ...f, description: e.target.value }))
-                      }
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Service type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={tForm.serviceType}
+                        onChange={(e) =>
+                          setTForm((f) => ({ ...f, serviceType: e.target.value }))
+                        }
+                        required
+                      >
+                        <option value="" disabled>
+                          Select service type
+                        </option>
+                        {SERVICE_TYPE_CHOICES.map((s) => (
+                          <option key={s.val} value={s.val}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Vehicle type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={tForm.vehicleType}
+                        onChange={(e) =>
+                          setTForm((f) => ({ ...f, vehicleType: e.target.value }))
+                        }
+                        required
+                      >
+                        <option value="" disabled>
+                          Select vehicle type
+                        </option>
+                        {VEHICLE_TYPE_CHOICES.map((v) => (
+                          <option key={v} value={v}>
+                            {v}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Trip type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={tForm.tripType}
+                        onChange={(e) =>
+                          setTForm((f) => ({ ...f, tripType: e.target.value }))
+                        }
+                        required
+                      >
+                        <option value="" disabled>
+                          Select trip type
+                        </option>
+                        {TRIP_TYPE_CHOICES.map((t) => (
+                          <option key={t.val} value={t.val}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Passenger type
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={tForm.passengerType}
+                        onChange={(e) =>
+                          setTForm((f) => ({ ...f, passengerType: e.target.value }))
+                        }
+                        required
+                      >
+                        {PASSENGER_TYPE_CHOICES.map((p) => (
+                          <option key={p.val} value={p.val}>
+                            {p.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1">
-                        Price label
+                        Title (auto)
                       </label>
-                      <input
-                        className={inputClass}
-                        value={tForm.priceLabel}
-                        onChange={(e) =>
-                          setTForm((f) => ({ ...f, priceLabel: e.target.value }))
-                        }
-                        placeholder="PKR 2,800 / pax"
-                      />
+                      <input className={inputClass} value={transportMeta.title} readOnly />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1">
-                        Price amount (PKR / pax)
+                        Key (auto)
+                      </label>
+                      <input className={inputClass} value={transportMeta.key} readOnly />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Price amount (PKR / pax) <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
-                        min={0}
+                        min={1}
+                        required
                         className={inputClass}
                         value={tForm.priceAmount}
                         onChange={(e) =>
@@ -613,59 +811,20 @@ export default function AdminServiceOptions() {
                         }
                       />
                     </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Price label (auto)
+                      </label>
+                      <input
+                        className={inputClass}
+                        value={transportMeta.priceLabel}
+                        readOnly
+                      />
+                    </div>
                   </div>
-                  <fieldset>
-                    <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-                      Service types (empty = any)
-                    </legend>
-                    <div className="flex flex-wrap gap-2">
-                      {SERVICE_TYPE_CHOICES.map(({ val, label }) => (
-                        <label
-                          key={val}
-                          className="inline-flex items-center gap-2 text-sm text-zinc-700 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={tForm.serviceTypes.includes(val)}
-                            onChange={() =>
-                              setTForm((f) => ({
-                                ...f,
-                                serviceTypes: toggleMember(f.serviceTypes, val),
-                              }))
-                            }
-                            className="rounded border-zinc-300 text-amber-600 focus:ring-amber-500"
-                          />
-                          {label}
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>
-                  <fieldset>
-                    <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-                      Vehicle types (empty = any)
-                    </legend>
-                    <div className="flex flex-wrap gap-2">
-                      {VEHICLE_TYPE_CHOICES.map((val) => (
-                        <label
-                          key={val}
-                          className="inline-flex items-center gap-2 text-sm text-zinc-700 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={tForm.vehicleTypes.includes(val)}
-                            onChange={() =>
-                              setTForm((f) => ({
-                                ...f,
-                                vehicleTypes: toggleMember(f.vehicleTypes, val),
-                              }))
-                            }
-                            className="rounded border-zinc-300 text-amber-600 focus:ring-amber-500"
-                          />
-                          <span className="max-w-[200px] truncate">{val}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>
+                  <p className="text-[11px] text-zinc-400">
+                    Note: Matching rules are saved exactly like user selections.
+                  </p>
                   <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
                     <input
                       type="checkbox"
@@ -720,9 +879,11 @@ export default function AdminServiceOptions() {
                     <h2 className="text-base font-semibold text-zinc-900">
                       {editingId ? "Edit visa option" : "New visa option"}
                     </h2>
-                    {editingId ? (
-                      <p className="text-xs text-zinc-400 font-mono mt-0.5">{vForm.key}</p>
-                    ) : null}
+                    {editingId ? null : (
+                      <p className="text-xs text-zinc-400 mt-0.5">
+                        Pick the same dropdowns as users. Key/title are auto-generated.
+                      </p>
+                    )}
                   </div>
                   <button
                     type="button"
@@ -737,110 +898,177 @@ export default function AdminServiceOptions() {
                   onSubmit={submitVisa}
                   className="px-5 py-4 space-y-4 overflow-y-auto flex-1"
                 >
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-500 mb-1">
-                      Key <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      className={inputClass}
-                      value={vForm.key}
-                      onChange={(e) => setVForm((f) => ({ ...f, key: e.target.value }))}
-                      placeholder="e.g. visa-umrah-std"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-500 mb-1">
-                      Title <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      className={inputClass}
-                      value={vForm.title}
-                      onChange={(e) => setVForm((f) => ({ ...f, title: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-500 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      className={`${inputClass} min-h-[80px]`}
-                      value={vForm.description}
-                      onChange={(e) =>
-                        setVForm((f) => ({ ...f, description: e.target.value }))
-                      }
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Visa type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={vForm.visaType}
+                        onChange={(e) =>
+                          setVForm((f) => ({ ...f, visaType: e.target.value }))
+                        }
+                        required
+                      >
+                        <option value="" disabled>
+                          Select visa type
+                        </option>
+                        {VISA_TYPE_CHOICES.map((v) => (
+                          <option key={v.val} value={v.val}>
+                            {v.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Nationality <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={vForm.nationality}
+                        onChange={(e) =>
+                          setVForm((f) => ({ ...f, nationality: e.target.value }))
+                        }
+                        required
+                      >
+                        <option value="" disabled>
+                          Select nationality
+                        </option>
+                        {NATIONALITY_CHOICES.map((n) => (
+                          <option key={n} value={n}>
+                            {n}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Duration <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={vForm.durationDays}
+                        onChange={(e) =>
+                          setVForm((f) => ({ ...f, durationDays: e.target.value }))
+                        }
+                        required
+                      >
+                        <option value="" disabled>
+                          Select duration
+                        </option>
+                        {DURATION_CHOICES.map((d) => (
+                          <option key={d.val} value={String(d.val)}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Massar <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={vForm.massar}
+                        onChange={(e) => setVForm((f) => ({ ...f, massar: e.target.value }))}
+                        required
+                      >
+                        <option value="any" disabled>
+                          Select massar
+                        </option>
+                        <option value="with">With Massar</option>
+                        <option value="without">Without Massar</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Passenger type <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={vForm.passengerType}
+                        required
+                        onChange={(e) =>
+                          setVForm((f) => ({ ...f, passengerType: e.target.value }))
+                        }
+                      >
+                        {PASSENGER_TYPE_CHOICES.map((p) => (
+                          <option key={p.val} value={p.val}>
+                            {p.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Tier <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={inputClass}
+                        value={vForm.tier}
+                        required
+                        onChange={(e) => setVForm((f) => ({ ...f, tier: e.target.value }))}
+                      >
+                        <option value="standard">Standard</option>
+                        <option value="premium">Premium</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1">
-                        Price label
+                        Title (auto)
                       </label>
                       <input
                         className={inputClass}
-                        value={vForm.priceLabel}
-                        onChange={(e) =>
-                          setVForm((f) => ({ ...f, priceLabel: e.target.value }))
-                        }
-                        placeholder="USD 90 / person"
+                        value={visaMeta.title}
+                        readOnly
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1">
-                        Price amount (USD / person)
+                        Key (auto)
+                      </label>
+                      <input className={inputClass} value={visaMeta.key} readOnly />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Price amount (PKR / person) <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="number"
-                        min={0}
-                        step="0.01"
+                        min={1}
+                        step="1"
                         className={inputClass}
-                        value={vForm.priceAmount}
+                        value={vForm.priceAmountPkr}
+                        required
                         onChange={(e) =>
-                          setVForm((f) => ({ ...f, priceAmount: e.target.value }))
+                          setVForm((f) => ({ ...f, priceAmountPkr: e.target.value }))
                         }
                       />
+                      <p className="text-[11px] text-zinc-400 mt-1">
+                        USD auto:{" "}
+                        <span className="font-mono text-zinc-600">
+                          {(() => {
+                            const pkr = Number(vForm.priceAmountPkr) || 0;
+                            const usd = pkr > 0 ? (pkr / USD_TO_PKR).toFixed(2) : "0.00";
+                            return `USD ${usd}`;
+                          })()}
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-500 mb-1">
+                        Price label (auto)
+                      </label>
+                      <input className={inputClass} value={visaMeta.priceLabel} readOnly />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-zinc-500 mb-1">
-                      Tier
-                    </label>
-                    <select
-                      className={inputClass}
-                      value={vForm.tier}
-                      onChange={(e) => setVForm((f) => ({ ...f, tier: e.target.value }))}
-                    >
-                      <option value="standard">Standard</option>
-                      <option value="premium">Premium</option>
-                    </select>
-                  </div>
-                  <fieldset>
-                    <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
-                      Visa categories
-                    </legend>
-                    <div className="flex flex-wrap gap-2">
-                      {VISA_TYPE_CHOICES.map(({ val, label }) => (
-                        <label
-                          key={val}
-                          className="inline-flex items-center gap-2 text-sm text-zinc-700 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={vForm.visaTypes.includes(val)}
-                            onChange={() =>
-                              setVForm((f) => ({
-                                ...f,
-                                visaTypes: toggleMember(f.visaTypes, val),
-                              }))
-                            }
-                            className="rounded border-zinc-300 text-amber-600 focus:ring-amber-500"
-                          />
-                          {label}
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>
+                  <p className="text-[11px] text-zinc-400">
+                    Note: Matching rules are saved exactly like user selections.
+                  </p>
                   <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
                     <input
                       type="checkbox"

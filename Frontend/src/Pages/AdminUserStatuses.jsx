@@ -14,8 +14,12 @@ function stageLabel(stage) {
     not_started: "Not started",
     scheduled: "Scheduled",
     flight_takeoff: "Flight takeoff",
+    jeddah_airport: "Jeddah airport",
+    in_jeddah: "In Jeddah",
+    ziyarat: "Ziyarat",
     in_makkah: "In Makkah",
     in_madinah: "In Madinah",
+    makkah_airport: "Makkah airport",
     return_flight: "Return flight",
     completed: "Completed",
   };
@@ -141,8 +145,12 @@ export default function AdminUserStatuses() {
                   >
                     <option value="scheduled">Scheduled</option>
                     <option value="flight_takeoff">Flight takeoff</option>
-                    <option value="in_makkah">In Makkah</option>
+                    <option value="jeddah_airport">Jeddah airport</option>
+                    <option value="in_jeddah">In Jeddah</option>
+                    <option value="ziyarat">Ziyarat</option>
                     <option value="in_madinah">In Madinah</option>
+                    <option value="in_makkah">In Makkah</option>
+                    <option value="makkah_airport">Makkah airport</option>
                     <option value="return_flight">Return flight</option>
                     <option value="completed">Completed</option>
                   </select>
@@ -241,8 +249,12 @@ export default function AdminUserStatuses() {
                         >
                           <option value="scheduled">Scheduled</option>
                           <option value="flight_takeoff">Flight takeoff</option>
-                          <option value="in_makkah">In Makkah</option>
+                          <option value="jeddah_airport">Jeddah airport</option>
+                          <option value="in_jeddah">In Jeddah</option>
+                          <option value="ziyarat">Ziyarat</option>
                           <option value="in_madinah">In Madinah</option>
+                          <option value="in_makkah">In Makkah</option>
+                          <option value="makkah_airport">Makkah airport</option>
                           <option value="return_flight">Return flight</option>
                           <option value="completed">Completed</option>
                         </select>

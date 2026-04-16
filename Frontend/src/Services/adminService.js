@@ -82,6 +82,11 @@ export async function adminSetTransportationPaymentStatus(id, status) {
   return data.booking;
 }
 
+export async function adminDeleteTransportationBooking(id) {
+  const { data } = await api.delete(`/admin/transportation-bookings/${id}`);
+  return data;
+}
+
 export async function adminListVisaRequests(status = "all") {
   const { data } = await api.get("/admin/visa-requests", {
     params: { status },
@@ -99,6 +104,11 @@ export async function adminSetVisaPaymentStatus(id, status) {
     status,
   });
   return data.visaRequest;
+}
+
+export async function adminDeleteVisaRequest(id) {
+  const { data } = await api.delete(`/admin/visa-requests/${id}`);
+  return data;
 }
 
 /** Catalog options (transportation & visa booking forms) */
@@ -165,4 +175,9 @@ export async function adminSetHotelPaymentStatus(id, status) {
     status,
   });
   return data.booking;
+}
+
+export async function adminDeleteHotelBooking(id) {
+  const { data } = await api.delete(`/admin/hotel-bookings/${id}`);
+  return data;
 }

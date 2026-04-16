@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { usePackageBooking } from "../../Hooks/usePackageBooking";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { fetchPackages } from "../../Services/packageService";
 import { iconForHighlightKey } from "../../constants/packageHighlightIcons";
 import {
@@ -162,7 +161,7 @@ const FeaturedPackages = () => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
-  const { bookPackage } = usePackageBooking();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -223,7 +222,7 @@ const FeaturedPackages = () => {
                 <PackageCard
                   key={pkg.packageId || pkg._id}
                   pkg={pkg}
-                  onBook={bookPackage}
+                  onBook={() => navigate("/booking")}
                 />
               ))}
             </motion.div>

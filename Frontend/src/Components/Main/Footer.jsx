@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Facebook,
   Instagram,
@@ -8,27 +8,89 @@ import {
   Phone,
   Mail,
   ArrowUpRight,
-  Send
+  Send,
 } from "lucide-react";
-
-const Link = ({ to, children, className }) => (
-  <a href={to} className={className}>
-    {children}
-  </a>
-);
+import { Link as RouterLink } from "react-router-dom";
+import {
+  newsletterStatus,
+  subscribeNewsletter,
+  unsubscribeNewsletter,
+} from "../../Services/newsletterService";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
 
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setTimeout(() => {
+  const normalizedEmail = useMemo(() => String(email || "").trim(), [email]);
+
+  useEffect(() => {
+    let alive = true;
+    const run = async () => {
+      setNote("");
+      if (!normalizedEmail) {
         setSubscribed(false);
-        setEmail("");
-      }, 3000);
+        return;
+      }
+      // lightweight validation; backend does strict validation
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        setSubscribed(false);
+        return;
+      }
+      setChecking(true);
+      try {
+        const s = await newsletterStatus(normalizedEmail);
+        if (!alive) return;
+        setSubscribed(Boolean(s?.subscribed));
+      } catch {
+        if (!alive) return;
+        setSubscribed(false);
+      } finally {
+        if (alive) setChecking(false);
+      }
+    };
+    const t = window.setTimeout(run, 350);
+    return () => {
+      alive = false;
+      window.clearTimeout(t);
+    };
+  }, [normalizedEmail]);
+
+  const handleSubscribe = async (e) => {
+    e?.preventDefault?.();
+    setNote("");
+    if (!normalizedEmail) return;
+    setBusy(true);
+    try {
+      const r = await subscribeNewsletter(normalizedEmail);
+      setSubscribed(true);
+      setNote(
+        r?.alreadySubscribed
+          ? "You are already subscribed."
+          : "Subscribed! Check your inbox for updates."
+      );
+    } catch (err) {
+      setNote(err?.response?.data?.message || "Could not subscribe");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleUnsubscribe = async (e) => {
+    e?.preventDefault?.();
+    setNote("");
+    if (!normalizedEmail) return;
+    setBusy(true);
+    try {
+      await unsubscribeNewsletter(normalizedEmail);
+      setSubscribed(false);
+      setNote("Unsubscribed.");
+    } catch (err) {
+      setNote(err?.response?.data?.message || "Could not unsubscribe");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -48,11 +110,11 @@ export default function Footer() {
   ];
 
   const services = [
-    { to: "/services/umrah", label: "Umrah Packages" },
-    { to: "/services/hajj", label: "Transportation" },
-    { to: "/services/visa", label: "Visa Processing" },
-    { to: "/services/tours", label: "International Tours" },
-    { to: "/services/ticketing", label: "Air Ticketing" },
+    { to: "/packages", label: "Umrah Packages" },
+    { to: "/booking?tab=transport", label: "Transportation" },
+    { to: "/booking?tab=visa", label: "Visa Processing" },
+    { to: "/booking?tab=hotels", label: "International Tours" },
+    { to: "/booking?tab=flights", label: "Air Ticketing" },
   ];
 
   return (
@@ -133,22 +195,34 @@ export default function Footer() {
                   />
                   <button
                     onClick={handleSubscribe}
+                    disabled={busy || checking || !normalizedEmail}
                     className="absolute right-1.5 top-1/2 -translate-y-1/2 px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors duration-200 flex items-center gap-2"
                   >
-                    {subscribed ? (
-                      <span>Subscribed!</span>
-                    ) : (
-                      <>
-                        <span>Subscribe</span>
-                        <Send size={14} />
-                      </>
-                    )}
+                    <span>
+                      {busy ? "Please wait…" : subscribed ? "Subscribed" : "Subscribe"}
+                    </span>
+                    {!subscribed ? <Send size={14} /> : null}
                   </button>
                 </div>
               </div>
-              <p className="text-gray-500 text-xs mt-3 px-1">
+              <div className="mt-3 px-1 flex items-center justify-between gap-3">
+                <p className="text-gray-500 text-xs">
                 We respect your privacy. Unsubscribe at any time.
-              </p>
+                </p>
+                {subscribed ? (
+                  <button
+                    type="button"
+                    onClick={handleUnsubscribe}
+                    disabled={busy}
+                    className="text-xs font-semibold text-gray-200 hover:text-white underline underline-offset-4"
+                  >
+                    Unsubscribe
+                  </button>
+                ) : null}
+              </div>
+              {note ? (
+                <p className="text-xs mt-2 px-1 text-gray-300">{note}</p>
+              ) : null}
             </div>
           </div>
         </div>
@@ -179,13 +253,41 @@ export default function Footer() {
             </p>
 
             {/* Payment Methods */}
-            <div className="flex flex-wrap gap-2">
-              {['VISA', 'MC', 'MEEZAN'].map((method) => (
+            <div className="flex flex-wrap gap-2 items-center">
+              {[
+                { key: "jazzcash", label: "JazzCash" },
+                { key: "mastercard", label: "Mastercard" },
+                { key: "visa", label: "Visa" },
+              ].map((method) => (
                 <div
-                  key={method}
-                  className="px-3 py-1 bg-gray-700/30 border border-gray-600/30 rounded text-xs text-gray-400"
+                  key={method.key}
+                  className="px-3 py-1 bg-gray-700/30 border border-gray-600/30 rounded text-xs text-gray-200 flex items-center justify-center"
+                  style={{ width: 92, height: 34 }}
                 >
-                  {method}
+                  {method.key === "jazzcash" && (
+                    <img
+                      src="https://iconlogovector.com/uploads/images/2025/11/lg-691c164eec616-JazzCash.webp"
+                      alt="JazzCash"
+                      style={{ width: 78, height: 22, objectFit: "contain" }}
+                      loading="lazy"
+                    />
+                  )}
+                  {method.key === "mastercard" && (
+                    <img
+                      src="https://www.pngmart.com/files/22/Mastercard-Logo-PNG-HD.png"
+                      alt="Mastercard"
+                      style={{ width: 78, height: 22, objectFit: "contain" }}
+                      loading="lazy"
+                    />
+                  )}
+                  {method.key === "visa" && (
+                    <img
+                      src="https://images.icon-icons.com/1259/PNG/512/1495815252-jd14_84583.png"
+                      alt="Visa"
+                      style={{ width: 78, height: 22, objectFit: "contain" }}
+                      loading="lazy"
+                    />
+                  )}
                 </div>
               ))}
             </div>
@@ -200,7 +302,7 @@ export default function Footer() {
                   key={label}
                   className="hover:translate-x-1 transition-transform duration-200"
                 >
-                  <Link
+                  <RouterLink
                     to={to}
                     className="text-sm text-gray-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"
                   >
@@ -209,7 +311,7 @@ export default function Footer() {
                       size={14}
                       className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     />
-                  </Link>
+                  </RouterLink>
                 </li>
               ))}
             </ul>
@@ -224,7 +326,7 @@ export default function Footer() {
                   key={label}
                   className="hover:translate-x-1 transition-transform duration-200"
                 >
-                  <Link
+                  <RouterLink
                     to={to}
                     className="text-sm text-gray-400 hover:text-white transition-colors duration-300 flex items-center gap-2 group"
                   >
@@ -233,7 +335,7 @@ export default function Footer() {
                       size={14}
                       className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     />
-                  </Link>
+                  </RouterLink>
                 </li>
               ))}
             </ul>
@@ -281,27 +383,27 @@ export default function Footer() {
         <div className="border-t border-gray-700/50 mt-16 pt-8 text-center">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-400">
-              © 2025 Al Buraq Global. All rights reserved.
+              © 2026 Al Buraq Global. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <Link
+              <RouterLink
                 to="/policies#privacy"
                 className="hover:text-white transition-colors duration-300"
               >
                 Privacy Policy
-              </Link>
-              <Link
+              </RouterLink>
+              <RouterLink
                 to="/policies#refund"
                 className="hover:text-white transition-colors duration-300"
               >
                 Refund Policy
-              </Link>
-              <Link
+              </RouterLink>
+              <RouterLink
                 to="/policies#terms"
                 className="hover:text-white transition-colors duration-300"
               >
                 Terms & Conditions
-              </Link>
+              </RouterLink>
             </div>
           </div>
         </div>

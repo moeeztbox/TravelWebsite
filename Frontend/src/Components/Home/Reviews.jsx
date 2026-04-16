@@ -1,82 +1,77 @@
-import { cn } from '../../lib/utils';
-import Marquee from '../../UI/marquee';
+import { useEffect, useMemo, useState } from "react";
+import { cn } from "../../lib/utils";
+import Marquee from "../../UI/marquee";
+import { listApprovedStories } from "../../Services/storiesService";
+import { getApiOrigin } from "../../utils/apiOrigin";
 
-const reviews = [
-  {
-    name: 'Ahmed Hassan',
-    username: '@ahmed_hassan',
-    body: "The platform made my Hajj preparation effortless. Every step was guided with wisdom and care.",
-    img: 'https://avatar.vercel.sh/ahmed',
-    tripType: 'Hajj 2023',
-    location: 'Karachi, Pakistan',
-    rating: 5
-  },
-  {
-    name: 'Fatima Al-Zahra',
-    username: '@fatima_zahra',
-    body: "From registration to booking - every moment felt sacred and well-organized. Truly blessed experience.",
-    img: 'https://avatar.vercel.sh/fatima',
-    tripType: 'Umrah December 2024',
-    location: 'Lahore, Pakistan',
-    rating: 5
-  },
-  {
-    name: 'Omar Malik',
-    username: '@omar_malik',
-    body: "The application process was seamless and spiritually uplifting. Alhamdulillah for this blessing.",
-    img: 'https://avatar.vercel.sh/omar',
-    tripType: 'Hajj 2024',
-    location: 'Islamabad, Pakistan',
-    rating: 5
-  },
-  {
-    name: 'Aisha Rahman',
-    username: '@aisha_rahman',
-    body: "Every detail handled with reverence. My soul feels ready for this blessed pilgrimage.",
-    img: 'https://avatar.vercel.sh/aisha',
-    tripType: 'Umrah March 2024',
-    location: 'Faisalabad, Pakistan',
-    rating: 5
-  },
-  {
-    name: 'Yusuf Ibrahim',
-    username: '@yusuf_ibrahim',
-    body: "The journey of a lifetime begins here. Peaceful, professional, and spiritually enriching.",
-    img: 'https://avatar.vercel.sh/yusuf',
-    tripType: 'Family Umrah 2024',
-    location: 'Rawalpindi, Pakistan',
-    rating: 5
-  },
-  {
-    name: 'Maryam Siddique',
-    username: '@maryam_siddique',
-    body: "Outstanding service from start to finish. Made my first Hajj experience truly memorable.",
-    img: 'https://avatar.vercel.sh/maryam',
-    tripType: 'Hajj 2023',
-    location: 'Multan, Pakistan',
-    rating: 5
-  },
-  {
-    name: 'Hassan Ali',
-    username: '@hassan_ali',
-    body: "Professional guidance throughout the entire process. Highly recommend for fellow pilgrims.",
-    img: 'https://avatar.vercel.sh/hassan',
-    tripType: 'Umrah January 2025',
-    location: 'Peshawar, Pakistan',
-    rating: 5
-  },
-  {
-    name: 'Khadija Ahmed',
-    username: '@khadija_ahmed',
-    body: "The budget package exceeded my expectations. Quality service at an affordable price.",
-    img: 'https://avatar.vercel.sh/khadija',
-    tripType: 'Budget Umrah 2024',
-    location: 'Quetta, Pakistan',
-    rating: 4
-  }
-];
+function nameFromStory(s) {
+  const v = String(s?.displayName || "").trim();
+  if (v) return v;
+  const f = String(s?.user?.firstName || "").trim();
+  const l = String(s?.user?.lastName || "").trim();
+  const full = [f, l].filter(Boolean).join(" ").trim();
+  return full || "Traveler";
+}
+
+function usernameFromStory(s) {
+  const raw = String(s?.username || "").trim();
+  if (raw) return raw.startsWith("@") ? raw : `@${raw}`;
+  const email = String(s?.user?.email || "");
+  const base = email.split("@")[0] || "traveler";
+  return `@${base}`;
+}
 
 const MarqueeDemo = () => {
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeVideo, setActiveVideo] = useState(null);
+  const origin = getApiOrigin();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const rows = await listApprovedStories();
+        if (!cancelled) setStories(rows || []);
+      } catch {
+        if (!cancelled) setStories([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const reviews = useMemo(() => {
+    return (stories || []).map((s) => {
+      const username = usernameFromStory(s);
+      const name = nameFromStory(s);
+      const rating = Math.max(0, Math.min(5, Number(s?.rating ?? 0))) || 0;
+      const body = String(s?.text || "").trim();
+      const tripType = String(s?.type || "").toUpperCase() || "STORY";
+      const location = String(s?.location || "").trim();
+      const img = `https://avatar.vercel.sh/${encodeURIComponent(
+        username.replace("@", "")
+      )}`;
+      const videoUrl = s?.videoUrl ? `${origin}${s.videoUrl}` : null;
+      return {
+        id: s?._id || username,
+        name,
+        username,
+        body: body || "Shared a story.",
+        img,
+        tripType,
+        location,
+        rating,
+        videoUrl,
+        title: String(s?.title || "").trim(),
+      };
+    });
+  }, [stories, origin]);
+
   return (
     <div className="relative flex h-[80vh] w-full flex-col items-center justify-center overflow-hidden bg-gray-50 font-sans">
       <div className="text-center space-y-4 mb-12 px-4 z-10 relative">
@@ -96,17 +91,79 @@ const MarqueeDemo = () => {
       </div>
 
       <div className="w-full max-w-7xl relative z-10">
-        <Marquee pauseOnHover className="[--duration:30s]">
-          {reviews.map((review) => (
-            <ReviewCard key={review.username} {...review} />
-          ))}
-        </Marquee>
+        {loading ? (
+          <div className="text-sm text-gray-500 text-center">Loading reviews…</div>
+        ) : reviews.length === 0 ? (
+          <div className="text-sm text-gray-500 text-center">
+            No reviews yet.
+          </div>
+        ) : (
+          <Marquee pauseOnHover className="[--duration:30s]">
+            {reviews.map((review) => (
+              <ReviewCard
+                key={review.id}
+                {...review}
+                onWatchVideo={(url) =>
+                  setActiveVideo({ url, title: review.title || "Review video" })
+                }
+              />
+            ))}
+          </Marquee>
+        )}
       </div>
+
+      {activeVideo?.url ? (
+        <div
+          className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/60"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="review-video-title"
+          onClick={() => setActiveVideo(null)}
+        >
+          <div
+            className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-gray-200 p-4 sm:p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <h3
+                id="review-video-title"
+                className="text-base sm:text-lg font-bold text-gray-900"
+              >
+                {activeVideo.title}
+              </h3>
+              <button
+                type="button"
+                className="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50"
+                onClick={() => setActiveVideo(null)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="mt-4">
+              <video
+                controls
+                className="w-full max-h-[65vh] aspect-video object-contain rounded-xl border border-gray-200 bg-black"
+                src={activeVideo.url}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
 
-const ReviewCard = ({ img, name, username, body, tripType, location, rating }) => {
+const ReviewCard = ({
+  img,
+  name,
+  username,
+  body,
+  tripType,
+  location,
+  rating,
+  videoUrl,
+  onWatchVideo,
+}) => {
   return (
     <figure
       className={cn(
@@ -152,16 +209,27 @@ const ReviewCard = ({ img, name, username, body, tripType, location, rating }) =
         "{body}"
       </blockquote>
 
-      <div className="flex items-center gap-1">
-        {[...Array(5)].map((_, i) => (
-          <svg 
-            key={i} 
-            className={`w-5 h-5 ${i < rating ? 'text-amber-500' : 'text-gray-300'} fill-current`} 
-            viewBox="0 0 20 20"
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <svg
+              key={i}
+              className={`w-5 h-5 ${i < rating ? "text-amber-500" : "text-gray-300"} fill-current`}
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+        </div>
+        {videoUrl ? (
+          <button
+            type="button"
+            onClick={() => onWatchVideo?.(videoUrl)}
+            className="text-xs font-semibold text-amber-700 hover:text-amber-800 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors"
           >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        ))}
+            Watch video
+          </button>
+        ) : null}
       </div>
     </figure>
   );

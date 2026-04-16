@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Loader2, CheckCircle2, XCircle, ShieldCheck,
-  CalendarClock, X, Trash2,
+  CalendarClock, X, Trash2, OctagonAlert,
 } from "lucide-react";
 import AdminLayout from "../Components/Admin/AdminLayout";
 import {
@@ -43,11 +43,7 @@ export default function AdminBookings() {
   const origin = getApiOrigin();
 
   useEffect(() => {
-    const prev = document.documentElement.style.scrollBehavior;
-    document.documentElement.style.scrollBehavior = "smooth";
-    return () => {
-      document.documentElement.style.scrollBehavior = prev;
-    };
+    // Keep native scroll behavior (avoid page-level overrides that can fight scroll-lock).
   }, []);
 
   const load = useCallback(async (opts = {}) => {
@@ -82,11 +78,13 @@ export default function AdminBookings() {
   const pendingGrouped  = useMemo(() => grouped(bookings.filter(b => b.status === "pending")),  [bookings, grouped]);
   const approvedGrouped = useMemo(() => grouped(bookings.filter(b => b.status === "approved")), [bookings, grouped]);
   const rejectedGrouped = useMemo(() => grouped(bookings.filter(b => b.status === "rejected")), [bookings, grouped]);
+  const cancelledGrouped = useMemo(() => grouped(bookings.filter(b => b.status === "cancelled")), [bookings, grouped]);
 
   const pendingCount  = useMemo(() => bookings.filter(b => b.status === "pending").length,  [bookings]);
   const approvedCount = useMemo(() => bookings.filter(b => b.status === "approved").length, [bookings]);
   const rejectedCount = useMemo(() => bookings.filter(b => b.status === "rejected").length, [bookings]);
-  const totalCount = pendingCount + approvedCount + rejectedCount;
+  const cancelledCount = useMemo(() => bookings.filter(b => b.status === "cancelled").length, [bookings]);
+  const totalCount = pendingCount + approvedCount + rejectedCount + cancelledCount;
 
   const scrollToSection = useCallback((id) => {
     const el = document.getElementById(id);
@@ -154,6 +152,19 @@ export default function AdminBookings() {
     } finally { setBusyId(null); }
   };
 
+  const removeCancelled = async (id) => {
+    setBusyId(id);
+    try {
+      await adminDeleteBooking(id);
+      toast.success("Cancelled booking removed");
+      await load({ silent: true });
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Remove failed");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const methodLabel = (m) =>
     m === "jazzcash"
       ? "JazzCash"
@@ -167,7 +178,7 @@ export default function AdminBookings() {
               ? "Stripe"
               : m || "—";
 
-  const BookingCard = ({ b, allowDeleteRejected }) => {
+  const BookingCard = ({ b, allowDeleteRejected, allowDeleteCancelled }) => {
     const hasVisa    = Boolean(b.documents?.visaPdf);
     const hasOther   = Boolean(b.documents?.otherPdf);
     const hasReceipt = Boolean(b.payment?.receiptPdf);
@@ -186,6 +197,7 @@ export default function AdminBookings() {
       approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
       rejected: "bg-red-50 text-red-700 border-red-200",
       pending:  "bg-amber-50 text-amber-800 border-amber-200",
+      cancelled: "bg-zinc-100 text-zinc-700 border-zinc-200",
     };
     const payColors = {
       verified:  "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -321,6 +333,8 @@ export default function AdminBookings() {
               Reject
             </button>
 
+     
+
           
             {canVerify && (
               <button type="button"
@@ -358,6 +372,22 @@ export default function AdminBookings() {
               </button>
             )}
 
+{b.status !== "cancelled" ? (
+              <button
+                type="button"
+                disabled={busyId === b._id}
+                onClick={() => setStatus(b._id, "cancelled")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 text-white text-xs font-semibold hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="cancel"
+              >
+                {busyId === b._id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <OctagonAlert className="h-3.5 w-3.5" />
+                )}
+                cancel
+              </button>
+            ) : null}
            
             {allowDeleteRejected && b.status === "rejected" && (
               <button type="button"
@@ -366,6 +396,22 @@ export default function AdminBookings() {
                 className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors ml-auto"
                 title="Remove booking" aria-label="Remove booking">
                 {busyId === b._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              </button>
+            )}
+            {allowDeleteCancelled && b.status === "cancelled" && (
+              <button
+                type="button"
+                disabled={busyId === b._id}
+                onClick={() => removeCancelled(b._id)}
+                className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 transition-colors ml-auto"
+                title="Remove cancelled booking"
+                aria-label="Remove cancelled booking"
+              >
+                {busyId === b._id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
               </button>
             )}
           </div>
@@ -381,7 +427,7 @@ export default function AdminBookings() {
   };
 
   const renderGroups = (groups, opts = {}) => {
-    const { allowDeleteRejected = false } = opts;
+    const { allowDeleteRejected = false, allowDeleteCancelled = false } = opts;
     if (groups.length === 0) {
       return (
         <div className="bg-white rounded-xl border border-zinc-200 px-5 py-10 text-center text-sm text-zinc-400">
@@ -403,7 +449,12 @@ export default function AdminBookings() {
             </div>
             <div className="p-3 space-y-3">
               {g.bookings.map(b => (
-                <BookingCard key={b._id} b={b} allowDeleteRejected={allowDeleteRejected} />
+                <BookingCard
+                  key={b._id}
+                  b={b}
+                  allowDeleteRejected={allowDeleteRejected}
+                  allowDeleteCancelled={allowDeleteCancelled}
+                />
               ))}
             </div>
           </div>
@@ -413,12 +464,13 @@ export default function AdminBookings() {
   };
 
   const SummaryStrip = () => (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
       {[
         { label: "Total",    count: totalCount,    color: "text-zinc-700",    bg: "bg-white border-zinc-200" },
         { label: "Pending",  count: pendingCount,  color: "text-amber-700",   bg: "bg-amber-50 border-amber-200", scrollId: "pending-requests" },
         { label: "Approved", count: approvedCount, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200", scrollId: "approved-bookings" },
         { label: "Rejected", count: rejectedCount, color: "text-red-700",     bg: "bg-red-50 border-red-200", scrollId: "rejected-requests" },
+        { label: "Cancelled", count: cancelledCount, color: "text-zinc-700", bg: "bg-zinc-50 border-zinc-200", scrollId: "cancelled-requests" },
       ].map(({ label, count, color, bg }) => (
         label === "Total" ? (
           <div key={label} className={`rounded-xl border px-4 py-3 ${bg}`}>
@@ -434,7 +486,9 @@ export default function AdminBookings() {
                 ? "pending-requests"
                 : label === "Approved"
                   ? "approved-bookings"
-                  : "rejected-requests"
+                  : label === "Rejected"
+                    ? "rejected-requests"
+                    : "cancelled-requests"
             )}
             className={`rounded-xl border px-4 py-3 ${bg} text-left hover:shadow-sm active:scale-[0.99] transition`}
             aria-label={`Scroll to ${label} section`}
@@ -520,6 +574,21 @@ export default function AdminBookings() {
                 badgeColor="text-red-800 border-red-200"
               >
                 {renderGroups(rejectedGrouped, { allowDeleteRejected: true })}
+              </Section>
+            )}
+
+            {cancelledCount > 0 && (
+              <Section
+                id="cancelled-requests"
+                title="Cancelled"
+                subtitle="Emergency-cancelled bookings. You can remove entries no longer needed."
+                count={cancelledCount}
+                countColor="text-zinc-700"
+                borderColor="border-zinc-200/70"
+                bgColor="bg-zinc-50/30"
+                badgeColor="text-zinc-700 border-zinc-200"
+              >
+                {renderGroups(cancelledGrouped, { allowDeleteCancelled: true })}
               </Section>
             )}
           </>

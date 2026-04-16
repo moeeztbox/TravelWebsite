@@ -188,7 +188,7 @@ export const dismissTransportationBooking = async (req, res) => {
     });
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    if (booking.status === "rejected") {
+    if (booking.status === "rejected" || booking.status === "cancelled") {
       booking.dismissedByUser = true;
       await booking.save();
       return res.json({ message: "Removed", booking });
@@ -196,7 +196,7 @@ export const dismissTransportationBooking = async (req, res) => {
 
     if (booking.payment?.status !== "verified") {
       return res.status(400).json({
-        message: "Only completed or rejected requests can be removed.",
+        message: "Only completed, rejected, or cancelled requests can be removed.",
       });
     }
 

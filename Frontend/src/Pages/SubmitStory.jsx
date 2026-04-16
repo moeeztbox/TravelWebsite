@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { submitStory } from "../Services/storiesService";
 import { useAuth } from "../Context/AuthContext";
-import { Star } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function baseFromEmail(email) {
   const raw = String(email || "").split("@")[0] || "user";
@@ -12,6 +13,7 @@ function baseFromEmail(email) {
 
 export default function SubmitStory() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [type, setType] = useState("umrah");
   const [displayName, setDisplayName] = useState("");
@@ -77,6 +79,18 @@ export default function SubmitStory() {
   return (
     <div className="min-h-screen bg-stone-100 pt-28 pb-16 px-4">
       <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-stone-200 shadow-sm p-6 md:p-8">
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 1) navigate(-1);
+            else navigate("/dashboard");
+          }}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 px-3 py-2 rounded-xl transition"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
         <h1 className="text-2xl font-bold text-stone-900">Share your story</h1>
         <p className="text-stone-600 mt-2">
           Share your Hajj or Umrah journey. Your name, username, and location are

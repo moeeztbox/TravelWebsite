@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
-import { usePackageBooking } from "../../Hooks/usePackageBooking";
+import { useNavigate } from "react-router-dom";
 
 const HomeHeroSection = () => {
-  const { goToPackagesOrPromptLogin } = usePackageBooking();
+  const navigate = useNavigate();
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
   const descriptionRef = useRef(null);
@@ -316,7 +316,7 @@ const HomeHeroSection = () => {
             <button
               ref={primaryButtonRef}
               type="button"
-              onClick={goToPackagesOrPromptLogin}
+              onClick={() => navigate("/booking")}
               className="px-6 py-3 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-lg tracking-wide drop-shadow-lg text-sm sm:text-base cursor-pointer"
               style={{ fontWeight: "600" }}
             >

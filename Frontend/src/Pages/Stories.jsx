@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listApprovedStories } from "../Services/storiesService";
 import { getApiOrigin } from "../utils/apiOrigin";
+import GoBackButton from "../Components/Common/GoBackButton";
 
 export default function Stories() {
   const [stories, setStories] = useState([]);
@@ -22,6 +23,7 @@ export default function Stories() {
   return (
     <div className="min-h-screen bg-stone-100 pt-28 pb-16 px-4">
       <div className="max-w-5xl mx-auto">
+        <GoBackButton className="mb-4" fallbackTo="/" />
         <h1 className="text-3xl font-bold text-stone-900">Stories</h1>
         <p className="text-stone-600 mt-2">
           Read Hajj and Umrah journeys shared by our community.

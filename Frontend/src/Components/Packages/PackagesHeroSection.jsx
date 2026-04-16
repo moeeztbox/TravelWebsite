@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import AboutHeroImage from "../../Assets/Images/aboutus images/about-hero.jpg";
-import { usePackageBooking } from "../../Hooks/usePackageBooking";
+import { useNavigate } from "react-router-dom";
 
 function PackagesHeroSection() {
-  const { goToPackagesOrPromptLogin } = usePackageBooking();
+  const navigate = useNavigate();
   const titleRef = useRef(null);
   const welcomeRef = useRef(null);
   const bookingRef = useRef(null);
@@ -99,8 +99,8 @@ function PackagesHeroSection() {
             ref={welcomeRef}
             className="text-lg md:text-xl text-yellow-300 drop-shadow-lg font-light leading-relaxed text-center max-w-2xl"
           >
-            Choose from our carefully crafted Umrah & Hajj packages or customize
-            one to suit your needs.
+            {/* Choose from our carefully crafted Umrah & Hajj packages or customize
+            one to suit your needs. */}
           </p>
 
           <h2
@@ -113,7 +113,14 @@ function PackagesHeroSection() {
           <div ref={buttonRef}>
             <button
               type="button"
-              onClick={goToPackagesOrPromptLogin}
+              onClick={() => {
+                const el = document.getElementById("packages-grid");
+                if (el) {
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  return;
+                }
+                navigate("/packages");
+              }}
               className="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-md text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-400/25 active:scale-95"
             >
               Book Now

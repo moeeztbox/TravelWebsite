@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, XCircle, Hotel } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Hotel,
+  OctagonAlert,
+  Trash2,
+} from "lucide-react";
 import AdminLayout from "../Components/Admin/AdminLayout";
 import {
   adminListHotelBookings,
   adminSetHotelBookingStatus,
   adminSetHotelPaymentStatus,
+  adminDeleteHotelBooking,
 } from "../Services/adminService";
 import { getApiOrigin } from "../utils/apiOrigin";
 
@@ -78,6 +86,19 @@ export default function AdminHotelBookings() {
       await load(true);
     } catch (e) {
       toast.error(e.response?.data?.message || "Failed");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const removeCancelled = async (id) => {
+    setBusyId(id);
+    try {
+      await adminDeleteHotelBooking(id);
+      toast.success("Cancelled booking removed");
+      await load(true);
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Delete failed");
     } finally {
       setBusyId(null);
     }
@@ -197,6 +218,30 @@ export default function AdminHotelBookings() {
                         Reject
                       </button>
                     </>
+                  ) : null}
+                  {b.status !== "cancelled" ? (
+                    <button
+                      type="button"
+                      disabled={busyId === b._id}
+                      onClick={() => setStatus(b._id, "cancelled")}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-zinc-900 text-white text-xs font-semibold"
+                      title="cancel"
+                    >
+                      <OctagonAlert className="h-4 w-4" />
+                      cancel
+                    </button>
+                  ) : null}
+                  {b.status === "cancelled" ? (
+                    <button
+                      type="button"
+                      disabled={busyId === b._id}
+                      onClick={() => removeCancelled(b._id)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-200 text-zinc-800 text-xs font-semibold hover:bg-zinc-50"
+                      title="Remove cancelled booking"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Remove
+                    </button>
                   ) : null}
 
                   {b.status === "approved" && b.payment?.status === "verifying" ? (

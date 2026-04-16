@@ -1,5 +1,15 @@
 import React from "react";
-import { BadgeCheck, Car, Landmark, Plane, Ticket, BedDouble, Clock } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Car,
+  Landmark,
+  Plane,
+  Ticket,
+  BedDouble,
+  Clock,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Simple Button component (self-contained)
 function Button({ children, variant = "primary", size = "md", ...props }) {
@@ -83,6 +93,7 @@ function FAQ({ faqs }) {
 }
 
 export default function Services() {
+  const navigate = useNavigate();
   const transportDetails = {
     overview:
       "We provide safe, reliable and comfortable transport across Makkah, Madinah and surrounding ziyarat sites. Our fleet includes private cars, minivans, and full-size AC coaches. Drivers are experienced, licensed, and briefed on religious sensitivities and local routes.",
@@ -257,12 +268,24 @@ export default function Services() {
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <a href="mailto:info@example.com">
-                    <Button size="lg" variant="primary">Request a Quote</Button>
-                  </a>
-                  <a href={`#${s.id}`} className="inline-block">
-                    <Button variant="secondary">Learn more about {s.title}</Button>
-                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const map = {
+                        transport: "/booking?tab=transport",
+                        visa: "/booking?tab=visa",
+                        ticket: "/booking?tab=flights",
+                        hotels: "/booking?tab=hotels",
+                        ziawrat: "/ziyarat-guide",
+                      };
+                      navigate(map[s.id] || "/services");
+                    }}
+                    className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-colors"
+                    aria-label={`Go to ${s.title}`}
+                    title={`Go to ${s.title}`}
+                  >
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
                 </div>
 
                 <div className="mt-12 border-t pt-8">

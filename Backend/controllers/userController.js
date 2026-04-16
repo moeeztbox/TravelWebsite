@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import User from "../models/user.js";
+import { firebaseAuth } from "../config/firebaseAdmin.js";
 
 async function sendPasswordResetEmail(toEmail, resetUrl) {
   const MAIL_USER = String(process.env.MAIL_USER || "").trim();
@@ -93,10 +94,95 @@ export const loginUser = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
+    if (!user.password) {
+      return res.status(401).json({
+        message:
+          "This account uses Google sign-in. Please continue with Google.",
+      });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const token = signToken(user);
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: toUserPayload(user),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export const loginWithFirebase = async (req, res) => {
+  try {
+    const idToken = String(req.body.idToken || "").trim();
+    if (!idToken) {
+      return res.status(400).json({ message: "Firebase idToken is required" });
+    }
+
+    let decoded;
+    try {
+      decoded = await firebaseAuth().verifyIdToken(idToken);
+    } catch (e) {
+      if (e?.code === "FIREBASE_ADMIN_NOT_CONFIGURED") {
+        return res.status(503).json({
+          message:
+            "Google login is not configured on the server. Set FIREBASE_SERVICE_ACCOUNT (service account JSON) or GOOGLE_APPLICATION_CREDENTIALS, then restart the backend.",
+        });
+      }
+      console.error("loginWithFirebase verifyIdToken:", e);
+      return res.status(401).json({
+        message:
+          process.env.NODE_ENV === "production"
+            ? "Invalid Google sign-in token. Please try again."
+            : `Invalid Google sign-in token: ${e?.message || "unknown error"}`,
+      });
+    }
+
+    const firebaseUid = String(decoded.uid || "").trim();
+    const email = String(decoded.email || "").trim().toLowerCase();
+    const name = String(decoded.name || "").trim();
+    const picture = String(decoded.picture || "").trim();
+
+    if (!firebaseUid || !email) {
+      return res.status(400).json({
+        message: "Google account did not provide an email address.",
+      });
+    }
+
+    const [firstNameRaw, ...rest] = name.split(/\s+/).filter(Boolean);
+    const firstName = firstNameRaw || "Google";
+    const lastName = rest.length ? rest.join(" ") : "User";
+
+    // Find by email first (keeps existing users stable), else by firebaseUid.
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.findOne({ firebaseUid });
+    }
+
+    if (!user) {
+      user = await User.create({
+        firstName,
+        lastName,
+        email,
+        authProvider: "firebase",
+        firebaseUid,
+        photoURL: picture,
+        // password intentionally omitted for Firebase users
+      });
+    } else {
+      const updates = {};
+      if (user.authProvider !== "firebase") updates.authProvider = "firebase";
+      if (!user.firebaseUid) updates.firebaseUid = firebaseUid;
+      if (picture && user.photoURL !== picture) updates.photoURL = picture;
+      if (Object.keys(updates).length) {
+        user = await User.findByIdAndUpdate(user._id, { $set: updates }, { new: true });
+      }
     }
 
     const token = signToken(user);

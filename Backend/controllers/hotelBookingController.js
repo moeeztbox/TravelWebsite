@@ -158,13 +158,13 @@ export const dismissHotelBooking = async (req, res) => {
     const booking = await HotelBooking.findOne({ _id: req.params.id, user: userId });
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    const isRejected = booking.status === "rejected";
+    const isRejected = booking.status === "rejected" || booking.status === "cancelled";
     const isDone = booking.payment?.status === "verified" && booking.stay?.checkOut
       ? Date.now() >= new Date(booking.stay.checkOut).getTime()
       : false;
     if (!isRejected && !isDone) {
       return res.status(400).json({
-        message: "You can remove only rejected or completed bookings.",
+        message: "You can remove only cancelled, rejected, or completed bookings.",
       });
     }
 
