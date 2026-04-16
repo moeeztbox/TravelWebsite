@@ -111,10 +111,10 @@ export default function Footer() {
 
   const services = [
     { to: "/packages", label: "Umrah Packages" },
-    { to: "/booking?tab=transport", label: "Transportation" },
-    { to: "/booking?tab=visa", label: "Visa Processing" },
-    { to: "/booking?tab=hotels", label: "International Tours" },
-    { to: "/booking?tab=flights", label: "Air Ticketing" },
+    { to: { pathname: "/booking", search: "?tab=transport" }, label: "Transportation" },
+    { to: { pathname: "/booking", search: "?tab=visa" }, label: "Visa Processing" },
+    { to: { pathname: "/booking", search: "?tab=hotels" }, label: "International Tours" },
+    { to: { pathname: "/booking", search: "?tab=flights" }, label: "Air Ticketing" },
   ];
 
   return (
@@ -347,7 +347,7 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                <span>Al Buraq Global Travel & Tours pvt ltd.<br />Lahore, Pakistan</span>
+                <span>Al Buraq Pilgrim Travel & Tours pvt ltd.<br />Lahore, Pakistan</span>
               </div>
 
               <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
@@ -383,7 +383,7 @@ export default function Footer() {
         <div className="border-t border-gray-700/50 mt-16 pt-8 text-center">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-400">
-              © 2026 Al Buraq Global. All rights reserved.
+              © 2026 Al Buraq Pilgrim. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
               <RouterLink
