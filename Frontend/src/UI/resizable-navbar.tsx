@@ -348,7 +348,7 @@ export const NavbarLogo: React.FC<NavbarLogoProps> = ({ onClick }) => {
           AL BURAQ
         </span>
         <span className="text-gray-600 text-xs lg:text-sm xl:text-base font-medium leading-tight">
-          INTERNATIONAL
+          PILGRIM
         </span>
       </div>
     </Link>

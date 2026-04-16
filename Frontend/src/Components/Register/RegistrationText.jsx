@@ -66,7 +66,7 @@ function RegistrationText() {
   const [displayText, setDisplayText] = useState("");
 
   const fullText =
-    "Join AlBuraqGlobal and start exploring the world your way. Discover exclusive offers, personalized trips, and unforgettable journeys — all in one place.";
+    "Join AlBuraqPilgrim and start exploring the world your way. Discover exclusive offers, personalized trips, and unforgettable journeys — all in one place.";
 
   useEffect(() => {
     let index = 0;
