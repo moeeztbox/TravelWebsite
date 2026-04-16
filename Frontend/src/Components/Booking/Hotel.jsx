@@ -41,6 +41,7 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
 
   const [searchInput, setSearchInput] = useState("");
   const [showDetails, setShowDetails] = useState(false);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
   const [searchStay, setSearchStay] = useState(() => {
     const today = new Date();
@@ -289,10 +290,19 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
     }
   };
 
-  const handleHotelClick = (hotelId) => {
+  const handleHotelClick = async (hotelId) => {
     captureScrollPosition();
-    getHotelDetails(hotelId);
     setShowDetails(true);
+    setDetailsLoading(true);
+    try {
+      await getHotelDetails(hotelId);
+    } catch {
+      toast.error("Could not load hotel details. Please try again.");
+      setShowDetails(false);
+      setSelectedHotel(null);
+    } finally {
+      setDetailsLoading(false);
+    }
   };
 
   const openBookModal = () => {
@@ -769,24 +779,39 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
             }}
           >
             {hotels.map((hotel) => (
+              (() => {
+                const rate = ratesByHotelId?.[hotel.id];
+                const rateAmount = Number(rate?.amount) || 0;
+                const priceAvailable = rateAmount > 0;
+                const isUnavailable = Boolean(
+                  canQuote && !ratesLoading && !priceAvailable
+                );
+                return (
               <div
                 key={hotel.id}
-                onClick={() => handleHotelClick(hotel.id)}
+                onClick={() => {
+                  if (isUnavailable) return;
+                  handleHotelClick(hotel.id);
+                }}
                 style={{
                   background: "white",
                   borderRadius: "12px",
                   overflow: "hidden",
                   boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-                  cursor: "pointer",
+                  cursor: isUnavailable ? "not-allowed" : "pointer",
                   transition: "transform 0.3s, box-shadow 0.3s",
                   border: "1px solid #f0f0f0",
+                  opacity: isUnavailable ? 0.55 : 1,
+                  filter: isUnavailable ? "grayscale(1)" : "none",
                 }}
                 onMouseEnter={(e) => {
+                  if (isUnavailable) return;
                   e.currentTarget.style.transform = "translateY(-5px)";
                   e.currentTarget.style.boxShadow =
                     "0 8px 15px rgba(0,0,0,0.2)";
                 }}
                 onMouseLeave={(e) => {
+                  if (isUnavailable) return;
                   e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
                 }}
@@ -847,10 +872,10 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
                     }}
                   >
                     <span style={{ color: "#555", fontWeight: "bold" }}>
-                      {ratesByHotelId?.[hotel.id]?.amount
+                      {priceAvailable
                         ? (() => {
-                            const cur = ratesByHotelId[hotel.id].currency;
-                            const amt = Number(ratesByHotelId[hotel.id].amount);
+                            const cur = rate.currency;
+                            const amt = rateAmount;
                             const usdLabel = `${cur} ${amt.toLocaleString()}`;
                             const pkrLabel = toPkrLabel(amt, cur);
                             return pkrLabel ? `${usdLabel} (${pkrLabel})` : usdLabel;
@@ -865,6 +890,18 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
                       {canQuote ? "for your stay" : ""}
                     </span>
                   </div>
+                  {isUnavailable ? (
+                    <div
+                      style={{
+                        marginBottom: "0.75rem",
+                        color: "#b91c1c",
+                        fontWeight: 800,
+                        textDecoration: "line-through",
+                      }}
+                    >
+                      Hotel is not available
+                    </div>
+                  ) : null}
                   {hotel.amenities && hotel.amenities.length > 0 && (
                     <div
                       style={{
@@ -907,19 +944,23 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
                     style={{
                       width: "100%",
                       padding: "0.8rem",
-                      backgroundColor: "#007bff",
+                      backgroundColor: isUnavailable ? "#9ca3af" : "#007bff",
                       color: "white",
                       border: "none",
                       borderRadius: "6px",
                       fontSize: "1rem",
-                      cursor: "pointer",
+                      cursor: isUnavailable ? "not-allowed" : "pointer",
                       marginTop: "0.5rem",
+                      opacity: isUnavailable ? 0.8 : 1,
                     }}
+                    disabled={isUnavailable}
                   >
-                    View Details
+                    {isUnavailable ? "Not available" : "View Details"}
                   </button>
                 </div>
               </div>
+                );
+              })()
             ))}
           </div>
         </div>
@@ -936,7 +977,7 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
         </div>
       )}
 
-      {showDetails && selectedHotel && (
+      {showDetails && (
         <div
           role="presentation"
           style={{
@@ -1008,10 +1049,40 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
               id="hotel-details-title"
               style={{ marginBottom: "1rem", paddingRight: "2rem" }}
             >
-              {selectedHotel.name}
+              {detailsLoading ? "Loading hotel details…" : selectedHotel?.name || "Hotel details"}
             </h2>
 
-            {selectedHotel.images && selectedHotel.images.length > 0 && (
+            {detailsLoading || !selectedHotel ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "2.5rem 1rem",
+                }}
+              >
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: "999px",
+                    border: "4px solid rgba(245,158,11,0.25)",
+                    borderTopColor: "#f59e0b",
+                    animation: "spin 1s linear infinite",
+                  }}
+                />
+                <style>{`
+                  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                `}</style>
+                <div style={{ marginLeft: 12, color: "#4b5563", fontSize: 14 }}>
+                  Please wait…
+                </div>
+              </div>
+            ) : null}
+
+            {!detailsLoading &&
+            selectedHotel?.images &&
+            selectedHotel.images.length > 0 ? (
               <div
                 style={{
                   display: "grid",
@@ -1038,107 +1109,185 @@ const Hotel = ({ isAuthenticated = false, onRequireRegister }) => {
                   />
                 ))}
               </div>
-            )}
+            ) : null}
 
-            <p style={{ color: "#666", marginBottom: "1rem" }}>
-              📍 {selectedHotel.address}
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "2rem",
-                marginBottom: "1.5rem",
-                flexWrap: "wrap",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: "bold", marginBottom: "0.3rem" }}>
-                  Star Rating
-                </div>
-                <div>{"⭐".repeat(selectedHotel.starRating || 3)}</div>
-              </div>
-              {selectedHotel.rating > 0 && (
-                <div>
-                  <div style={{ fontWeight: "bold", marginBottom: "0.3rem" }}>
-                    Guest Rating
-                  </div>
-                  <div
-                    style={{
-                      backgroundColor: "#28a745",
-                      color: "white",
-                      padding: "0.3rem 1rem",
-                      borderRadius: "20px",
-                      display: "inline-block",
-                    }}
-                  >
-                    {selectedHotel.rating}/5
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {selectedHotel.description && (
-              <div style={{ marginBottom: "1.5rem" }}>
-                <h3 style={{ marginBottom: "0.5rem" }}>About this hotel</h3>
-                {String(selectedHotel.description).includes("<") ? (
-                  <div
-                    style={{ color: "#666", lineHeight: "1.6" }}
-                    dangerouslySetInnerHTML={{
-                      __html: String(selectedHotel.description)
-                        // very small safety net: drop script/style tags
-                        .replace(/<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, "")
-                        .replace(/<\s*style[^>]*>[\s\S]*?<\s*\/\s*style\s*>/gi, ""),
-                    }}
-                  />
-                ) : (
-                  <p style={{ color: "#666", lineHeight: "1.6" }}>
-                    {selectedHotel.description}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {selectedHotel.amenities && selectedHotel.amenities.length > 0 && (
-              <div style={{ marginBottom: "1.5rem" }}>
-                <h3 style={{ marginBottom: "0.5rem" }}>Amenities</h3>
-                <div
-                  style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}
-                >
-                  {selectedHotel.amenities.map((item, i) => (
-                    <span
-                      key={i}
+            {!detailsLoading && selectedHotel ? (
+              <>
+                {(() => {
+                  const rate = ratesByHotelId?.[selectedHotel.id];
+                  const amt = Number(rate?.amount) || 0;
+                  const priceAvailable = amt > 0;
+                  const isUnavailable = Boolean(
+                    canQuote && !ratesLoading && !priceAvailable
+                  );
+                  return isUnavailable ? (
+                    <div
                       style={{
-                        backgroundColor: "#f0f0f0",
-                        padding: "0.4rem 1rem",
-                        borderRadius: "20px",
-                        fontSize: "0.9rem",
+                        marginBottom: "1rem",
+                        color: "#b91c1c",
+                        fontWeight: 800,
+                        textDecoration: "line-through",
                       }}
                     >
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+                      Hotel is not available
+                    </div>
+                  ) : null;
+                })()}
 
-            <button
-              style={{
-                width: "100%",
-                padding: "1rem",
-                backgroundColor: "#28a745",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                cursor: "pointer",
-                marginTop: "1rem",
-              }}
-              onClick={openBookModal}
-            >
-              Book Now
-            </button>
+                <p style={{ color: "#666", marginBottom: "1rem" }}>
+                  📍 {selectedHotel.address}
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "2rem",
+                    marginBottom: "1.5rem",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: "bold", marginBottom: "0.3rem" }}>
+                      Star Rating
+                    </div>
+                    <div>{"⭐".repeat(selectedHotel.starRating || 3)}</div>
+                  </div>
+                  {selectedHotel.rating > 0 && (
+                    <div>
+                      <div style={{ fontWeight: "bold", marginBottom: "0.3rem" }}>
+                        Guest Rating
+                      </div>
+                      <div
+                        style={{
+                          backgroundColor: "#28a745",
+                          color: "white",
+                          padding: "0.3rem 1rem",
+                          borderRadius: "20px",
+                          display: "inline-block",
+                        }}
+                      >
+                        {selectedHotel.rating}/5
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {selectedHotel.description ? (
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <h3 style={{ marginBottom: "0.5rem" }}>About this hotel</h3>
+                    {String(selectedHotel.description).includes("<") ? (
+                      <div
+                        style={{ color: "#666", lineHeight: "1.6" }}
+                        dangerouslySetInnerHTML={{
+                          __html: String(selectedHotel.description)
+                            // very small safety net: drop script/style tags
+                            .replace(
+                              /<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi,
+                              ""
+                            )
+                            .replace(
+                              /<\s*style[^>]*>[\s\S]*?<\s*\/\s*style\s*>/gi,
+                              ""
+                            ),
+                        }}
+                      />
+                    ) : (
+                      <p style={{ color: "#666", lineHeight: "1.6" }}>
+                        {selectedHotel.description}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+
+                {selectedHotel.amenities && selectedHotel.amenities.length > 0 ? (
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <h3 style={{ marginBottom: "0.5rem" }}>Amenities</h3>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      {selectedHotel.amenities.map((item, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            backgroundColor: "#f0f0f0",
+                            padding: "0.4rem 1rem",
+                            borderRadius: "20px",
+                            fontSize: "0.9rem",
+                          }}
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <button
+                  style={{
+                    width: "100%",
+                    padding: "1rem",
+                    backgroundColor: (() => {
+                      const rate = ratesByHotelId?.[selectedHotel.id];
+                      const amt = Number(rate?.amount) || 0;
+                      const priceAvailable = amt > 0;
+                      const isUnavailable = Boolean(
+                        canQuote && !ratesLoading && !priceAvailable
+                      );
+                      return isUnavailable ? "#9ca3af" : "#28a745";
+                    })(),
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontSize: "1.2rem",
+                    fontWeight: "bold",
+                    cursor: (() => {
+                      const rate = ratesByHotelId?.[selectedHotel.id];
+                      const amt = Number(rate?.amount) || 0;
+                      const priceAvailable = amt > 0;
+                      const isUnavailable = Boolean(
+                        canQuote && !ratesLoading && !priceAvailable
+                      );
+                      return isUnavailable ? "not-allowed" : "pointer";
+                    })(),
+                    marginTop: "1rem",
+                    opacity: (() => {
+                      const rate = ratesByHotelId?.[selectedHotel.id];
+                      const amt = Number(rate?.amount) || 0;
+                      const priceAvailable = amt > 0;
+                      const isUnavailable = Boolean(
+                        canQuote && !ratesLoading && !priceAvailable
+                      );
+                      return isUnavailable ? 0.8 : 1;
+                    })(),
+                  }}
+                  disabled={(() => {
+                    const rate = ratesByHotelId?.[selectedHotel.id];
+                    const amt = Number(rate?.amount) || 0;
+                    const priceAvailable = amt > 0;
+                    const isUnavailable = Boolean(
+                      canQuote && !ratesLoading && !priceAvailable
+                    );
+                    return isUnavailable;
+                  })()}
+                  onClick={() => {
+                    const rate = ratesByHotelId?.[selectedHotel.id];
+                    const amt = Number(rate?.amount) || 0;
+                    const priceAvailable = amt > 0;
+                    const isUnavailable = Boolean(
+                      canQuote && !ratesLoading && !priceAvailable
+                    );
+                    if (isUnavailable) return;
+                    openBookModal();
+                  }}
+                >
+                  Book Now
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
       )}

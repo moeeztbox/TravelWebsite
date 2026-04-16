@@ -253,10 +253,8 @@ const HomeHeroSection = () => {
         ></div>
       </div>
 
-      {/* Content Container */}
       <div className="relative z-10 w-full px-12 pb-24 mb-16 md:px-20 md:pb-32">
         <div className="max-w-5xl -ml-2 md:ml-16">
-          {/* Company Name - All in one line */}
           <h1
             ref={titleRef}
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold mb-4 md:mb-6 leading-tight drop-shadow-2xl"
@@ -275,13 +273,11 @@ const HomeHeroSection = () => {
             </span>
           </h1>
 
-          {/* Decorative Line */}
           <div
             ref={lineRef}
             className="h-1 bg-gradient-to-r from-yellow-400 via-yellow-300 to-transparent mb-4 md:mb-6 rounded-full shadow-lg shadow-yellow-400/20"
           ></div>
 
-          {/* Tagline */}
           <p
             ref={subtitleRef}
             className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-yellow-200 mb-3 md:mb-4 font-light drop-shadow-lg"
@@ -293,7 +289,6 @@ const HomeHeroSection = () => {
             </span>
           </p>
 
-          {/* Description */}
           <p
             ref={descriptionRef}
             className="text-gray-300 mb-8 md:mb-12 text-sm sm:text-base leading-relaxed max-w-2xl opacity-70 italic drop-shadow-md"
