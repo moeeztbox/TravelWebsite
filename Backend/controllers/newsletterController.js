@@ -69,7 +69,7 @@ export async function subscribeNewsletter(req, res, next) {
       const MAIL_USER = String(process.env.MAIL_USER || "").trim();
       await transporter.sendMail({
         from: MAIL_USER,
-        to: "namrahakram102@gmail.com",
+        to: "moeezjamil868@gmail.com",
         subject: "New newsletter subscription",
         text: `A user subscribed to your newsletter.\n\nEmail: ${email}\nTime: ${now.toISOString()}\n`,
       });

@@ -12,8 +12,22 @@ const handleValidation = (req, res, next) => {
 };
 
 export const validateRegister = [
-  body("firstName").trim().notEmpty().withMessage("First name is required"),
-  body("lastName").trim().notEmpty().withMessage("Last name is required"),
+  body("firstName")
+    .trim()
+    .notEmpty()
+    .withMessage("First name is required")
+    .isLength({ min: 3 })
+    .withMessage("First name must be at least 3 characters")
+    .matches(/[A-Za-z]/)
+    .withMessage("First name must contain letters"),
+  body("lastName")
+    .trim()
+    .notEmpty()
+    .withMessage("Last name is required")
+    .isLength({ min: 3 })
+    .withMessage("Last name must be at least 3 characters")
+    .matches(/[A-Za-z]/)
+    .withMessage("Last name must contain letters"),
   body("email").isEmail().normalizeEmail().withMessage("Valid email is required"),
   body("password")
     .isLength({ min: 6 })

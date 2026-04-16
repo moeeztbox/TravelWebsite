@@ -125,6 +125,9 @@ function RegistrationForm() {
               <input
                 type="text"
                 required
+                minLength={3}
+                pattern=".*[A-Za-z].*"
+                title="Name must be at least 3 characters and contain letters"
                 value={form[field]}
                 onChange={update(field)}
                 placeholder={`Enter your ${label.toLowerCase()}`}
