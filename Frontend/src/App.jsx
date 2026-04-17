@@ -71,6 +71,7 @@ function AppRoutes() {
       // If ref-count got stuck > 0 but there is no visible dialog/overlay,
       // prefer unlocking so the site remains usable.
       const hasLikelyModal =
+        Boolean(document.querySelector('[data-admin-modal="true"]')) ||
         Boolean(document.querySelector('[role="dialog"], [aria-modal="true"]')) ||
         Boolean(
           document.querySelector(

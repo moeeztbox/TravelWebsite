@@ -50,9 +50,11 @@ export async function adminSetPaymentStatus(id, status) {
   return data.booking;
 }
 
-export async function adminScheduleJourney(id, startAt) {
+/** @param {string[]} middlePlan — stages between scheduled and completed (e.g. flight_takeoff … return_flight) */
+export async function adminScheduleJourney(id, startAt, middlePlan = []) {
   const { data } = await api.patch(`/admin/bookings/${id}/journey`, {
     startAt,
+    plan: Array.isArray(middlePlan) ? middlePlan : [],
   });
   return data.booking;
 }

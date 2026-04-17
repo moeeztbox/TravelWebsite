@@ -28,25 +28,14 @@ function stageLabel(stage) {
 
 function stageOptionsForBooking(booking) {
   const plan = Array.isArray(booking?.journey?.plan) ? booking.journey.plan : [];
-  const ids =
-    plan.length > 0
-      ? plan
-      : [
-          "scheduled",
-          "flight_takeoff",
-          "jeddah_airport",
-          "in_jeddah",
-          "ziyarat",
-          "in_madinah",
-          "in_makkah",
-          "makkah_airport",
-          "return_flight",
-          "completed",
-        ];
-  const cleaned = ids
+  const cleaned = plan
     .map((s) => String(s || "").trim())
     .filter(Boolean)
     .filter((v, i, arr) => arr.indexOf(v) === i);
+  if (cleaned.length === 0) {
+    const cur = booking?.journey?.stage || "not_started";
+    return [{ id: cur, label: stageLabel(cur) }];
+  }
   return cleaned.map((id) => ({ id, label: stageLabel(id) }));
 }
 

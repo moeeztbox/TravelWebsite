@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useScrollLock } from "../Hooks/useScrollLock";
 import { Pencil, Trash2, Plus, X, Loader2, Star } from "lucide-react";
@@ -37,13 +37,6 @@ function emptyForm() {
     image: "",
     active: true,
     featured: false,
-    services: {
-      ziyarat: false,
-      transport: false,
-      visa: false,
-      ticket: false,
-      hotel: false,
-    },
     journeyStages: [],
     highlights: [
       { iconKey: "map-pin", text: "" },
@@ -64,13 +57,6 @@ function pkgToForm(pkg) {
     image: pkg.image ?? "",
     active: pkg.active !== false,
     featured: Boolean(pkg.featured),
-    services: {
-      ziyarat: Boolean(pkg.services?.ziyarat),
-      transport: Boolean(pkg.services?.transport),
-      visa: Boolean(pkg.services?.visa),
-      ticket: Boolean(pkg.services?.ticket),
-      hotel: Boolean(pkg.services?.hotel),
-    },
     journeyStages: Array.isArray(pkg.journeyStages) ? pkg.journeyStages : [],
     highlights:
       Array.isArray(pkg.highlights) && pkg.highlights.length > 0
@@ -91,6 +77,7 @@ export default function AdminPackages() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const modalScrollRef = useRef(null);
+  const modalOverlayRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -110,21 +97,44 @@ export default function AdminPackages() {
 
   useScrollLock(Boolean(modalOpen || deleteTarget));
 
-  // React onWheel is passive; when body is scroll-locked, wheel won't scroll the modal.
-  // Use a native wheel listener (passive:false) to keep modal scrolling smooth.
+  // Lenis (global smooth scroll) hijacks wheel events; pause it while any package modal is open.
   useEffect(() => {
+    if (!modalOpen && !deleteTarget) return undefined;
+    const lenis = typeof window !== "undefined" ? window.__lenis : null;
+    if (lenis && typeof lenis.stop === "function") {
+      lenis.stop();
+      return () => {
+        if (typeof lenis.start === "function") lenis.start();
+      };
+    }
+    return undefined;
+  }, [modalOpen, deleteTarget]);
+
+  /**
+   * Wheel events are passive by default on many elements; the browser may then scroll the page
+   * behind the modal (scroll chaining). Intercept on the full-screen overlay, apply delta to
+   * the form body only, and always preventDefault — same idea as PackagesCard dialog.
+   */
+  useLayoutEffect(() => {
     if (!modalOpen) return undefined;
-    const el = modalScrollRef.current;
-    if (!el) return undefined;
+    const overlay = modalOverlayRef.current;
+    if (!overlay) return undefined;
 
     const onWheel = (e) => {
-      el.scrollTop += e.deltaY;
+      const content = modalScrollRef.current;
+      if (!content) {
+        e.preventDefault();
+        return;
+      }
+      if (content.scrollHeight > content.clientHeight + 1) {
+        content.scrollTop += e.deltaY;
+      }
       e.preventDefault();
     };
 
-    el.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    overlay.addEventListener("wheel", onWheel, { passive: false, capture: true });
     return () => {
-      el.removeEventListener("wheel", onWheel, { capture: true });
+      overlay.removeEventListener("wheel", onWheel, { capture: true });
     };
   }, [modalOpen]);
 
@@ -188,12 +198,13 @@ export default function AdminPackages() {
       image: form.image.trim(),
       active: form.active,
       featured: Boolean(form.featured),
+      // Legacy field kept for API/DB; journey is configured per booking by admin instead.
       services: {
-        ziyarat: Boolean(form.services?.ziyarat),
-        transport: Boolean(form.services?.transport),
-        visa: Boolean(form.services?.visa),
-        ticket: Boolean(form.services?.ticket),
-        hotel: Boolean(form.services?.hotel),
+        ziyarat: false,
+        transport: false,
+        visa: false,
+        ticket: false,
+        hotel: false,
       },
       journeyStages: Array.isArray(form.journeyStages)
         ? form.journeyStages.filter(Boolean)
@@ -409,21 +420,30 @@ export default function AdminPackages() {
             aria-hidden="true"
           />
 
-          <div className="fixed inset-0 z-[101] overflow-hidden overflow-x-hidden">
+          <div
+            ref={modalOverlayRef}
+            data-admin-modal="true"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-package-modal-title"
+            className="fixed inset-0 z-[101] overflow-hidden overflow-x-hidden"
+          >
             <div className="min-h-full flex items-start sm:items-center justify-center p-3 sm:p-4 md:p-6">
               <div
                 className="
                   relative bg-white rounded-2xl shadow-2xl
-                  w-full max-w-lg
-                  flex flex-col
+                  w-full max-w-lg max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)]
+                  flex flex-col min-h-0
                   border border-zinc-200
                 "
-                style={{ maxHeight: "calc(100dvh - 2rem)" }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-zinc-100 px-5 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
+                <div className="shrink-0 z-10 bg-white/95 backdrop-blur-sm border-b border-zinc-100 px-5 py-4 flex items-center justify-between rounded-t-2xl">
                   <div>
-                    <h2 className="text-base font-semibold text-zinc-900 leading-tight">
+                    <h2
+                      id="admin-package-modal-title"
+                      className="text-base font-semibold text-zinc-900 leading-tight"
+                    >
                       {editingId ? "Edit package" : "New package"}
                     </h2>
                     {editingId && (
@@ -440,9 +460,9 @@ export default function AdminPackages() {
                   </button>
                 </div>
 
-                {/* Scrollable form body */}
+                {/* Scrollable form body — flex-1 min-h-0 keeps scroll inside the modal only */}
                 <div
-                  className="overflow-y-auto overscroll-contain"
+                  className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-auto"
                   style={{ WebkitOverflowScrolling: "touch" }}
                   ref={modalScrollRef}
                 >
@@ -641,50 +661,6 @@ export default function AdminPackages() {
                     {/* Divider */}
                     <hr className="border-zinc-100" />
 
-                    {/* Section: Services */}
-                    <fieldset className="space-y-2">
-                      <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                        Services included
-                      </legend>
-                      <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
-                        {[
-                          ["ziyarat", "Ziyarat"],
-                          ["transport", "Transport"],
-                          ["visa", "Visa"],
-                          ["ticket", "Ticket"],
-                          ["hotel", "Hotel"],
-                        ].map(([key, label]) => (
-                          <label
-                            key={key}
-                            className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
-                              form.services?.[key]
-                                ? "border-amber-200 bg-amber-50/60"
-                                : "border-zinc-200 bg-zinc-50 hover:bg-white"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={Boolean(form.services?.[key])}
-                              onChange={(e) =>
-                                setForm((f) => ({
-                                  ...f,
-                                  services: {
-                                    ...(f.services || {}),
-                                    [key]: e.target.checked,
-                                  },
-                                }))
-                              }
-                              className="h-4 w-4 rounded border-zinc-300 text-amber-500 focus:ring-amber-500"
-                            />
-                            <span className="text-sm text-zinc-700">{label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </fieldset>
-
-                    {/* Divider */}
-                    <hr className="border-zinc-100" />
-
                     {/* Section: Journey stages */}
                     <fieldset className="space-y-2">
                       <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
@@ -816,15 +792,28 @@ export default function AdminPackages() {
       {/* ── Delete confirm ── */}
       {deleteTarget && (
         <>
-          <div className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-[2px]" />
-          <div className="fixed inset-0 z-[111] flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-[2px]"
+            data-admin-modal="true"
+            aria-hidden="true"
+          />
+          <div
+            className="fixed inset-0 z-[111] flex items-center justify-center p-4"
+            data-admin-modal="true"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-delete-package-title"
+          >
             <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-zinc-200">
               <div className="flex items-start gap-3 mb-4">
                 <div className="h-9 w-9 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Trash2 className="h-4 w-4 text-red-500" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-zinc-900 leading-tight">
+                  <h3
+                    id="admin-delete-package-title"
+                    className="text-base font-semibold text-zinc-900 leading-tight"
+                  >
                     Delete package?
                   </h3>
                   <p className="text-sm text-zinc-500 mt-1">
