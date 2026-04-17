@@ -41,7 +41,7 @@ import AdminServiceOptions from "./Pages/AdminServiceOptions";
 import AdminHotelBookings from "./Pages/AdminHotelBookings";
 import Stories from "./Pages/Stories";
 import SubmitStory from "./Pages/SubmitStory";
-import { forceReleaseScrollLock } from "./Hooks/useScrollLock";
+import { forceReleaseScrollLock, getScrollLockState } from "./Hooks/useScrollLock";
 
 function AppRoutes() {
   const location = useLocation();
@@ -58,6 +58,56 @@ function AppRoutes() {
     // Safety net: if any modal left the scroll locked, force-release on navigation.
     forceReleaseScrollLock();
   }, [location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
+    // Global safety net: unlock if scroll gets stuck.
+    const tryAutoUnlock = () => {
+      if (document?.body?.getAttribute("data-scroll-locked") !== "true") return;
+      const st = getScrollLockState();
+      if (st.lockCount === 0) {
+        forceReleaseScrollLock();
+        return;
+      }
+      // If ref-count got stuck > 0 but there is no visible dialog/overlay,
+      // prefer unlocking so the site remains usable.
+      const hasLikelyModal =
+        Boolean(document.querySelector('[role="dialog"], [aria-modal="true"]')) ||
+        Boolean(
+          document.querySelector(
+            '.fixed.inset-0.z-\\[105\\], .fixed.inset-0.z-\\[110\\], .fixed.inset-0.z-\\[100000\\]'
+          )
+        );
+      const lockedAt = Number(document.body.getAttribute("data-scroll-locked-at")) || 0;
+      const lockedForMs = lockedAt ? Date.now() - lockedAt : 0;
+      // Only override after a short grace window so we don't fight legitimate modal locks.
+      if (!hasLikelyModal && lockedForMs > 800) {
+        forceReleaseScrollLock();
+      }
+    };
+    const onWheel = () => tryAutoUnlock();
+    const onTouchMove = () => tryAutoUnlock();
+    const onKeyDown = (e) => {
+      if (
+        e.key === "PageDown" ||
+        e.key === "PageUp" ||
+        e.key === "ArrowDown" ||
+        e.key === "ArrowUp" ||
+        e.key === "Home" ||
+        e.key === "End" ||
+        e.key === " "
+      ) {
+        tryAutoUnlock();
+      }
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     // Keep navigation natural but always land at the top of the new page.

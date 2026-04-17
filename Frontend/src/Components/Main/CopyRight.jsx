@@ -14,7 +14,7 @@ function CopyrightSection() {
       <div className="max-w-8xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
         <div className="text-center md:text-left">
           &copy; {year}{" "}
-          <span className="font-semibold">Al Burak International</span>. All
+          <span className="font-semibold">Al Buraq Pilgrim</span>. All
           rights reserved.
         </div>
 

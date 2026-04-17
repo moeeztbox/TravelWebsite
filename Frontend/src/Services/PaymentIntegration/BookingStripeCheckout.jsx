@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
-  CardElement,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
   Elements,
   useStripe,
   useElements,
@@ -24,7 +26,8 @@ const CARD_ELEMENT_OPTIONS = {
     },
     invalid: { color: "#b91c1c" },
   },
-  hidePostalCode: false,
+  // Remove Zip Code
+  hidePostalCode: true,
 };
 
 function StripePayForm({ clientSecret, bookingId, onPaid, onFatal }) {
@@ -36,7 +39,7 @@ function StripePayForm({ clientSecret, bookingId, onPaid, onFatal }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!stripe || !elements || !clientSecret) return;
-    const card = elements.getElement(CardElement);
+    const card = elements.getElement(CardNumberElement);
     if (!card) return;
     setBusy(true);
     setLocalError("");
@@ -64,8 +67,27 @@ function StripePayForm({ clientSecret, bookingId, onPaid, onFatal }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="rounded-lg border border-stone-200 bg-stone-50/80 px-3 py-3">
-        <CardElement options={CARD_ELEMENT_OPTIONS} />
+      <div className="space-y-3">
+        <div>
+          <p className="text-xs font-semibold text-stone-600 mb-1">Card number</p>
+          <div className="rounded-lg border border-stone-200 bg-stone-50/80 px-3 py-3">
+            <CardNumberElement options={CARD_ELEMENT_OPTIONS} />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs font-semibold text-stone-600 mb-1">Expiry date</p>
+            <div className="rounded-lg border border-stone-200 bg-stone-50/80 px-3 py-3">
+              <CardExpiryElement options={CARD_ELEMENT_OPTIONS} />
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-stone-600 mb-1">CVC</p>
+            <div className="rounded-lg border border-stone-200 bg-stone-50/80 px-3 py-3">
+              <CardCvcElement options={CARD_ELEMENT_OPTIONS} />
+            </div>
+          </div>
+        </div>
       </div>
       {localError ? (
         <p className="text-sm text-red-600" role="alert">

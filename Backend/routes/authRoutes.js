@@ -6,6 +6,7 @@ import {
   getMe,
   updateProfile,
   uploadCommonDocuments,
+  deleteCommonDocument,
   requestPasswordReset,
   resetPasswordWithToken,
 } from "../controllers/userController.js";
@@ -29,5 +30,6 @@ router.post("/reset-password", validateResetPassword, resetPasswordWithToken);
 router.get("/me", protect, getMe);
 router.patch("/profile", protect, updateProfile);
 router.patch("/documents", protect, userDocsUploadFields(), uploadCommonDocuments);
+router.delete("/documents", protect, deleteCommonDocument);
 
 export default router;

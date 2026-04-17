@@ -172,8 +172,6 @@ export default function AdminServiceOptions() {
       "transport",
       tForm.serviceType,
       tForm.vehicleType,
-      tForm.tripType,
-      tForm.passengerType,
     ]
       .map(slugifyPart)
       .filter(Boolean)
@@ -765,7 +763,7 @@ export default function AdminServiceOptions() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-zinc-500 mb-1">
-                        Passenger type
+                        Passenger type <span className="text-red-500">*</span>
                       </label>
                       <select
                         className={inputClass}

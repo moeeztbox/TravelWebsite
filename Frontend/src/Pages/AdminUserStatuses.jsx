@@ -26,6 +26,30 @@ function stageLabel(stage) {
   return map[stage] || stage || "Not started";
 }
 
+function stageOptionsForBooking(booking) {
+  const plan = Array.isArray(booking?.journey?.plan) ? booking.journey.plan : [];
+  const ids =
+    plan.length > 0
+      ? plan
+      : [
+          "scheduled",
+          "flight_takeoff",
+          "jeddah_airport",
+          "in_jeddah",
+          "ziyarat",
+          "in_madinah",
+          "in_makkah",
+          "makkah_airport",
+          "return_flight",
+          "completed",
+        ];
+  const cleaned = ids
+    .map((s) => String(s || "").trim())
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i);
+  return cleaned.map((id) => ({ id, label: stageLabel(id) }));
+}
+
 export default function AdminUserStatuses() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
@@ -143,16 +167,11 @@ export default function AdminUserStatuses() {
                     onChange={(e) => updateStage(b._id, e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
                   >
-                    <option value="scheduled">Scheduled</option>
-                    <option value="flight_takeoff">Flight takeoff</option>
-                    <option value="jeddah_airport">Jeddah airport</option>
-                    <option value="in_jeddah">In Jeddah</option>
-                    <option value="ziyarat">Ziyarat</option>
-                    <option value="in_madinah">In Madinah</option>
-                    <option value="in_makkah">In Makkah</option>
-                    <option value="makkah_airport">Makkah airport</option>
-                    <option value="return_flight">Return flight</option>
-                    <option value="completed">Completed</option>
+                    {stageOptionsForBooking(b).map((opt) => (
+                      <option key={opt.id} value={opt.id}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                   {!startReached ? (
                     <p className="mt-1 text-[11px] text-zinc-400">
@@ -247,16 +266,11 @@ export default function AdminUserStatuses() {
                           onChange={(e) => updateStage(b._id, e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-white border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 disabled:opacity-60"
                         >
-                          <option value="scheduled">Scheduled</option>
-                          <option value="flight_takeoff">Flight takeoff</option>
-                          <option value="jeddah_airport">Jeddah airport</option>
-                          <option value="in_jeddah">In Jeddah</option>
-                          <option value="ziyarat">Ziyarat</option>
-                          <option value="in_madinah">In Madinah</option>
-                          <option value="in_makkah">In Makkah</option>
-                          <option value="makkah_airport">Makkah airport</option>
-                          <option value="return_flight">Return flight</option>
-                          <option value="completed">Completed</option>
+                          {stageOptionsForBooking(b).map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.label}
+                            </option>
+                          ))}
                         </select>
                         {!startReached ? (
                           <p className="mt-1 text-[11px] text-zinc-400">

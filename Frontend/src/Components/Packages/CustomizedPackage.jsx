@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { api, formatAxiosError } from "../../Services/authService";
 import { useAuth } from "../../Context/AuthContext";
+import { sanitizeDigits, validateCommonFields } from "../../utils/formValidation";
 
 function formatPkr(n) {
   const num = Number(n) || 0;
@@ -17,6 +18,7 @@ function CustomizePackage() {
   const { user, isAuthenticated } = useAuth();
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
+  const [errors, setErrors] = useState({});
   const [form, setForm] = useState(() => ({
     fullName:
       [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || "",
@@ -33,30 +35,60 @@ function CustomizePackage() {
   const estimate = useMemo(() => {
     // Simple, predictable pricing (you can tweak later)
     const base = 185000; // roughly matches your Economy Umrah price
-    const pax = clampInt(form.passengers, 0, 20);
-    const cat = clampInt(form.hotelCategory, 2, 5);
-    const hotelMultiplier = cat === 2 ? 1 : cat === 3 ? 1.15 : cat === 4 ? 1.35 : 1.6;
+    const pax = clampInt(form.passengers, 0, 100);
+    const cat = clampInt(form.hotelCategory, 1, 7);
+    // multipliers: simple ladder by star category
+    const hotelMultiplier =
+      cat === 1
+        ? 0.9
+        : cat === 2
+          ? 1
+          : cat === 3
+            ? 1.15
+            : cat === 4
+              ? 1.35
+              : cat === 5
+                ? 1.6
+                : cat === 6
+                  ? 1.85
+                  : 2.15;
     const total = Math.round(base * hotelMultiplier * pax);
     return { base, passengers: pax, hotelMultiplier, total };
   }, [form.passengers, form.hotelCategory]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "phone") {
+      setForm((p) => ({ ...p, phone: sanitizeDigits(value) }));
+      return;
+    }
     setForm((p) => ({ ...p, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ type: "", message: "" });
+    setErrors({});
 
     if (!isAuthenticated) {
       setStatus({ type: "error", message: "Please login first to submit a custom package request." });
       return;
     }
 
-    const pax = clampInt(form.passengers, 0, 20);
+    const pax = clampInt(form.passengers, 0, 100);
     if (pax <= 0) {
-      setStatus({ type: "error", message: "Please select passengers (1–20) to continue." });
+      setStatus({ type: "error", message: "Please select passengers (1–100) to continue." });
+      return;
+    }
+
+    const commonErrors = validateCommonFields({
+      name: form.fullName,
+      email: form.email,
+      phone: form.phone,
+    });
+    if (Object.keys(commonErrors).length > 0) {
+      setErrors(commonErrors);
+      setStatus({ type: "error", message: "Please fix the highlighted fields." });
       return;
     }
 
@@ -65,11 +97,11 @@ function CustomizePackage() {
       await api.post("/custom-packages", {
         fullName: form.fullName.trim(),
         city: form.city.trim(),
-        phone: form.phone.trim(),
+        phone: sanitizeDigits(form.phone),
         email: form.email.trim(),
         passengers: pax,
         startDate: form.startDate,
-        hotelCategory: clampInt(form.hotelCategory, 2, 5),
+        hotelCategory: clampInt(form.hotelCategory, 1, 7),
         packageType: form.packageType === "group" ? "group" : "customize",
         notes: form.notes.trim(),
         estimate,
@@ -117,7 +149,9 @@ function CustomizePackage() {
           placeholder="Full Name"
           value={form.fullName}
           onChange={handleChange}
-          className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
+            errors.name ? "border-red-400 focus:ring-red-200" : "focus:ring-blue-500"
+          }`}
           required
         />
         <input
@@ -135,7 +169,11 @@ function CustomizePackage() {
           placeholder="Mobile No"
           value={form.phone}
           onChange={handleChange}
-          className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          className={`border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
+            errors.phone ? "border-red-400 focus:ring-red-200" : "focus:ring-blue-500"
+          }`}
           required
         />
         <input
@@ -143,7 +181,7 @@ function CustomizePackage() {
           name="passengers"
           placeholder="Passengers"
           min="0"
-          max="20"
+          max="100"
           value={form.passengers}
           onChange={handleChange}
           className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -166,10 +204,13 @@ function CustomizePackage() {
           required
           aria-label="Select your hotel category"
         >
-          <option value="2">Select your hotel: ★★ (2 Star)</option>
-          <option value="3">Select your hotel: ★★★ (3 Star)</option>
-          <option value="4">Select your hotel: ★★★★ (4 Star)</option>
-          <option value="5">Select your hotel: ★★★★★ (5 Star)</option>
+          <option value="1">1 star</option>
+          <option value="2">2 star</option>
+          <option value="3">3 star</option>
+          <option value="4">4 star</option>
+          <option value="5">5 star</option>
+          <option value="6">6 star</option>
+          <option value="7">7 star</option>
         </select>
 
         <input
@@ -178,7 +219,9 @@ function CustomizePackage() {
           placeholder="Email"
           value={form.email}
           onChange={handleChange}
-          className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ${
+            errors.email ? "border-red-400 focus:ring-red-200" : "focus:ring-blue-500"
+          }`}
           required
         />
 

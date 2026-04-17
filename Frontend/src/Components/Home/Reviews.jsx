@@ -98,7 +98,7 @@ const MarqueeDemo = () => {
             No reviews yet.
           </div>
         ) : (
-          <Marquee pauseOnHover className="[--duration:30s]">
+          <Marquee pauseOnHover className="[--duration:18s]">
             {reviews.map((review) => (
               <ReviewCard
                 key={review.id}

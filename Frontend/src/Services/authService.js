@@ -103,6 +103,11 @@ export async function uploadCommonDocuments(formData) {
   return data;
 }
 
+export async function deleteCommonDocument(doc) {
+  const { data } = await api.delete("/auth/documents", { params: { doc } });
+  return data;
+}
+
 /** User-facing message for failed API calls (network, 404 HTML, JSON body). */
 export function formatAxiosError(error) {
   const data = error.response?.data;

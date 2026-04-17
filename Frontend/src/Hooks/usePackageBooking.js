@@ -37,7 +37,10 @@ function bookingErrorMessage(err) {
 }
 
 /** Normalize home / featured / packages card objects into API payload */
-export function toBookingPayload(pkg) {
+export function toBookingPayload(pkg, opts = {}) {
+  const journeyStages = Array.isArray(opts?.journeyStages)
+    ? opts.journeyStages
+    : [];
   const packageId =
     pkg.packageId ||
     (pkg.id != null ? String(pkg.id) : pkg.title?.toLowerCase().replace(/\s+/g, "-")) ||
@@ -50,6 +53,7 @@ export function toBookingPayload(pkg) {
     packageDuration: pkg.duration || pkg.days || pkg.packageDuration || "",
     packageImage: pkg.image || pkg.packageImage || "",
     badge: pkg.badge || "",
+    ...(journeyStages.length ? { journeyStages } : {}),
   };
 }
 
@@ -79,13 +83,13 @@ export function usePackageBooking() {
 
   const bookPackage = useCallback(
     async (pkg, opts = {}) => {
-      const { redirectToDashboard = true } = opts || {};
+      const { redirectToDashboard = true, journeyStages } = opts || {};
       if (!isAuthenticated) {
         promptLoginForBooking();
         return;
       }
       try {
-        const payload = toBookingPayload(pkg);
+        const payload = toBookingPayload(pkg, { journeyStages });
         const res = await createDraftBooking(payload);
         if (res?.message?.toLowerCase().includes("already")) {
           toast.info("Already in your drafts", {

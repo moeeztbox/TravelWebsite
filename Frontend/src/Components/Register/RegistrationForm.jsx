@@ -13,6 +13,8 @@ import {
 import { motion } from "framer-motion";
 import { register } from "../../Services/authService";
 import { useAuth } from "../../Context/AuthContext";
+import GoogleLoginButton from "../Login/GoogleLoginButton";
+import { validateEmail, validateName } from "../../utils/formValidation";
 
 function getErrorMessage(error) {
   const data = error.response?.data;
@@ -59,6 +61,21 @@ function RegistrationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    const fnErr = validateName(form.firstName);
+    if (fnErr) {
+      setError(fnErr);
+      return;
+    }
+    const lnErr = validateName(form.lastName);
+    if (lnErr) {
+      setError(lnErr);
+      return;
+    }
+    const emailErr = validateEmail(form.email);
+    if (emailErr) {
+      setError(emailErr);
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -113,6 +130,11 @@ function RegistrationForm() {
               </p>
             </div>
           ) : null}
+
+          <div className="md:col-span-2 flex items-center justify-center gap-3">
+            <GoogleLoginButton />
+            <div className="text-xs text-gray-500 font-semibold">or</div>
+          </div>
 
           {[
             { label: "First Name", icon: User, field: "firstName" },

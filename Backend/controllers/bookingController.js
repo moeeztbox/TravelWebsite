@@ -10,6 +10,7 @@ export const createDraftBooking = async (req, res) => {
       packageDuration = "",
       packageImage = "",
       badge = "",
+      journeyStages,
     } = req.body;
 
     if (!packageId || !packageTitle) {
@@ -25,6 +26,29 @@ export const createDraftBooking = async (req, res) => {
     });
 
     if (existing) {
+      // If user is re-booking the same package and now provided journeyStages,
+      // update the existing draft so admin can see the selected journey plan.
+      const nextPlan = Array.isArray(journeyStages)
+        ? journeyStages.map((s) => String(s || "").trim()).filter(Boolean)
+        : [];
+      if (nextPlan.length) {
+        const prevPlan = Array.isArray(existing.journey?.plan)
+          ? existing.journey.plan
+          : [];
+        const same =
+          prevPlan.length === nextPlan.length &&
+          prevPlan.every((v, i) => String(v) === String(nextPlan[i]));
+        if (!same) {
+          existing.journey = {
+            ...(existing.journey?.toObject
+              ? existing.journey.toObject()
+              : existing.journey),
+            plan: nextPlan,
+            stage: existing.journey?.stage || "not_started",
+          };
+          await existing.save();
+        }
+      }
       return res.status(200).json({
         message: "This package is already in your draft bookings",
         booking: existing,
@@ -41,6 +65,12 @@ export const createDraftBooking = async (req, res) => {
       packageImage,
       badge,
       status: "pending",
+      journey: {
+        plan: Array.isArray(journeyStages)
+          ? journeyStages.map((s) => String(s || "").trim()).filter(Boolean)
+          : [],
+        stage: "not_started",
+      },
     });
 
     res.status(201).json({

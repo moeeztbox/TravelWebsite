@@ -17,6 +17,7 @@ export const createStory = async (req, res) => {
       username = "",
       location = "",
       rating,
+      kind = "story",
     } = req.body || {};
 
     if (!title || !type) {
@@ -67,6 +68,7 @@ export const createStory = async (req, res) => {
       type,
       location: finalLocation,
       rating: Math.round(n),
+      kind: kind === "review" ? "review" : "story",
       text: String(text || "").trim(),
       videoUrl,
       status: "pending",

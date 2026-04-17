@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Mail,
@@ -15,7 +15,12 @@ import {
 } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import { Link } from "react-router-dom";
-import { updateProfile, uploadCommonDocuments } from "../Services/authService";
+import {
+  updateProfile,
+  uploadCommonDocuments,
+  deleteCommonDocument,
+} from "../Services/authService";
+import { sanitizeDigits, validatePhoneDigits } from "../utils/formValidation";
 import {
   listMyBookings,
   uploadBookingDocuments,
@@ -52,6 +57,7 @@ import { getApiOrigin } from "../utils/apiOrigin";
 import { useScrollLock } from "../Hooks/useScrollLock";
 import BookingStripeCheckout from "../Services/PaymentIntegration/BookingStripeCheckout";
 import MiscStripeCheckout from "../Services/PaymentIntegration/MiscStripeCheckout";
+import { submitStory } from "../Services/storiesService";
 
 function StatusBadge({ status }) {
   const map = {
@@ -115,8 +121,8 @@ function stageLabel(stage) {
   return map[stage] || stage || "Not started";
 }
 
-function JourneyStepper({ stage }) {
-  const steps = [
+function JourneyStepper({ stage, plan }) {
+  const defaultSteps = [
     { id: "scheduled", label: "Scheduled" },
     { id: "flight_takeoff", label: "Flight takeoff" },
     { id: "jeddah_airport", label: "Jeddah airport" },
@@ -128,6 +134,11 @@ function JourneyStepper({ stage }) {
     { id: "return_flight", label: "Return flight" },
     { id: "completed", label: "Completed" },
   ];
+  const planIds = Array.isArray(plan) ? plan.filter(Boolean) : [];
+  const steps =
+    planIds.length > 0
+      ? planIds.map((id) => ({ id, label: stageLabel(id) }))
+      : defaultSteps;
   const current = stage || "scheduled";
   const idx = Math.max(
     0,
@@ -204,6 +215,8 @@ export default function UserDashboard() {
   const [uploadForId, setUploadForId] = useState(null);
   const [receiptForId, setReceiptForId] = useState(null);
   const [docsModalOpen, setDocsModalOpen] = useState(false);
+  const [storyModalOpen, setStoryModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
   /** Local payment method choice per booking — saved when receipt is submitted */
   const [paymentMethodDraft, setPaymentMethodDraft] = useState({});
   const [docUploading, setDocUploading] = useState({});
@@ -213,8 +226,115 @@ export default function UserDashboard() {
   const [avatarDraft, setAvatarDraft] = useState(user?.bitmojiIndex ?? 0);
 
   useScrollLock(
-    Boolean(overlay.open || avatarPickerOpen || trackFor || docsModalOpen)
+    Boolean(
+      overlay.open ||
+        avatarPickerOpen ||
+        trackFor ||
+        docsModalOpen ||
+        storyModalOpen ||
+        reviewModalOpen
+    )
   );
+
+  const [storyTitle, setStoryTitle] = useState("");
+  const [storyText, setStoryText] = useState("");
+  const [storyVideo, setStoryVideo] = useState(null);
+  const storyVideoRef = useRef(null);
+
+  const [reviewTitle, setReviewTitle] = useState("");
+  const [reviewType, setReviewType] = useState("umrah");
+  const [reviewDisplayName, setReviewDisplayName] = useState(
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || "Pilgrim"
+  );
+  const [reviewUsername, setReviewUsername] = useState("");
+  const [reviewLocation, setReviewLocation] = useState(
+    [user?.city, user?.country].filter(Boolean).join(", ").trim()
+  );
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewVideo, setReviewVideo] = useState(null);
+  const reviewVideoRef = useRef(null);
+  const [submittingStory, setSubmittingStory] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  useEffect(() => {
+    setReviewDisplayName(
+      [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() || "Pilgrim"
+    );
+    setReviewLocation([user?.city, user?.country].filter(Boolean).join(", ").trim());
+  }, [user?.firstName, user?.lastName, user?.city, user?.country]);
+
+  const submitQuickStory = async (e) => {
+    e.preventDefault();
+    if (!String(storyTitle || "").trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (!String(storyText || "").trim() && !storyVideo) {
+      toast.error("Please add text or a video");
+      return;
+    }
+    setSubmittingStory(true);
+    try {
+      await submitStory({
+        title: String(storyTitle || "").trim(),
+        type: "umrah",
+        kind: "story",
+        displayName: String(reviewDisplayName || "").trim() || "Pilgrim",
+        username: String(reviewUsername || "").trim(),
+        location: String(reviewLocation || "").trim(),
+        rating: 5,
+        text: String(storyText || "").trim(),
+        videoFile: storyVideo,
+      });
+      toast.success("Story submitted for review");
+      setStoryTitle("");
+      setStoryText("");
+      setStoryVideo(null);
+      if (storyVideoRef.current) storyVideoRef.current.value = "";
+      setStoryModalOpen(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Submit failed");
+    } finally {
+      setSubmittingStory(false);
+    }
+  };
+
+  const submitFullReview = async (e) => {
+    e.preventDefault();
+    if (!String(reviewTitle || "").trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (!String(reviewText || "").trim() && !reviewVideo) {
+      toast.error("Please add text or a video");
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      await submitStory({
+        title: String(reviewTitle || "").trim(),
+        type: reviewType === "hajj" ? "hajj" : "umrah",
+        kind: "review",
+        displayName: String(reviewDisplayName || "").trim() || "Pilgrim",
+        username: String(reviewUsername || "").trim(),
+        location: String(reviewLocation || "").trim(),
+        rating: Number(reviewRating) || 5,
+        text: String(reviewText || "").trim(),
+        videoFile: reviewVideo,
+      });
+      toast.success("Review submitted for approval");
+      setReviewTitle("");
+      setReviewText("");
+      setReviewVideo(null);
+      if (reviewVideoRef.current) reviewVideoRef.current.value = "";
+      setReviewModalOpen(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Submit failed");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   useEffect(() => {
     setPhone(user?.phone || "");
@@ -446,8 +566,16 @@ export default function UserDashboard() {
     setSaving(true);
     setOverlay({ open: true, message: "Saving…" });
     try {
+      const phoneDigits = sanitizeDigits(phone);
+      if (phoneDigits) {
+        const err = validatePhoneDigits(phoneDigits);
+        if (err) {
+          toast.error(err);
+          return;
+        }
+      }
       const { user: u } = await updateProfile({
-        phone,
+        phone: phoneDigits,
         address,
         country,
         city,
@@ -490,6 +618,20 @@ export default function UserDashboard() {
     rejectedCustom.length;
 
   const formatPkr = (n) => `PKR ${(Number(n) || 0).toLocaleString()}`;
+  const formatStatusReason = (status, statusReason) => {
+    const sr = String(statusReason || "").trim();
+    if (!sr) return "";
+    if (sr === "payment_failed") return "Rejected: payment verification failed";
+    const [tag, ...rest] = sr.split(":");
+    const reason = rest.join(":").trim();
+    if (tag === "admin_rejected" || status === "rejected") {
+      return reason ? `Rejected: ${reason}` : "Rejected by admin";
+    }
+    if (tag === "admin_cancelled" || status === "cancelled") {
+      return reason ? `Cancelled: ${reason}` : "Cancelled by admin";
+    }
+    return reason ? `${tag.trim()}: ${reason}` : sr;
+  };
   const formatHotelMoney = (total) => {
     if (!total || total.amount == null) return null;
     const n = Number(total.amount);
@@ -651,6 +793,20 @@ export default function UserDashboard() {
     }
   };
 
+  const deleteProfileDoc = async (doc) => {
+    setOverlay({ open: true, message: "Deleting document…" });
+    try {
+      const { user: u } = await deleteCommonDocument(doc);
+      updateUser(u);
+      toast.success("Document deleted");
+      await loadBookings({ silent: true });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Delete failed");
+    } finally {
+      setOverlay({ open: false, message: "" });
+    }
+  };
+
   // Common documents are stored on the profile; booking uploads remain booking-specific.
 
   const handleReceiptUpload = async (bookingId, e) => {
@@ -663,6 +819,21 @@ export default function UserDashboard() {
     if (!method) {
       toast.error("Select a payment method before uploading the receipt.");
       return;
+    }
+    // If profile docs exist, auto-attach them to this booking so user only submits receipt.
+    try {
+      const b = bookings.find((x) => x._id === bookingId);
+      const missingVisa = !b?.documents?.visaPdf;
+      const missingOther = !b?.documents?.otherPdf;
+      const profileHasVisa = Boolean(commonDocs?.visaPdf);
+      const profileHasOther = Boolean(commonDocs?.otherPdf);
+      const canFinalize =
+        (missingVisa && profileHasVisa) || (missingOther && profileHasOther);
+      if (canFinalize) {
+        await attachCommonDocumentsToBooking(bookingId);
+      }
+    } catch {
+      // ignore: receipt upload may still succeed; user can retry if needed
     }
     const fd = new FormData(e.target);
     fd.set("method", method);
@@ -829,7 +1000,9 @@ export default function UserDashboard() {
                 <input
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  onChange={(e) => setPhone(sanitizeDigits(e.target.value))}
                   className="w-full max-w-md rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900 focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
                   placeholder="+92 300 1234567"
                 />
@@ -926,16 +1099,30 @@ export default function UserDashboard() {
                     </div>
 
                     {tb.status === "rejected" ? (
-                      <p className="text-sm text-red-700">
-                        Request was rejected. You can remove this card.
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-red-700">
+                          Request was rejected. You can remove this card.
+                        </p>
+                        {tb.statusReason ? (
+                          <p className="text-xs text-red-700">
+                            {formatStatusReason(tb.status, tb.statusReason)}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
                     {tb.status === "cancelled" ? (
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
-                          <Trash2 className="w-4 h-4" />
-                          Admin cancelled
-                        </p>
+                        <div className="space-y-0.5">
+                          <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
+                            <Trash2 className="w-4 h-4" />
+                            Admin cancelled
+                          </p>
+                          {tb.statusReason ? (
+                            <p className="text-xs text-red-700">
+                              {formatStatusReason(tb.status, tb.statusReason)}
+                            </p>
+                          ) : null}
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeTransport(tb._id)}
@@ -1215,16 +1402,30 @@ export default function UserDashboard() {
                     </div>
 
                     {hb.status === "rejected" ? (
-                      <p className="text-sm text-red-700">
-                        Booking was rejected. You can remove this card.
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-red-700">
+                          Booking was rejected. You can remove this card.
+                        </p>
+                        {hb.statusReason ? (
+                          <p className="text-xs text-red-700">
+                            {formatStatusReason(hb.status, hb.statusReason)}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
                     {hb.status === "cancelled" ? (
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
-                          <Trash2 className="w-4 h-4" />
-                          Admin cancelled
-                        </p>
+                        <div className="space-y-0.5">
+                          <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
+                            <Trash2 className="w-4 h-4" />
+                            Admin cancelled
+                          </p>
+                          {hb.statusReason ? (
+                            <p className="text-xs text-red-700">
+                              {formatStatusReason(hb.status, hb.statusReason)}
+                            </p>
+                          ) : null}
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeHotel(hb._id)}
@@ -1482,16 +1683,30 @@ export default function UserDashboard() {
                     </div>
 
                     {vr.status === "rejected" ? (
-                      <p className="text-sm text-red-700">
-                        Request was rejected. You can remove this card.
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm text-red-700">
+                          Request was rejected. You can remove this card.
+                        </p>
+                        {vr.statusReason ? (
+                          <p className="text-xs text-red-700">
+                            {formatStatusReason(vr.status, vr.statusReason)}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
                     {vr.status === "cancelled" ? (
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
-                          <Trash2 className="w-4 h-4" />
-                          Admin cancelled
-                        </p>
+                        <div className="space-y-0.5">
+                          <p className="text-sm text-zinc-700 inline-flex items-center gap-1">
+                            <Trash2 className="w-4 h-4" />
+                            Admin cancelled
+                          </p>
+                          {vr.statusReason ? (
+                            <p className="text-xs text-red-700">
+                              {formatStatusReason(vr.status, vr.statusReason)}
+                            </p>
+                          ) : null}
+                        </div>
                         <button
                           type="button"
                           onClick={() => removeVisa(vr._id)}
@@ -2010,9 +2225,7 @@ export default function UserDashboard() {
                         </p>
                         {b.statusReason ? (
                           <p className="text-xs text-red-700 mt-1">
-                            {b.statusReason === "payment_failed"
-                              ? "Rejected: payment verification failed"
-                              : "Rejected by admin"}
+                            {formatStatusReason(b.status, b.statusReason)}
                           </p>
                         ) : null}
                       </div>
@@ -2063,6 +2276,11 @@ export default function UserDashboard() {
                           <Trash2 className="w-3.5 h-3.5" />
                           Admin cancelled
                         </p>
+                        {b.statusReason ? (
+                          <p className="text-xs text-red-700 mt-1">
+                            {formatStatusReason(b.status, b.statusReason)}
+                          </p>
+                        ) : null}
                       </div>
                       <div className="flex items-center gap-2">
                         <StatusBadge status={b.status} />
@@ -2108,6 +2326,7 @@ export default function UserDashboard() {
                   const missingOther = !b.documents?.otherPdf;
                   const profileHasVisa = Boolean(commonDocs?.visaPdf);
                   const profileHasOther = Boolean(commonDocs?.otherPdf);
+                  const profileReady = profileHasVisa && profileHasOther;
                   const canFinalizeFromProfile =
                     !journeyLocked &&
                     ((missingVisa && profileHasVisa) ||
@@ -2213,10 +2432,17 @@ export default function UserDashboard() {
                           <p className="text-xs font-medium text-stone-700">
                             Documents
                           </p>
-                          <p className="text-[11px] text-stone-500">
-                            Choose a file to update documents for this booking only.
-                            This won’t change your Profile uploaded documents.
-                          </p>
+                          {profileReady ? (
+                            <p className="text-[11px] text-stone-500">
+                              Using your Profile documents for this booking. You only
+                              need to submit the payment receipt below.
+                            </p>
+                          ) : (
+                            <p className="text-[11px] text-stone-500">
+                              Choose a file to update documents for this booking only.
+                              This won’t change your Profile uploaded documents.
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -2241,6 +2467,7 @@ export default function UserDashboard() {
                         const showChooser =
                           !journeyLocked &&
                           !bookingPath && // once booking doc exists, only show view link
+                          !profilePath && // if already uploaded on profile, don't show chooser
                           !isUploading;
                         return (
                           <div
@@ -2317,7 +2544,8 @@ export default function UserDashboard() {
                       })}
 
                       {!journeyLocked &&
-                      (missingVisa || missingOther) ? (
+                      (missingVisa || missingOther) &&
+                      !profileReady ? (
                         <div className="flex flex-wrap items-center gap-2 pt-1">
                           <button
                             type="button"
@@ -2414,6 +2642,19 @@ export default function UserDashboard() {
                         <BookingStripeCheckout
                           bookingId={b._id}
                           onPaid={async () => {
+                            // Ensure booking has the user's profile docs attached if available.
+                            try {
+                              const missingVisaNow = !b?.documents?.visaPdf;
+                              const missingOtherNow = !b?.documents?.otherPdf;
+                              if (
+                                (missingVisaNow && Boolean(commonDocs?.visaPdf)) ||
+                                (missingOtherNow && Boolean(commonDocs?.otherPdf))
+                              ) {
+                                await attachCommonDocumentsToBooking(b._id);
+                              }
+                            } catch {
+                              // ignore
+                            }
                             toast.success(
                               "Payment received. It will show as verifying until admin confirms."
                             );
@@ -2529,16 +2770,18 @@ export default function UserDashboard() {
                     other PDF once here.
                   </div>
                 )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDocsModalOpen(true);
-                  }}
-                  className="mt-4 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-amber-600 text-white font-semibold hover:bg-amber-700"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {hasCommonDocs ? "Update your documents" : "Upload Documents"}
-                </button>
+                {!hasCommonDocs ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDocsModalOpen(true);
+                    }}
+                    className="mt-4 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-amber-600 text-white font-semibold hover:bg-amber-700"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Documents
+                  </button>
+                ) : null}
                 <div className="mt-4 h-2 rounded-full bg-stone-100 overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all"
@@ -2566,12 +2809,22 @@ export default function UserDashboard() {
               Share your Hajj/Umrah experience as a story (text or video). After
               admin approval, it will be published on the Stories page.
             </p>
-            <Link
-              to="/stories/submit"
-              className="mt-4 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-semibold hover:bg-emerald-800"
-            >
-              Submit a story
-            </Link>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setStoryModalOpen(true)}
+                className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-semibold hover:bg-emerald-800"
+              >
+                Submit a Story
+              </button>
+              <button
+                type="button"
+                onClick={() => setReviewModalOpen(true)}
+                className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-stone-900 text-white font-semibold hover:bg-black"
+              >
+                Submit a Review
+              </button>
+            </div>
           </div>
         </aside>
       </div>
@@ -2637,34 +2890,63 @@ export default function UserDashboard() {
               )}
 
               <form onSubmit={handleDocsModalUpload} className="space-y-3">
-                <div>
-                  <label className="block text-xs text-stone-600 mb-1">
-                    Visa (PDF)
-                  </label>
-                  <input
-                    name="visaPdf"
-                    type="file"
-                    accept="application/pdf"
-                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-stone-600 mb-1">
-                    Other document (PDF)
-                  </label>
-                  <input
-                    name="otherPdf"
-                    type="file"
-                    accept="application/pdf"
-                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
-                  />
-                </div>
+                {commonDocs?.visaPdf ? (
+                  <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm flex items-center justify-between gap-3">
+                    <span className="text-stone-700 font-medium">Visa (PDF) uploaded</span>
+                    <button
+                      type="button"
+                      onClick={() => deleteProfileDoc("visaPdf")}
+                      className="text-xs font-semibold text-red-700 hover:text-red-800"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs text-stone-600 mb-1">
+                      Visa (PDF)
+                    </label>
+                    <input
+                      name="visaPdf"
+                      type="file"
+                      accept="application/pdf"
+                      className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
+                    />
+                  </div>
+                )}
+
+                {commonDocs?.otherPdf ? (
+                  <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm flex items-center justify-between gap-3">
+                    <span className="text-stone-700 font-medium">
+                      Other document (PDF) uploaded
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => deleteProfileDoc("otherPdf")}
+                      className="text-xs font-semibold text-red-700 hover:text-red-800"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs text-stone-600 mb-1">
+                      Other document (PDF)
+                    </label>
+                    <input
+                      name="otherPdf"
+                      type="file"
+                      accept="application/pdf"
+                      className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 file:mr-3 file:rounded-lg file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-700 hover:file:bg-stone-200"
+                    />
+                  </div>
+                )}
                 <button
                   type="submit"
                   className="inline-flex items-center justify-center w-full gap-2 bg-amber-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-amber-700 disabled:opacity-60"
                 >
                   <Upload className="w-4 h-4" />
-                  {hasCommonDocs ? "Update your documents" : "Upload documents"}
+                  Upload documents
                 </button>
                 <p className="text-[11px] text-stone-500">
                   Tip: You can upload now, or upload again after admin approves your
@@ -2672,6 +2954,207 @@ export default function UserDashboard() {
                 </p>
               </form>
             </div>
+          </div>
+        </div>
+      ) : null}
+
+      {storyModalOpen ? (
+        <div className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-stone-900">
+                  Submit a Story
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Fields: title, text, video
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStoryModalOpen(false)}
+                className="p-2 rounded-lg hover:bg-stone-100 text-stone-500"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={submitQuickStory} className="p-6 space-y-3">
+              <div>
+                <label className="block text-xs text-stone-600 mb-1">Title</label>
+                <input
+                  value={storyTitle}
+                  onChange={(e) => setStoryTitle(e.target.value)}
+                  className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-stone-600 mb-1">Text</label>
+                <textarea
+                  rows={5}
+                  value={storyText}
+                  onChange={(e) => setStoryText(e.target.value)}
+                  className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  placeholder="Optional if uploading a video"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-stone-600 mb-1">
+                  Video (optional)
+                </label>
+                <input
+                  ref={storyVideoRef}
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  onChange={(e) => setStoryVideo(e.target.files?.[0] || null)}
+                  className="w-full text-sm"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submittingStory}
+                className="inline-flex items-center justify-center w-full gap-2 bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-emerald-800 disabled:opacity-60"
+              >
+                {submittingStory ? "Submitting…" : "Submit"}
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {reviewModalOpen ? (
+        <div className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-stone-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-stone-900">
+                  Submit a Review
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Keeps existing fields
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReviewModalOpen(false)}
+                className="p-2 rounded-lg hover:bg-stone-100 text-stone-500"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={submitFullReview} className="p-6 space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="md:col-span-2">
+                  <label className="block text-xs text-stone-600 mb-1">
+                    Title
+                  </label>
+                  <input
+                    value={reviewTitle}
+                    onChange={(e) => setReviewTitle(e.target.value)}
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-stone-600 mb-1">Type</label>
+                  <select
+                    value={reviewType}
+                    onChange={(e) => setReviewType(e.target.value)}
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="umrah">Umrah</option>
+                    <option value="hajj">Hajj</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs text-stone-600 mb-1">
+                    Rating
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={reviewRating}
+                    onChange={(e) => setReviewRating(Number(e.target.value) || 5)}
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-stone-600 mb-1">Name</label>
+                  <input
+                    value={reviewDisplayName}
+                    onChange={(e) => setReviewDisplayName(e.target.value)}
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-stone-600 mb-1">
+                    Username
+                  </label>
+                  <input
+                    value={reviewUsername}
+                    onChange={(e) => setReviewUsername(e.target.value)}
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                    placeholder="@username"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs text-stone-600 mb-1">
+                    Location
+                  </label>
+                  <input
+                    value={reviewLocation}
+                    onChange={(e) => setReviewLocation(e.target.value)}
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                    placeholder="City, Country"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-stone-600 mb-1">Text</label>
+                <textarea
+                  rows={6}
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                  placeholder="Optional if uploading a video"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-stone-600 mb-1">
+                  Video (optional)
+                </label>
+                <input
+                  ref={reviewVideoRef}
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  onChange={(e) => setReviewVideo(e.target.files?.[0] || null)}
+                  className="w-full text-sm"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submittingReview}
+                className="inline-flex items-center justify-center w-full gap-2 bg-stone-900 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-black disabled:opacity-60"
+              >
+                {submittingReview ? "Submitting…" : "Submit"}
+              </button>
+            </form>
           </div>
         </div>
       ) : null}
@@ -2811,7 +3294,10 @@ export default function UserDashboard() {
                   Journey progress
                 </p>
                 <div className="mt-4">
-                  <JourneyStepper stage={trackFor.journey?.stage} />
+                  <JourneyStepper
+                    stage={trackFor.journey?.stage}
+                    plan={trackFor.journey?.plan}
+                  />
                 </div>
                 <p className="text-[11px] text-stone-500 mt-3">
                   The admin updates your status during your journey (flight, stay, etc.).

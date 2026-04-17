@@ -47,10 +47,11 @@ export default function GoogleLoginButton({ className = "" }) {
         type="button"
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full border-2 border-gray-300 hover:border-yellow-600 disabled:opacity-60 disabled:cursor-not-allowed text-gray-800 font-semibold py-2 sm:py-3 px-4 rounded-full shadow-sm text-sm sm:text-base transition duration-300 flex items-center justify-center gap-2"
+        className="inline-flex items-center justify-center w-12 h-12 rounded-full border-2 border-gray-300 hover:border-yellow-600 disabled:opacity-60 disabled:cursor-not-allowed bg-white text-gray-900 font-extrabold shadow-sm transition duration-300"
+        aria-label={loading ? "Connecting to Google" : "Continue with Google"}
+        title={loading ? "Connecting…" : "Continue with Google"}
       >
-        <span className="text-lg leading-none">G</span>
-        {loading ? "Connecting…" : "Continue with Google"}
+        <span className="text-xl leading-none">{loading ? "…" : "G"}</span>
       </button>
     </div>
   );

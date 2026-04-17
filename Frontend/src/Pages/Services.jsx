@@ -22,7 +22,8 @@ function Services() {
       {/* Page-specific overlay */}
       <div
         ref={overlayRef}
-        className="absolute inset-0 bg-black z-10"
+        className="absolute inset-0 bg-black z-10 pointer-events-none"
+        aria-hidden="true"
       ></div>
 
       {/* Only the page content fades in */}

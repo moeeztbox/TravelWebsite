@@ -163,7 +163,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             {/* Left side - Stay Connected */}
             <div className="flex-1">
-              <h3 className="text-white font-semibold text-xl mb-4">Stay Connected to Al Buraq</h3>
+              <h3 className="text-white font-semibold text-xl mb-4">Stay Connected to Pilgrim</h3>
               <p className="text-gray-400 text-sm">Get the latest updates on packages, offers, and travel tips.</p>
 
               {/* Social Icons */}
@@ -242,8 +242,7 @@ export default function Footer() {
                   />
                 </div>
                 <span className="font-semibold text-white">
-                  <span className="text-yellow-400 text-md">Al Buraq</span><br />
-                  <span className="text-gray-400 text-sm">Global</span>
+                  <span className="text-yellow-400 text-md">Pilgrim</span>
                 </span>
               </div>
             </div>
@@ -347,7 +346,7 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                <span>Al Buraq Pilgrim Travel & Tours pvt ltd.<br />Lahore, Pakistan</span>
+                <span>Pilgrim Travel & Tours pvt ltd.<br />Lahore, Pakistan</span>
               </div>
 
               <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
@@ -383,7 +382,7 @@ export default function Footer() {
         <div className="border-t border-gray-700/50 mt-16 pt-8 text-center">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-400">
-              © 2026 Al Buraq Pilgrim. All rights reserved.
+              © 2026 Pilgrim. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
               <RouterLink

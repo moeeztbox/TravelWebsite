@@ -16,7 +16,7 @@ export const adminListHotelBookings = async (req, res) => {
 
 export const adminSetHotelBookingStatus = async (req, res) => {
   try {
-    const { status, adminTotal } = req.body || {};
+    const { status, adminTotal, reason = "" } = req.body || {};
     if (!["approved", "rejected", "pending", "cancelled"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
@@ -40,13 +40,16 @@ export const adminSetHotelBookingStatus = async (req, res) => {
     const shouldResetPayment =
       status !== "approved" || existing.payment?.status === "rejected";
 
+    const cleanedReason = String(reason || "").trim();
+    const reasonSuffix = cleanedReason ? `: ${cleanedReason}` : "";
+
     const set = {
       status,
       statusReason:
         status === "rejected"
-          ? "admin_rejected"
+          ? `admin_rejected${reasonSuffix}`
           : status === "cancelled"
-            ? "admin_cancelled"
+            ? `admin_cancelled${reasonSuffix}`
             : "",
       ...(status === "approved" && adminTotal && typeof adminTotal === "object"
         ? {

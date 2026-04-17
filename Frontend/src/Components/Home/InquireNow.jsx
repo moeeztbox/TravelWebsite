@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from "react";
 import {
     Phone,
     Mail,
@@ -8,7 +8,12 @@ import {
     Users,
     CheckCircle,
     Clock
-} from 'lucide-react';
+} from "lucide-react";
+import { api, formatAxiosError } from "../../Services/authService";
+import {
+    sanitizeDigits,
+    validateCommonFields,
+} from "../../utils/formValidation";
 
 export default function InquiryCTA() {
     const [formData, setFormData] = useState({
@@ -18,16 +23,74 @@ export default function InquiryCTA() {
         message: ''
     });
 
+    const [status, setStatus] = useState({ type: "", message: "" });
+    const [sending, setSending] = useState(false);
+    const [touched, setTouched] = useState({
+        firstName: false,
+        phone: false,
+        email: false,
+        message: false,
+    });
+
+    const fieldErrors = useMemo(() => {
+        return validateCommonFields({
+            name: formData.firstName,
+            email: formData.email,
+            phone: formData.phone,
+        });
+    }, [formData.firstName, formData.email, formData.phone]);
+
     const handleCallClick = () => {
         window.open('tel:+923012345678', '_self');
     };
 
-    const handleSubmit = () => {
-        console.log('Form submitted:', formData);
-        alert('Thank you! We will contact you soon.');
+    const handleSubmit = async (e) => {
+        e?.preventDefault?.();
+        setStatus({ type: "", message: "" });
+
+        const errors = validateCommonFields({
+            name: formData.firstName,
+            email: formData.email,
+            phone: formData.phone,
+        });
+
+        setTouched({ firstName: true, phone: true, email: true, message: true });
+
+        if (Object.keys(errors).length > 0) {
+            setStatus({ type: "error", message: "Please fix the highlighted fields." });
+            return;
+        }
+
+        setSending(true);
+        try {
+            const phoneDigits = sanitizeDigits(formData.phone);
+            const msg = String(formData.message || "").trim();
+            const fullMessage = msg
+                ? `Phone: ${phoneDigits}\n\n${msg}`
+                : `Phone: ${phoneDigits}`;
+
+            await api.post("/contact", {
+                type: "inquiry",
+                userEmail: String(formData.email || "").trim(),
+                userName: String(formData.firstName || "").trim(),
+                message: fullMessage,
+            });
+
+            setStatus({ type: "success", message: "Inquiry submitted successfully." });
+            setFormData({ firstName: "", phone: "", email: "", message: "" });
+            setTouched({ firstName: false, phone: false, email: false, message: false });
+        } catch (err) {
+            setStatus({ type: "error", message: formatAxiosError(err) });
+        } finally {
+            setSending(false);
+        }
     };
 
     const handleChange = (field, value) => {
+        if (field === "phone") {
+            setFormData((prev) => ({ ...prev, phone: sanitizeDigits(value) }));
+            return;
+        }
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -50,6 +113,18 @@ export default function InquiryCTA() {
                         {/* Left Side - Form */}
                         <div className="w-full">
                             <div className="bg-white border-1 border-gray-300 rounded-2xl p-8 shadow-xl">
+                                {status.message ? (
+                                    <div
+                                        className={`mb-6 text-sm rounded-lg px-3 py-2 border ${
+                                            status.type === "success"
+                                                ? "text-green-700 bg-green-50 border-green-200"
+                                                : "text-red-700 bg-red-50 border-red-200"
+                                        }`}
+                                        role="alert"
+                                    >
+                                        {status.message}
+                                    </div>
+                                ) : null}
                                 {/* Row 1: First Name & Phone Number */}
                                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                                     <div>
@@ -60,9 +135,13 @@ export default function InquiryCTA() {
                                             type="text"
                                             value={formData.firstName}
                                             onChange={(e) => handleChange('firstName', e.target.value)}
+                                            onBlur={() => setTouched((t) => ({ ...t, firstName: true }))}
                                             className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-300"
                                             placeholder="Enter your full name"
                                         />
+                                        {touched.firstName && fieldErrors.name ? (
+                                            <p className="mt-1 text-xs text-red-600">{fieldErrors.name}</p>
+                                        ) : null}
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -70,11 +149,17 @@ export default function InquiryCTA() {
                                         </label>
                                         <input
                                             type="tel"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
                                             value={formData.phone}
                                             onChange={(e) => handleChange('phone', e.target.value)}
+                                            onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
                                             className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-300"
                                             placeholder="+92-XXX-XXXXXXX"
                                         />
+                                        {touched.phone && fieldErrors.phone ? (
+                                            <p className="mt-1 text-xs text-red-600">{fieldErrors.phone}</p>
+                                        ) : null}
                                     </div>
                                 </div>
 
@@ -87,9 +172,13 @@ export default function InquiryCTA() {
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => handleChange('email', e.target.value)}
+                                        onBlur={() => setTouched((t) => ({ ...t, email: true }))}
                                         className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all duration-300"
                                         placeholder="your.email@example.com"
                                     />
+                                    {touched.email && fieldErrors.email ? (
+                                        <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>
+                                    ) : null}
                                 </div>
 
                                 {/* Row 3: Message */}
@@ -110,10 +199,11 @@ export default function InquiryCTA() {
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <button 
                                         onClick={handleSubmit}
+                                        disabled={sending}
                                         className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold px-8 py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 hover:shadow-md group"
                                     >
                                         <MessageSquare className="w-5 h-5 transition-transform duration-200" />
-                                        <span>Submit Inquiry</span>
+                                        <span>{sending ? "Submitting..." : "Submit Inquiry"}</span>
                                         <ArrowRight className="w-5 h-5 transition-transform duration-200" />
                                     </button>
                                 </div>

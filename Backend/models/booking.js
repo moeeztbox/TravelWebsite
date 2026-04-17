@@ -26,7 +26,6 @@ const bookingSchema = new mongoose.Schema(
     },
     statusReason: {
       type: String,
-      enum: ["", "admin_rejected", "payment_failed", "admin_cancelled"],
       default: "",
     },
     documents: {
@@ -49,6 +48,7 @@ const bookingSchema = new mongoose.Schema(
     },
     journey: {
       startAt: { type: Date },
+      plan: { type: [String], default: [] },
       stage: {
         type: String,
         enum: [

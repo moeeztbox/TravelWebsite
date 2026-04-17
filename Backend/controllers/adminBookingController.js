@@ -19,7 +19,7 @@ export const listAllBookings = async (req, res) => {
 
 export const setBookingStatus = async (req, res) => {
   try {
-    const { status } = req.body || {};
+    const { status, reason = "" } = req.body || {};
     if (!["approved", "rejected", "pending", "cancelled"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
@@ -54,6 +54,9 @@ export const setBookingStatus = async (req, res) => {
     const shouldResetPayment =
       status !== "approved" || existing.payment?.status === "rejected";
 
+    const cleanedReason = String(reason || "").trim();
+    const reasonSuffix = cleanedReason ? `: ${cleanedReason}` : "";
+
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
       {
@@ -61,9 +64,9 @@ export const setBookingStatus = async (req, res) => {
           status,
           statusReason:
             status === "rejected"
-              ? "admin_rejected"
+              ? `admin_rejected${reasonSuffix}`
               : status === "cancelled"
-                ? "admin_cancelled"
+                ? `admin_cancelled${reasonSuffix}`
                 : "",
           ...(shouldResetPayment
             ? {
@@ -209,9 +212,33 @@ export const scheduleJourney = async (req, res) => {
       }
     }
 
+    // Plan is chosen by the user at booking time (booking.journey.plan).
+    // Here we only schedule the start time and set stage to scheduled.
+    const rawPlan = Array.isArray(booking.journey?.plan) ? booking.journey.plan : [];
+    const allowedStages = new Set([
+      "flight_takeoff",
+      "jeddah_airport",
+      "in_jeddah",
+      "ziyarat",
+      "in_makkah",
+      "in_madinah",
+      "makkah_airport",
+      "return_flight",
+    ]);
+    const cleaned = [];
+    const seen = new Set();
+    for (const s of rawPlan) {
+      const v = String(s || "").trim();
+      if (!v || !allowedStages.has(v) || seen.has(v)) continue;
+      seen.add(v);
+      cleaned.push(v);
+    }
+    const plan = ["scheduled", ...cleaned, "completed"];
+
     booking.journey = {
       ...(booking.journey?.toObject ? booking.journey.toObject() : booking.journey),
       startAt: dt,
+      plan,
       stage: "scheduled",
       updatedAt: new Date(),
     };
@@ -265,6 +292,15 @@ export const setJourneyStage = async (req, res) => {
       return res.status(400).json({
         message:
           "Cannot update stage before the scheduled start time is reached.",
+      });
+    }
+
+    const plan = Array.isArray(bookingDoc.journey?.plan)
+      ? bookingDoc.journey.plan
+      : [];
+    if (plan.length > 0 && !plan.includes(stage)) {
+      return res.status(400).json({
+        message: "This stage is not enabled for this journey plan.",
       });
     }
 

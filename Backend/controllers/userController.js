@@ -1,8 +1,13 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import User from "../models/user.js";
 import { firebaseAuth } from "../config/firebaseAdmin.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function sendPasswordResetEmail(toEmail, resetUrl) {
   const MAIL_USER = String(process.env.MAIL_USER || "").trim();
@@ -340,6 +345,52 @@ export const uploadCommonDocuments = async (req, res) => {
       message: "Documents uploaded successfully",
       user: toUserPayload(user),
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message || "Server error" });
+  }
+};
+
+export const deleteCommonDocument = async (req, res) => {
+  try {
+    const userId = req.user?._id ?? req.user?.id;
+    const doc = String(req.query.doc || "").trim();
+    if (!["visaPdf", "otherPdf"].includes(doc)) {
+      return res.status(400).json({ message: "Invalid doc. Use visaPdf or otherPdf." });
+    }
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const currentPath =
+      doc === "visaPdf"
+        ? user.commonDocuments?.visaPdf
+        : user.commonDocuments?.otherPdf;
+
+    // Clear DB first (even if file delete fails).
+    const updates =
+      doc === "visaPdf"
+        ? { "commonDocuments.visaPdf": "" }
+        : { "commonDocuments.otherPdf": "" };
+
+    const updated = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true }
+    ).select("-password");
+
+    // Best-effort file removal (only if it's inside /uploads/user-docs)
+    try {
+      const rel = String(currentPath || "");
+      if (rel.startsWith("/uploads/user-docs/")) {
+        const filename = rel.replace("/uploads/user-docs/", "");
+        const abs = path.join(__dirname, "../uploads/user-docs", filename);
+        if (fs.existsSync(abs)) fs.unlinkSync(abs);
+      }
+    } catch (e) {
+      console.error("deleteCommonDocument file delete failed:", e);
+    }
+
+    return res.json({ message: "Document deleted", user: toUserPayload(updated) });
   } catch (error) {
     res.status(500).json({ message: error.message || "Server error" });
   }

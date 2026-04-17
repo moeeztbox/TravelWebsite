@@ -11,6 +11,7 @@ import {
 } from "../Services/adminService";
 import { getApiOrigin } from "../utils/apiOrigin";
 import { useScrollLock } from "../Hooks/useScrollLock";
+import ReasonDialog from "../Components/Admin/ReasonDialog";
 
 /** True once the scheduled start time has passed or the journey has moved past "scheduled". */
 function journeyHasStarted(journey) {
@@ -34,12 +35,46 @@ function userLabel(user) {
   return name ? `${name} (${user.email})` : user.email || "Unknown user";
 }
 
+function stageLabel(stage) {
+  const map = {
+    not_started: "Not started",
+    scheduled: "Scheduled",
+    flight_takeoff: "Flight takeoff",
+    jeddah_airport: "Jeddah airport",
+    in_jeddah: "In Jeddah",
+    ziyarat: "Ziyarat",
+    in_makkah: "In Makkah",
+    in_madinah: "In Madinah",
+    makkah_airport: "Makkah airport",
+    return_flight: "Return flight",
+    completed: "Completed",
+  };
+  return map[stage] || stage || "—";
+}
+
+function planLabel(plan) {
+  const ids = Array.isArray(plan) ? plan : [];
+  const cleaned = ids
+    .map((s) => String(s || "").trim())
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i)
+    .filter((v) => v !== "scheduled" && v !== "completed");
+  if (!cleaned.length) return "—";
+  return cleaned.map((id) => stageLabel(id)).join(" → ");
+}
+
 export default function AdminBookings() {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
   const [busyId, setBusyId] = useState(null);
   const [scheduleFor, setScheduleFor] = useState(null);
   const [startAt, setStartAt] = useState("");
+  // Journey plan is chosen by the user at booking time.
+  const [reasonDialog, setReasonDialog] = useState({
+    open: false,
+    bookingId: null,
+    status: "",
+  });
   const origin = getApiOrigin();
 
   useEffect(() => {
@@ -63,7 +98,7 @@ export default function AdminBookings() {
     load();
   }, [load]);
 
-  useScrollLock(Boolean(scheduleFor));
+  useScrollLock(Boolean(scheduleFor || reasonDialog.open));
 
   const grouped = useCallback((rows) => {
     const map = new Map();
@@ -95,14 +130,40 @@ export default function AdminBookings() {
   }, []);
 
   const setStatus = async (id, status) => {
+    const needsReason = status === "cancelled" || status === "rejected";
+    if (needsReason) {
+      setReasonDialog({ open: true, bookingId: id, status });
+      return;
+    }
     setBusyId(id);
     try {
-      await adminSetBookingStatus(id, status);
+      await adminSetBookingStatus(id, status, "");
       toast.success(`Booking ${status}`);
       await load({ silent: true });
     } catch (e) {
       toast.error(e.response?.data?.message || "Update failed");
-    } finally { setBusyId(null); }
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const confirmReason = async (text) => {
+    const { bookingId, status } = reasonDialog;
+    if (!bookingId || !status) {
+      setReasonDialog({ open: false, bookingId: null, status: "" });
+      return;
+    }
+    setBusyId(bookingId);
+    try {
+      await adminSetBookingStatus(bookingId, status, String(text || ""));
+      toast.success(`Booking ${status}`);
+      setReasonDialog({ open: false, bookingId: null, status: "" });
+      await load({ silent: true });
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Update failed");
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const verifyPayment = async (id) => {
@@ -250,6 +311,13 @@ export default function AdminBookings() {
             )}
           </div>
 
+          <div className="text-xs text-zinc-600">
+            <span className="text-zinc-400">Journey selected:</span>{" "}
+            <span className="font-medium text-zinc-800">
+              {planLabel(b.journey?.plan)}
+            </span>
+          </div>
+
           <div className="flex flex-wrap gap-2 text-xs">
             {[
               { label: "Visa PDF",   href: hasVisa    ? `${origin}${b.documents.visaPdf}`  : null },
@@ -362,9 +430,24 @@ export default function AdminBookings() {
               <button type="button"
                 disabled={busyId === b._id || rescheduleLocked}
                 title={rescheduleLocked ? "Cannot reschedule after the journey has started." : undefined}
-                onClick={() => {
+              onClick={() => {
                   setScheduleFor(b._id);
                   setStartAt(b.journey?.startAt ? new Date(b.journey.startAt).toISOString().slice(0, 16) : "");
+                  const plan = Array.isArray(b.journey?.plan) ? b.journey.plan : [];
+                  // Default selection (admin can uncheck)
+                  setSelectedStages(
+                    plan.length
+                      ? plan.filter((s) => s !== "scheduled" && s !== "completed")
+                      : [
+                          "flight_takeoff",
+                          "jeddah_airport",
+                          "in_jeddah",
+                          "in_makkah",
+                          "in_madinah",
+                          "ziyarat",
+                          "return_flight",
+                        ]
+                  );
                 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <CalendarClock className="h-3.5 w-3.5" />
@@ -526,6 +609,23 @@ export default function AdminBookings() {
       subtitle="Approve/reject bookings, verify payments, and schedule Umrah start dates."
       headerRight={null}
     >
+      <ReasonDialog
+        open={reasonDialog.open}
+        title={
+          reasonDialog.status === "rejected"
+            ? "Reject booking"
+            : reasonDialog.status === "cancelled"
+              ? "Cancel booking"
+              : "Provide a reason"
+        }
+        description="Enter a reason (optional). It will be visible to the user."
+        confirmText="OK"
+        cancelText="Cancel"
+        hideCancel={reasonDialog.status === "rejected"}
+        busy={busyId === reasonDialog.bookingId}
+        onCancel={() => setReasonDialog({ open: false, bookingId: null, status: "" })}
+        onConfirm={confirmReason}
+      />
       <div className="space-y-5">
         {loading ? (
           <div className="bg-white rounded-2xl border border-zinc-200 px-6 py-20 flex items-center justify-center">
@@ -615,6 +715,16 @@ export default function AdminBookings() {
                   onChange={e => setStartAt(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30" required />
               </div>
+
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 px-4 py-3">
+                <p className="text-xs font-medium text-zinc-700">
+                  Journey options are based on what the user selected at booking time.
+                </p>
+                <p className="text-[11px] text-zinc-500 mt-1">
+                  You only need to set the start date/time here.
+                </p>
+              </div>
+
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => setScheduleFor(null)}
                   className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 border border-zinc-200 hover:bg-zinc-50 transition-colors">

@@ -152,7 +152,11 @@ const HomeHeroSection = () => {
   return (
     <section className="relative min-h-[90vh] md:min-h-screen flex items-end overflow-hidden">
       {/* Dark overlay for fade-in */}
-      <div ref={overlayRef} className="absolute inset-0 bg-black z-20"></div>
+      <div
+        ref={overlayRef}
+        className="absolute inset-0 bg-black z-20 pointer-events-none"
+        aria-hidden="true"
+      ></div>
 
       {/* Background Image with Smoother Blending */}
       <div

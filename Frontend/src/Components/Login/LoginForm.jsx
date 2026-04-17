@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { login } from "../../Services/authService";
 import { useAuth } from "../../Context/AuthContext";
 import GoogleLoginButton from "./GoogleLoginButton";
+import { validateEmail } from "../../utils/formValidation";
 
 function getErrorMessage(error) {
   const data = error.response?.data;
@@ -32,13 +33,18 @@ function LoginForm() {
 
   useEffect(() => {
     if (!ready || !isAuthenticated) return;
+    // Admin should never land on member dashboard.
+    if (user?.role === "isAdmin") {
+      navigate("/admin/packages", { replace: true });
+      return;
+    }
     const from = location.state?.from;
     const target =
       from && typeof from === "object" && from.pathname
         ? from.pathname
         : "/";
     navigate(target, { replace: true });
-  }, [ready, isAuthenticated, navigate, location.state?.from]);
+  }, [ready, isAuthenticated, user?.role, navigate, location.state?.from]);
 
   const handleFocus = (field) => setFocused({ ...focused, [field]: true });
   const handleBlur = (field) => setFocused({ ...focused, [field]: false });
@@ -46,6 +52,11 @@ function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    const emailErr = validateEmail(email);
+    if (emailErr) {
+      setError(emailErr);
+      return;
+    }
     setLoading(true);
     try {
       const data = await login({ email: email.trim(), password });
@@ -140,25 +151,15 @@ function LoginForm() {
             
             
           <div className="text-center pt-2 sm:pt-4">
-
-          <button
-              type="submit"
-              disabled={loading}
-              className="bg-yellow-600 hover:bg-yellow-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-2 sm:py-3 px-8 sm:px-10 rounded-full shadow-lg text-sm sm:text-base transition duration-300"
-            >
-              {loading ? "Signing in…" : "Login"}
-
-            </button>
-
-            <div className="flex items-center gap-3 my-4">
-                <div className="h-px bg-gray-200 flex-1" />
-                <span className="text-xs text-gray-500">OR</span>
-                <div className="h-px bg-gray-200 flex-1" />
-              </div>
-
-              <div className="mb-4">
+            <div className="flex items-center justify-center gap-3 mb-4">
               <GoogleLoginButton />
-              
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-yellow-600 hover:bg-yellow-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-2 sm:py-3 px-8 sm:px-10 rounded-full shadow-lg text-sm sm:text-base transition duration-300"
+              >
+                {loading ? "Signing in…" : "Login"}
+              </button>
             </div>
             <p className="text-gray-600 mb-3 sm:mb-4 text-sm sm:text-base">
               Don’t have an account?{" "}

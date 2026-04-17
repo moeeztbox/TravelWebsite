@@ -72,6 +72,9 @@ import {
 import {
   adminListStories,
   adminSetStoryStatus,
+  adminCreateStory,
+  adminCreateReview,
+  adminDeleteStory,
 } from "./controllers/adminStoryController.js";
 import {
   adminListCustomPackageRequests,
@@ -254,6 +257,19 @@ app.post("/api/stories", protect, uploadStoryVideo.single("video"), createStory)
 // Admin stories moderation
 app.get("/api/admin/stories", protectAdmin, adminListStories);
 app.patch("/api/admin/stories/:id", protectAdmin, adminSetStoryStatus);
+app.delete("/api/admin/stories/:id", protectAdmin, adminDeleteStory);
+app.post(
+  "/api/admin/stories/story",
+  protectAdmin,
+  uploadStoryVideo.single("video"),
+  adminCreateStory
+);
+app.post(
+  "/api/admin/stories/review",
+  protectAdmin,
+  uploadStoryVideo.single("video"),
+  adminCreateReview
+);
 
 app.use(
   "/uploads",

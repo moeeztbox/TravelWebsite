@@ -29,8 +29,12 @@ export async function adminListBookings(status = "pending") {
   return data.bookings ?? [];
 }
 
-export async function adminSetBookingStatus(id, status) {
-  const { data } = await api.patch(`/admin/bookings/${id}`, { status });
+export async function adminSetBookingStatus(id, status, reason = "") {
+  const cleaned = String(reason || "").trim();
+  const { data } = await api.patch(`/admin/bookings/${id}`, {
+    status,
+    ...(cleaned ? { reason: cleaned } : {}),
+  });
   return data.booking;
 }
 
@@ -163,9 +167,12 @@ export async function adminListHotelBookings(status = "all") {
 }
 
 export async function adminSetHotelBookingStatus(id, status, adminTotal) {
+  const reason = typeof adminTotal === "string" ? adminTotal : "";
+  const maybeTotal = adminTotal && typeof adminTotal === "object" ? adminTotal : null;
   const { data } = await api.patch(`/admin/hotel-bookings/${id}`, {
     status,
-    ...(adminTotal ? { adminTotal } : {}),
+    ...(reason ? { reason } : {}),
+    ...(maybeTotal ? { adminTotal: maybeTotal } : {}),
   });
   return data.booking;
 }

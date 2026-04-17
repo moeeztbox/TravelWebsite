@@ -52,6 +52,7 @@ export default function SubmitStory() {
       await submitStory({
         title: title.trim(),
         type,
+        kind: "review",
         displayName: displayName.trim(),
         username: username.trim(),
         location: location.trim(),

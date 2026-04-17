@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  ArrowRight,
   BadgeCheck,
   Car,
   Landmark,
@@ -270,21 +269,36 @@ export default function Services() {
                 <div className="mt-8 flex flex-wrap gap-3">
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(e) => {
+                      // Prevent hash links / scroll-jumps and navigate explicitly.
+                      e.preventDefault();
+                      e.stopPropagation();
                       const map = {
-                        transport: "/booking?tab=transport",
-                        visa: "/booking?tab=visa",
-                        ticket: "/booking?tab=flights",
-                        hotels: "/booking?tab=hotels",
-                        ziawrat: "/ziyarat-guide",
+                        transport: { path: "/booking", tab: "transport", label: "Book your transport" },
+                        visa: { path: "/booking", tab: "visa", label: "Book your visa" },
+                        ticket: { path: "/booking", tab: "flights", label: "Book your tickets" },
+                        hotels: { path: "/booking", tab: "hotels", label: "Book your hotels" },
+                        ziawrat: { path: "/ziyarat-guide", tab: "", label: "View ziyarat guide" },
                       };
-                      navigate(map[s.id] || "/services");
+                      const dest = map[s.id];
+                      if (!dest) {
+                        navigate("/services");
+                        return;
+                      }
+                      if (dest.tab) navigate(`${dest.path}?tab=${dest.tab}`);
+                      else navigate(dest.path);
                     }}
-                    className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-yellow-600 text-white hover:bg-yellow-700 transition-colors"
-                    aria-label={`Go to ${s.title}`}
-                    title={`Go to ${s.title}`}
+                    className="inline-flex items-center justify-center rounded-xl border border-yellow-600 text-yellow-700 bg-yellow-50 hover:bg-yellow-100 px-4 py-2 text-sm font-semibold transition-colors"
                   >
-                    <ArrowRight className="h-5 w-5" />
+                    {s.id === "ticket"
+                      ? "Book your tickets"
+                      : s.id === "visa"
+                        ? "Book your visa"
+                        : s.id === "hotels"
+                          ? "Book your hotels"
+                          : s.id === "transport"
+                            ? "Book your transport"
+                            : "Continue"}
                   </button>
                 </div>
 

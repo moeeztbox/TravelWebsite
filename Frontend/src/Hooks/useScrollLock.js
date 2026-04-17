@@ -43,6 +43,7 @@ function applyLock() {
     overscrollBehavior: document.documentElement.style.overscrollBehavior,
   };
   document.body.setAttribute("data-scroll-locked", "true");
+  document.body.setAttribute("data-scroll-locked-at", String(Date.now()));
   document.body.style.setProperty("--scroll-lock-top", `-${savedScrollY}px`);
   // Keep inline styles too (helps in case CSS isn't loaded yet).
   document.body.style.position = "fixed";
@@ -66,6 +67,7 @@ function releaseLock() {
   document.body.style.width = prevBody.width ?? "";
   document.body.style.overflow = prevBody.overflow ?? "";
   document.body.removeAttribute("data-scroll-locked");
+  document.body.removeAttribute("data-scroll-locked-at");
   document.body.style.removeProperty("--scroll-lock-top");
   document.documentElement.style.overflow = prevHtml.overflow ?? "";
   document.documentElement.style.overscrollBehavior =

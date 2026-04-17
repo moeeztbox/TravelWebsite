@@ -13,6 +13,7 @@ export async function listMyStories() {
 export async function submitStory({
   title,
   type,
+  kind,
   displayName,
   username,
   location,
@@ -23,6 +24,7 @@ export async function submitStory({
   const fd = new FormData();
   fd.append("title", title);
   fd.append("type", type);
+  if (kind) fd.append("kind", kind);
   if (displayName) fd.append("displayName", displayName);
   if (username) fd.append("username", username);
   if (location) fd.append("location", location);

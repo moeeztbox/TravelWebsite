@@ -16,6 +16,7 @@ import {
   adminDeleteHotelBooking,
 } from "../Services/adminService";
 import { getApiOrigin } from "../utils/apiOrigin";
+import ReasonDialog from "../Components/Admin/ReasonDialog";
 
 function userLabel(user) {
   if (!user) return "—";
@@ -34,6 +35,11 @@ export default function AdminHotelBookings() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [busyId, setBusyId] = useState(null);
+  const [reasonDialog, setReasonDialog] = useState({
+    open: false,
+    bookingId: null,
+    status: "",
+  });
   const origin = getApiOrigin();
 
   const load = useCallback(async (silent) => {
@@ -53,10 +59,34 @@ export default function AdminHotelBookings() {
   }, [load]);
 
   const setStatus = async (id, status) => {
+    const needsReason = status === "cancelled" || status === "rejected";
+    if (needsReason) {
+      setReasonDialog({ open: true, bookingId: id, status });
+      return;
+    }
     setBusyId(id);
     try {
-      await adminSetHotelBookingStatus(id, status);
+      await adminSetHotelBookingStatus(id, status, "");
       toast.success(`Booking ${status}`);
+      await load(true);
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Update failed");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const confirmReason = async (text) => {
+    const { bookingId, status } = reasonDialog;
+    if (!bookingId || !status) {
+      setReasonDialog({ open: false, bookingId: null, status: "" });
+      return;
+    }
+    setBusyId(bookingId);
+    try {
+      await adminSetHotelBookingStatus(bookingId, status, String(text || ""));
+      toast.success(`Booking ${status}`);
+      setReasonDialog({ open: false, bookingId: null, status: "" });
       await load(true);
     } catch (e) {
       toast.error(e.response?.data?.message || "Update failed");
@@ -117,6 +147,23 @@ export default function AdminHotelBookings() {
       title="Hotel bookings"
       subtitle={`Approve hotel bookings, verify payment, and track completion by end date. Completed: ${completedCount}`}
     >
+      <ReasonDialog
+        open={reasonDialog.open}
+        title={
+          reasonDialog.status === "rejected"
+            ? "Reject booking"
+            : reasonDialog.status === "cancelled"
+              ? "Cancel booking"
+              : "Provide a reason"
+        }
+        description="Enter a reason (optional). It will be visible to the user."
+        confirmText="OK"
+        cancelText="Cancel"
+        hideCancel={reasonDialog.status === "rejected"}
+        busy={busyId === reasonDialog.bookingId}
+        onCancel={() => setReasonDialog({ open: false, bookingId: null, status: "" })}
+        onConfirm={confirmReason}
+      />
       {loading ? (
         <div className="flex justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
@@ -156,6 +203,11 @@ export default function AdminHotelBookings() {
 
                     <p className="text-xs text-stone-600 mt-2">
                       Stay: <span className="font-medium">{stayLabel}</span>
+                      {b.stay ? (
+                        <span className="ml-2 text-stone-500">
+                          • {Number(b.stay.rooms) || 0} room(s), {Number(b.stay.adults) || 0} adult(s), {Number(b.stay.children) || 0} child(ren)
+                        </span>
+                      ) : null}
                       {completed ? (
                         <span className="ml-2 text-emerald-700 font-semibold">
                           Completed ({stayLabel})

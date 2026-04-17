@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { AlertCircle, User, Mail, MessageSquare, Phone } from "lucide-react";
 import { api, formatAxiosError } from "../../Services/authService";
 import { useAuth } from "../../Context/AuthContext";
+import { sanitizeDigits, validateCommonFields } from "../../utils/formValidation";
 
 function ComplainForm() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ function ComplainForm() {
   });
   const [status, setStatus] = useState({ type: "", message: "" });
   const [sending, setSending] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const [focused, setFocused] = useState({
     firstName: false,
@@ -24,7 +26,12 @@ function ComplainForm() {
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "phone") {
+      setFormData({ ...formData, phone: sanitizeDigits(value) });
+      return;
+    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const inferredName = useMemo(() => {
@@ -37,15 +44,34 @@ function ComplainForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ type: "", message: "" });
+    setErrors({});
+
+    const fullName = `${formData.firstName} ${formData.lastName}`.trim();
+    const validationErrors = validateCommonFields({
+      name: fullName,
+      email: formData.email,
+      phone: formData.phone,
+    });
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setStatus({ type: "error", message: "Please fix the highlighted fields." });
+      return;
+    }
+
     setSending(true);
     try {
+      const phoneDigits = sanitizeDigits(formData.phone);
+      const body = String(formData.complaint || "").trim();
+      const complaintWithPhone = body
+        ? `Phone: ${phoneDigits}\n\n${body}`
+        : `Phone: ${phoneDigits}`;
       await api.post("/complain", {
         userEmail: formData.email.trim(),
         userName:
           inferredName ||
           `${formData.firstName} ${formData.lastName}`.trim() ||
           "User",
-        complaint: formData.complaint,
+        complaint: complaintWithPhone,
       });
       setStatus({ type: "success", message: "Complaint submitted. Email sent." });
       setFormData({
@@ -121,10 +147,18 @@ function ComplainForm() {
                   onChange={handleChange}
                   onFocus={() => handleFocus('firstName')}
                   onBlur={() => handleBlur('firstName')}
-                  className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${focused.firstName ? 'border-yellow-600 shadow-lg' : 'border-gray-200'
-                    } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
+                  className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${
+                    errors.name
+                      ? "border-red-400"
+                      : focused.firstName
+                        ? "border-yellow-600 shadow-lg"
+                        : "border-gray-200"
+                  } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
                   required
                 />
+                {errors.name ? (
+                  <p className="mt-1 text-xs text-red-600">{errors.name}</p>
+                ) : null}
               </div>
             </div>
             {/* Last Name */}
@@ -167,10 +201,18 @@ function ComplainForm() {
                   onChange={handleChange}
                   onFocus={() => handleFocus('email')}
                   onBlur={() => handleBlur('email')}
-                  className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${focused.email ? 'border-yellow-600 shadow-lg' : 'border-gray-200'
-                    } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
+                  className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${
+                    errors.email
+                      ? "border-red-400"
+                      : focused.email
+                        ? "border-yellow-600 shadow-lg"
+                        : "border-gray-200"
+                  } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
                   required
                 />
+                {errors.email ? (
+                  <p className="mt-1 text-xs text-red-600">{errors.email}</p>
+                ) : null}
               </div>
             </div>
             {/* Phone */}
@@ -181,16 +223,27 @@ function ComplainForm() {
               </label>
               <div className={`relative transition-all duration-300 ${focused.phone ? 'transform scale-[1.01]' : ''}`}>
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   name="phone"
                   placeholder="Ex. 055 xxxxx"
                   value={formData.phone}
                   onChange={handleChange}
                   onFocus={() => handleFocus('phone')}
                   onBlur={() => handleBlur('phone')}
-                  className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${focused.phone ? 'border-yellow-600 shadow-lg' : 'border-gray-200'
-                    } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
+                  className={`w-full p-3 sm:p-4 bg-gray-50 border-2 ${
+                    errors.phone
+                      ? "border-red-400"
+                      : focused.phone
+                        ? "border-yellow-600 shadow-lg"
+                        : "border-gray-200"
+                  } rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
+                  required
                 />
+                {errors.phone ? (
+                  <p className="mt-1 text-xs text-red-600">{errors.phone}</p>
+                ) : null}
               </div>
             </div>
           </div>

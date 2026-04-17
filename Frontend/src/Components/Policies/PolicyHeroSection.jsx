@@ -116,54 +116,11 @@ function PolicyHeroSection() {
         <div className="flex flex-col items-start justify-center px-8 md:px-16 lg:px-20 space-y-6">
           {/* Welcome Text - Left Aligned */}
           <div className="max-w-2xl">
-            <p
-              ref={welcomeRef}
-              className="text-base sm:text-lg md:text-xl text-yellow-300 drop-shadow-lg font-light leading-relaxed text-left"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              This Image and text is needed to be changed just temporary image
-              added.
-            </p>
+            
           </div>
 
           {/* Booking Section - Left Aligned */}
-          <div className="flex flex-col items-start space-y-3">
-            <h2
-              ref={bookingRef}
-              className="text-xl sm:text-2xl md:text-2xl font-semibold text-white drop-shadow-lg"
-              style={{ fontFamily: "Inter, sans-serif" }}
-            >
-              Add Policies into navbar
-            </h2>
-
-            <div ref={buttonRef}>
-              <button
-                onClick={handleBookNow}
-                className="group px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-md text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-400/25 active:scale-95 cursor-pointer"
-                style={{
-                  fontFamily: "Inter, sans-serif",
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-                }}
-              >
-                <span className="flex items-center gap-2">
-                  Book Now
-                  <svg
-                    className="w-4 h-4 transition-transform group-hover:translate-x-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </span>
-              </button>
-            </div>
-          </div>
+       
         </div>
       </div>
 

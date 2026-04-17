@@ -19,6 +19,12 @@ const storySchema = new mongoose.Schema(
     },
     location: { type: String, default: "", trim: true, maxlength: 120 },
     rating: { type: Number, min: 1, max: 5, default: 5 },
+    kind: {
+      type: String,
+      enum: ["story", "review"],
+      default: "story",
+      index: true,
+    },
     text: { type: String, default: "", trim: true, maxlength: 12000 },
     videoUrl: { type: String, default: "" },
     status: {

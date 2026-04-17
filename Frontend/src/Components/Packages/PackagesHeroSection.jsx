@@ -1,15 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import AboutHeroImage from "../../Assets/Images/aboutus images/about-hero.jpg";
-import { useNavigate } from "react-router-dom";
 
 function PackagesHeroSection() {
-  const navigate = useNavigate();
   const titleRef = useRef(null);
-  const welcomeRef = useRef(null);
-  const bookingRef = useRef(null);
-  const buttonRef = useRef(null);
   const overlayRef = useRef(null);
-  const [animationStarted, setAnimationStarted] = useState(false);
 
   useEffect(() => {
     const animateElement = (element, delay, duration, targetOpacity = 1) => {
@@ -23,9 +17,6 @@ function PackagesHeroSection() {
 
     [
       titleRef.current,
-      welcomeRef.current,
-      bookingRef.current,
-      buttonRef.current,
     ].forEach((el) => {
       if (el) {
         el.style.opacity = "0";
@@ -38,17 +29,12 @@ function PackagesHeroSection() {
       overlayRef.current.style.pointerEvents = "auto";
     }
 
-    setAnimationStarted(true);
-
     animateElement(overlayRef.current, 0, 1000, 0);
     setTimeout(() => {
       if (overlayRef.current) overlayRef.current.style.pointerEvents = "none";
     }, 1000);
 
     animateElement(titleRef.current, 200, 600);
-    animateElement(welcomeRef.current, 500, 600);
-    animateElement(bookingRef.current, 800, 600);
-    animateElement(buttonRef.current, 1100, 600);
   }, []);
 
   return (
@@ -95,37 +81,6 @@ function PackagesHeroSection() {
         </div>
 
         <div className="flex flex-col items-center space-y-6">
-          <p
-            ref={welcomeRef}
-            className="text-lg md:text-xl text-yellow-300 drop-shadow-lg font-light leading-relaxed text-center max-w-2xl"
-          >
-            {/* Choose from our carefully crafted Umrah & Hajj packages or customize
-            one to suit your needs. */}
-          </p>
-
-          <h2
-            ref={bookingRef}
-            className="text-xl font-semibold text-white drop-shadow-lg"
-          >
-            Want to Book a Journey?
-          </h2>
-
-          <div ref={buttonRef}>
-            <button
-              type="button"
-              onClick={() => {
-                const el = document.getElementById("packages-grid");
-                if (el) {
-                  el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  return;
-                }
-                navigate("/packages");
-              }}
-              className="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-md text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-400/25 active:scale-95"
-            >
-              Book Now
-            </button>
-          </div>
         </div>
       </div>
 

@@ -62,6 +62,17 @@ const JOURNEY_STAGE_LABEL = {
   completed: "Completed",
 };
 
+const USER_JOURNEY_OPTIONS = [
+  { id: "flight_takeoff", label: "Takeoff" },
+  { id: "jeddah_airport", label: "Arrival" },
+  { id: "in_jeddah", label: "Jeddah" },
+  { id: "in_makkah", label: "Makkah" },
+  { id: "in_madinah", label: "Madinah" },
+  { id: "ziyarat", label: "Ziyarat" },
+  { id: "makkah_airport", label: "Airport" },
+  { id: "return_flight", label: "Return" },
+];
+
 const JOURNEY_STAGE_ORDER = [
   "scheduled",
   "flight_takeoff",
@@ -89,14 +100,23 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [registerPromptOpen, setRegisterPromptOpen] = useState(false);
+  const [journeyPickOpen, setJourneyPickOpen] = useState(false);
+  const [journeyStages, setJourneyStages] = useState([]);
   const highlights = getHighlights(pkg);
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);
   const includesJourney = useMemo(() => journeyChain(pkg), [pkg]);
   const { isAuthenticated } = useAuth();
-  useScrollLock(Boolean(isOpen || confirmOpen || registerPromptOpen));
+  useScrollLock(Boolean(isOpen || confirmOpen || registerPromptOpen || journeyPickOpen));
 
   useEffect(() => {
     if (!isOpen) setConfirmOpen(false);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setJourneyPickOpen(false);
+      setJourneyStages([]);
+    }
   }, [isOpen]);
 
   // Safety net: if scroll-lock remains stuck after closing, force release it.
@@ -128,7 +148,8 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === "Escape") {
-        if (confirmOpen) setConfirmOpen(false);
+        if (journeyPickOpen) setJourneyPickOpen(false);
+        else if (confirmOpen) setConfirmOpen(false);
         else onClose();
       }
     };
@@ -396,7 +417,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
                   setRegisterPromptOpen(true);
                   return;
                 }
-                setConfirmOpen(true);
+                setJourneyPickOpen(true);
               }}
               style={{
                 padding: "8px 16px",
@@ -506,6 +527,142 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
         </div>
       ) : null}
 
+      {journeyPickOpen ? (
+        <div
+          style={{ ...overlayStyle, zIndex: 100001 }}
+          onClick={() => setJourneyPickOpen(false)}
+          role="presentation"
+        >
+          <div
+            style={{
+              ...dialogShellStyle,
+              maxWidth: "520px",
+              maxHeight: "85vh",
+            }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="journey-pick-title"
+          >
+            <div
+              style={{
+                padding: "1rem 1.5rem",
+                borderBottom: "1px solid #f5f5f4",
+                flexShrink: 0,
+                background: "#fff",
+              }}
+            >
+              <h4
+                id="journey-pick-title"
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  color: "#1c1917",
+                  margin: 0,
+                }}
+              >
+                Select your journey
+              </h4>
+              <p style={{ fontSize: "14px", color: "#78716c", margin: "8px 0 0" }}>
+                Choose stages you want. Admin will track only these.
+              </p>
+            </div>
+            <div style={scrollBodyStyle}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: "10px",
+                }}
+              >
+                {USER_JOURNEY_OPTIONS.map((opt) => {
+                  const checked = journeyStages.includes(opt.id);
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() =>
+                        setJourneyStages((prev) =>
+                          prev.includes(opt.id)
+                            ? prev.filter((x) => x !== opt.id)
+                            : [...prev, opt.id]
+                        )
+                      }
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "12px",
+                        border: `1px solid ${checked ? "#a7f3d0" : "#e7e5e4"}`,
+                        background: checked ? "#ecfdf5" : "#fff",
+                        color: checked ? "#065f46" : "#44403c",
+                        fontSize: "13px",
+                        fontWeight: 700,
+                        textAlign: "left",
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ marginTop: "10px", fontSize: "12px", color: "#78716c" }}>
+                These stages will show in your dashboard tracking and admin status dropdown.
+              </p>
+            </div>
+            <div
+              style={{
+                padding: "1rem 1.5rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: "8px",
+                borderTop: "1px solid #f5f5f4",
+                background: "#fff",
+              }}
+            >
+              <button
+                type="button"
+                disabled={booking}
+                onClick={() => setJourneyPickOpen(false)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "10px",
+                  border: "1px solid #e7e5e4",
+                  background: "#fff",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#44403c",
+                  cursor: booking ? "not-allowed" : "pointer",
+                  opacity: booking ? 0.6 : 1,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={booking || journeyStages.length === 0}
+                onClick={async () => {
+                  setJourneyPickOpen(false);
+                  setConfirmOpen(true);
+                }}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "10px",
+                  border: "none",
+                  background:
+                    booking || journeyStages.length === 0 ? "#9ca3af" : "#d97706",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#fff",
+                  cursor: booking ? "not-allowed" : "pointer",
+                }}
+              >
+                {booking ? "Adding…" : "Continue"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {confirmOpen ? (
         <div
           style={{ ...overlayStyle, zIndex: 100001 }}
@@ -546,6 +703,16 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
                 Are you sure you want to book{" "}
                 <span style={{ fontWeight: 600, color: "#1c1917" }}>{pkg.title}</span>?
               </p>
+              {journeyStages.length ? (
+                <p style={{ fontSize: "13px", color: "#78716c", margin: "10px 0 0" }}>
+                  Journey:{" "}
+                  <span style={{ fontWeight: 600, color: "#44403c" }}>
+                    {journeyStages
+                      .map((id) => USER_JOURNEY_OPTIONS.find((o) => o.id === id)?.label || id)
+                      .join(" → ")}
+                  </span>
+                </p>
+              ) : null}
             </div>
             <div
               style={{
@@ -581,7 +748,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
                 disabled={booking}
                 onClick={async () => {
                   setConfirmOpen(false);
-                  await onBookPackage?.();
+                  await onBookPackage?.(journeyStages);
                 }}
                 style={{
                   padding: "8px 16px",
@@ -615,11 +782,11 @@ function PackageCard({ pkg }) {
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);
   const includesJourney = useMemo(() => journeyChain(pkg), [pkg]);
 
-  const handleBook = async () => {
+  const handleBook = async (journeyStages = []) => {
     if (booking) return;
     setBooking(true);
     try {
-      await bookPackage(pkg, { redirectToDashboard: false });
+      await bookPackage(pkg, { redirectToDashboard: false, journeyStages });
       setIsDialogOpen(false);
     } finally {
       // keep overlay slightly longer to avoid flicker on fast navigation
