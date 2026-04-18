@@ -41,7 +41,11 @@ import AdminServiceOptions from "./Pages/AdminServiceOptions";
 import AdminHotelBookings from "./Pages/AdminHotelBookings";
 import Stories from "./Pages/Stories";
 import SubmitStory from "./Pages/SubmitStory";
-import { forceReleaseScrollLock, getScrollLockState } from "./Hooks/useScrollLock";
+import {
+  forceReleaseScrollLock,
+  getScrollLockState,
+} from "./Hooks/useScrollLock";
+import Chatbot from "./Components/Main/Chatbot";
 
 function AppRoutes() {
   const location = useLocation();
@@ -71,13 +75,16 @@ function AppRoutes() {
       // If ref-count got stuck > 0 but there is no visible dialog/overlay,
       // prefer unlocking so the site remains usable.
       const hasLikelyModal =
-        Boolean(document.querySelector('[role="dialog"], [aria-modal="true"]')) ||
+        Boolean(
+          document.querySelector('[role="dialog"], [aria-modal="true"]'),
+        ) ||
         Boolean(
           document.querySelector(
-            '.fixed.inset-0.z-\\[105\\], .fixed.inset-0.z-\\[110\\], .fixed.inset-0.z-\\[100000\\]'
-          )
+            ".fixed.inset-0.z-\\[105\\], .fixed.inset-0.z-\\[110\\], .fixed.inset-0.z-\\[100000\\]",
+          ),
         );
-      const lockedAt = Number(document.body.getAttribute("data-scroll-locked-at")) || 0;
+      const lockedAt =
+        Number(document.body.getAttribute("data-scroll-locked-at")) || 0;
       const lockedForMs = lockedAt ? Date.now() - lockedAt : 0;
       // Only override after a short grace window so we don't fight legitimate modal locks.
       if (!hasLikelyModal && lockedForMs > 800) {
@@ -130,127 +137,127 @@ function AppRoutes() {
           <div className="bg-white/90 backdrop-blur-md border border-white/40 rounded-2xl px-6 py-5 shadow-xl">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-full border-4 border-[#C9A227]/30 border-t-[#C9A227] animate-spin" />
-              <div className="text-sm font-semibold text-gray-800">Loading…</div>
+              <div className="text-sm font-semibold text-gray-800">
+                Loading…
+              </div>
             </div>
           </div>
         </div>
       ) : null}
       <Navbar />
+      <Chatbot />
       <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/packages" element={<Packages />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/stories" element={<Stories />} />
-          <Route
-            path="/stories/submit"
-            element={
-              <RequireAuth redirectTo="/login">
-                <SubmitStory />
-              </RequireAuth>
-            }
-          />
-          <Route path="/guidance" element={<Guide />} />
-          <Route path="/about-us" element={<AboutUs />} />
-          <Route path="/contact-us" element={<ContactUs />} />
-          <Route path="/umrah-guide" element={<UmrahPage />} />
-          <Route path="/travel-guide" element={<TravelPage />} />
-          <Route path="/ziyarat-guide" element={<ZiyaratPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/policies" element={<Policies />} />
-          <Route path="/coming-soon" element={<ComingSoon />} />
-          <Route
-            path="/dashboard"
-            element={
-              <RequireAuth redirectTo="/login">
-                <UserDashboard />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/booking"
-            element={<Booking />}
-          />
-          <Route
-            path="/admin/packages"
-            element={
-              <RequireAdmin>
-                <AdminPackages />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/service-options"
-            element={
-              <RequireAdmin>
-                <AdminServiceOptions />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/bookings"
-            element={
-              <RequireAdmin>
-                <AdminBookings />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/hotel-bookings"
-            element={
-              <RequireAdmin>
-                <AdminHotelBookings />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/transportation"
-            element={
-              <RequireAdmin>
-                <AdminTransportation />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/visa-requests"
-            element={
-              <RequireAdmin>
-                <AdminVisaRequests />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/custom-packages"
-            element={
-              <RequireAdmin>
-                <AdminCustomPackages />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/user-statuses"
-            element={
-              <RequireAdmin>
-                <AdminUserStatuses />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/stories"
-            element={
-              <RequireAdmin>
-                <AdminStories />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin"
-            element={<Navigate to="/admin/packages" replace />}
-          />
-          <Route path="/*" element={<NotFound />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/packages" element={<Packages />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/stories" element={<Stories />} />
+        <Route
+          path="/stories/submit"
+          element={
+            <RequireAuth redirectTo="/login">
+              <SubmitStory />
+            </RequireAuth>
+          }
+        />
+        <Route path="/guidance" element={<Guide />} />
+        <Route path="/about-us" element={<AboutUs />} />
+        <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/umrah-guide" element={<UmrahPage />} />
+        <Route path="/travel-guide" element={<TravelPage />} />
+        <Route path="/ziyarat-guide" element={<ZiyaratPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/policies" element={<Policies />} />
+        <Route path="/coming-soon" element={<ComingSoon />} />
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth redirectTo="/login">
+              <UserDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route path="/booking" element={<Booking />} />
+        <Route
+          path="/admin/packages"
+          element={
+            <RequireAdmin>
+              <AdminPackages />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/service-options"
+          element={
+            <RequireAdmin>
+              <AdminServiceOptions />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/bookings"
+          element={
+            <RequireAdmin>
+              <AdminBookings />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/hotel-bookings"
+          element={
+            <RequireAdmin>
+              <AdminHotelBookings />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/transportation"
+          element={
+            <RequireAdmin>
+              <AdminTransportation />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/visa-requests"
+          element={
+            <RequireAdmin>
+              <AdminVisaRequests />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/custom-packages"
+          element={
+            <RequireAdmin>
+              <AdminCustomPackages />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/user-statuses"
+          element={
+            <RequireAdmin>
+              <AdminUserStatuses />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/stories"
+          element={
+            <RequireAdmin>
+              <AdminStories />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin"
+          element={<Navigate to="/admin/packages" replace />}
+        />
+        <Route path="/*" element={<NotFound />} />
       </Routes>
       <Footer />
     </>
