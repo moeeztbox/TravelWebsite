@@ -87,6 +87,7 @@ import {
   adminSetHotelPaymentStatus,
   adminDeleteHotelBooking,
 } from "./controllers/adminHotelBookingController.js";
+import chatbotRoutes from "./routes/chatbotRoutes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Always load Backend/.env even if you run `node Backend/index.js` from the repo root
@@ -94,7 +95,7 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 if (!process.env.JWT_SECRET) {
   console.error(
-    "FATAL: JWT_SECRET is missing. Add it to Backend/.env (required for login & bookings)."
+    "FATAL: JWT_SECRET is missing. Add it to Backend/.env (required for login & bookings).",
   );
   process.exit(1);
 }
@@ -113,7 +114,7 @@ app.use(
   cors({
     origin: corsOrigins,
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(morgan("dev"));
@@ -131,22 +132,26 @@ app.patch("/api/admin/bookings/:id", protectAdmin, setBookingStatus);
 app.delete("/api/admin/bookings/:id", protectAdmin, adminDeleteBooking);
 app.patch("/api/admin/bookings/:id/payment", protectAdmin, setPaymentStatus);
 app.patch("/api/admin/bookings/:id/journey", protectAdmin, scheduleJourney);
-app.patch("/api/admin/bookings/:id/journey-stage", protectAdmin, setJourneyStage);
+app.patch(
+  "/api/admin/bookings/:id/journey-stage",
+  protectAdmin,
+  setJourneyStage,
+);
 // Admin custom packages
 app.get(
   "/api/admin/custom-packages",
   protectAdmin,
-  adminListCustomPackageRequests
+  adminListCustomPackageRequests,
 );
 app.patch(
   "/api/admin/custom-packages/:id",
   protectAdmin,
-  adminUpdateCustomPackageRequest
+  adminUpdateCustomPackageRequest,
 );
 app.delete(
   "/api/admin/custom-packages/:id",
   protectAdmin,
-  adminDeleteCustomPackageRequest
+  adminDeleteCustomPackageRequest,
 );
 app.use("/api/admin/custom-packages", adminCustomPackageRoutes);
 // Must be registered before the mounted router: Express 5 often does not match router.get("/") for GET /api/packages → 404 without this line.
@@ -158,71 +163,84 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/transportation", transportationRoutes);
 app.use("/api/visa", visaRequestRoutes);
 app.use("/api/hotels", hotelBookingRoutes);
+app.use("/api", chatbotRoutes);
 
 app.get(
   "/api/admin/transportation-bookings",
   protectAdmin,
-  adminListTransportationBookings
+  adminListTransportationBookings,
 );
 app.patch(
   "/api/admin/transportation-bookings/:id",
   protectAdmin,
-  adminSetTransportationStatus
+  adminSetTransportationStatus,
 );
 app.patch(
   "/api/admin/transportation-bookings/:id/payment",
   protectAdmin,
-  adminSetTransportationPaymentStatus
+  adminSetTransportationPaymentStatus,
 );
 app.delete(
   "/api/admin/transportation-bookings/:id",
   protectAdmin,
-  adminDeleteTransportationBooking
+  adminDeleteTransportationBooking,
 );
 
 app.get("/api/admin/visa-requests", protectAdmin, adminListVisaRequests);
 app.patch(
   "/api/admin/visa-requests/:id",
   protectAdmin,
-  adminSetVisaRequestStatus
+  adminSetVisaRequestStatus,
 );
 app.patch(
   "/api/admin/visa-requests/:id/payment",
   protectAdmin,
-  adminSetVisaPaymentStatus
+  adminSetVisaPaymentStatus,
 );
-app.delete("/api/admin/visa-requests/:id", protectAdmin, adminDeleteVisaRequest);
+app.delete(
+  "/api/admin/visa-requests/:id",
+  protectAdmin,
+  adminDeleteVisaRequest,
+);
 
 // Admin hotel bookings
 app.get("/api/admin/hotel-bookings", protectAdmin, adminListHotelBookings);
-app.patch("/api/admin/hotel-bookings/:id", protectAdmin, adminSetHotelBookingStatus);
+app.patch(
+  "/api/admin/hotel-bookings/:id",
+  protectAdmin,
+  adminSetHotelBookingStatus,
+);
 app.patch(
   "/api/admin/hotel-bookings/:id/payment",
   protectAdmin,
-  adminSetHotelPaymentStatus
+  adminSetHotelPaymentStatus,
 );
-app.delete("/api/admin/hotel-bookings/:id", protectAdmin, adminDeleteHotelBooking);
+app.delete(
+  "/api/admin/hotel-bookings/:id",
+  protectAdmin,
+  adminDeleteHotelBooking,
+);
 
 // Admin: transportation & visa catalog (options shown on booking forms)
 app.get(
   "/api/admin/transportation-options",
   protectAdmin,
-  adminListTransportationOptions
+  adminListTransportationOptions,
 );
 app.post(
   "/api/admin/transportation-options",
   protectAdmin,
-  adminCreateTransportationOption
+  adminCreateTransportationOption,
 );
 app.patch(
   "/api/admin/transportation-options/:id",
   protectAdmin,
-  adminUpdateTransportationOption
+  adminUpdateTransportationOption,
 );
 app.delete(
   "/api/admin/transportation-options/:id",
   protectAdmin,
-  adminDeleteTransportationOption
+  adminDeleteTransportationOption,
 );
 app.get("/api/admin/visa-options", protectAdmin, adminListVisaOptions);
 app.post("/api/admin/visa-options", protectAdmin, adminCreateVisaOption);
@@ -232,11 +250,15 @@ app.delete("/api/admin/visa-options/:id", protectAdmin, adminDeleteVisaOption);
 // Custom package requests (user)
 app.post("/api/custom-packages", protect, createCustomPackageRequest);
 app.get("/api/custom-packages/me", protect, listMyCustomPackageRequests);
-app.post("/api/custom-packages/:id/accept", protect, acceptApprovedCustomPackage);
+app.post(
+  "/api/custom-packages/:id/accept",
+  protect,
+  acceptApprovedCustomPackage,
+);
 app.post(
   "/api/custom-packages/:id/reject-offer",
   protect,
-  rejectUserCustomPackageProposal
+  rejectUserCustomPackageProposal,
 );
 app.delete("/api/custom-packages/:id", protect, deleteMyCustomPackageRequest);
 app.use("/api/custom-packages", customPackageRoutes);
@@ -252,7 +274,12 @@ app.use("/api/newsletter", newsletterRoutes);
 // Stories (public + user)
 app.get("/api/stories", listApprovedStories);
 app.get("/api/stories/me", protect, listMyStories);
-app.post("/api/stories", protect, uploadStoryVideo.single("video"), createStory);
+app.post(
+  "/api/stories",
+  protect,
+  uploadStoryVideo.single("video"),
+  createStory,
+);
 
 // Admin stories moderation
 app.get("/api/admin/stories", protectAdmin, adminListStories);
@@ -262,19 +289,16 @@ app.post(
   "/api/admin/stories/story",
   protectAdmin,
   uploadStoryVideo.single("video"),
-  adminCreateStory
+  adminCreateStory,
 );
 app.post(
   "/api/admin/stories/review",
   protectAdmin,
   uploadStoryVideo.single("video"),
-  adminCreateReview
+  adminCreateReview,
 );
 
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "uploads"))
-);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use((err, req, res, next) => {
   console.error(err);
@@ -294,13 +318,13 @@ const PORT = process.env.PORT || 5000;
 connectDB()
   .then(() => {
     seedPackagesIfEnabled().catch((e) =>
-      console.error("Package seeding failed:", e)
+      console.error("Package seeding failed:", e),
     );
     seedAdminUserOnStart().catch((e) =>
-      console.error("Admin seeding failed:", e)
+      console.error("Admin seeding failed:", e),
     );
     seedTransportationAndVisaOptions().catch((e) =>
-      console.error("Transport/visa seed failed:", e)
+      console.error("Transport/visa seed failed:", e),
     );
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
