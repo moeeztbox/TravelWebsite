@@ -122,23 +122,16 @@ function stageLabel(stage) {
 }
 
 function JourneyStepper({ stage, plan }) {
-  const defaultSteps = [
-    { id: "scheduled", label: "Scheduled" },
-    { id: "flight_takeoff", label: "Flight takeoff" },
-    { id: "jeddah_airport", label: "Jeddah airport" },
-    { id: "in_jeddah", label: "In Jeddah" },
-    { id: "ziyarat", label: "Ziyarat" },
-    { id: "in_madinah", label: "In Madinah" },
-    { id: "in_makkah", label: "In Makkah" },
-    { id: "makkah_airport", label: "Makkah airport" },
-    { id: "return_flight", label: "Return flight" },
-    { id: "completed", label: "Completed" },
-  ];
   const planIds = Array.isArray(plan) ? plan.filter(Boolean) : [];
-  const steps =
-    planIds.length > 0
-      ? planIds.map((id) => ({ id, label: stageLabel(id) }))
-      : defaultSteps;
+  const steps = planIds.map((id) => ({ id, label: stageLabel(id) }));
+  if (steps.length === 0) {
+    return (
+      <p className="text-sm text-stone-500">
+        Journey stages will appear here after an admin schedules your trip and selects your
+        journey path.
+      </p>
+    );
+  }
   const current = stage || "scheduled";
   const idx = Math.max(
     0,
@@ -252,8 +245,6 @@ export default function UserDashboard() {
   );
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
-  const [reviewVideo, setReviewVideo] = useState(null);
-  const reviewVideoRef = useRef(null);
   const [submittingStory, setSubmittingStory] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
 
@@ -270,8 +261,8 @@ export default function UserDashboard() {
       toast.error("Title is required");
       return;
     }
-    if (!String(storyText || "").trim() && !storyVideo) {
-      toast.error("Please add text or a video");
+    if (!storyVideo) {
+      toast.error("Please upload a video — stories require a short clip of your experience.");
       return;
     }
     setSubmittingStory(true);
@@ -306,8 +297,8 @@ export default function UserDashboard() {
       toast.error("Title is required");
       return;
     }
-    if (!String(reviewText || "").trim() && !reviewVideo) {
-      toast.error("Please add text or a video");
+    if (!String(reviewText || "").trim()) {
+      toast.error("Please add your review text");
       return;
     }
     setSubmittingReview(true);
@@ -321,13 +312,10 @@ export default function UserDashboard() {
         location: String(reviewLocation || "").trim(),
         rating: Number(reviewRating) || 5,
         text: String(reviewText || "").trim(),
-        videoFile: reviewVideo,
       });
       toast.success("Review submitted for approval");
       setReviewTitle("");
       setReviewText("");
-      setReviewVideo(null);
-      if (reviewVideoRef.current) reviewVideoRef.current.value = "";
       setReviewModalOpen(false);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Submit failed");
@@ -2742,27 +2730,59 @@ export default function UserDashboard() {
                   approves their bookings.
                 </p>
                 {hasCommonDocs ? (
-                  <div className="mt-4 text-sm text-stone-600 space-y-1">
+                  <div className="mt-4 space-y-2">
                     {commonDocs?.visaPdf ? (
-                      <a
-                        href={`${origin}${commonDocs.visaPdf}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-2 text-amber-700 hover:underline"
-                      >
-                        <FileText className="w-4 h-4" /> Visa PDF
-                      </a>
+                      <div className="flex items-center justify-between gap-2 rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-2">
+                        <a
+                          href={`${origin}${commonDocs.visaPdf}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 text-sm text-amber-700 hover:underline min-w-0"
+                        >
+                          <FileText className="w-4 h-4 shrink-0" />
+                          <span className="truncate">Visa PDF</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => deleteProfileDoc("visaPdf")}
+                          className="p-2 rounded-lg text-stone-500 hover:bg-red-50 hover:text-red-700 shrink-0"
+                          title="Delete visa PDF"
+                          aria-label="Delete visa PDF"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     ) : null}
                     {commonDocs?.otherPdf ? (
-                      <a
-                        href={`${origin}${commonDocs.otherPdf}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-2 text-amber-700 hover:underline"
-                      >
-                        <FileText className="w-4 h-4" /> Other document
-                      </a>
+                      <div className="flex items-center justify-between gap-2 rounded-xl border border-stone-200 bg-stone-50/80 px-3 py-2">
+                        <a
+                          href={`${origin}${commonDocs.otherPdf}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 text-sm text-amber-700 hover:underline min-w-0"
+                        >
+                          <FileText className="w-4 h-4 shrink-0" />
+                          <span className="truncate">Other document</span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => deleteProfileDoc("otherPdf")}
+                          className="p-2 rounded-lg text-stone-500 hover:bg-red-50 hover:text-red-700 shrink-0"
+                          title="Delete other document"
+                          aria-label="Delete other document"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setDocsModalOpen(true)}
+                      className="mt-2 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-amber-600 text-white font-semibold hover:bg-amber-700"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Update documents
+                    </button>
                   </div>
                 ) : (
                   <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200/80 px-3 py-2.5 text-xs text-amber-950">
@@ -2805,26 +2825,37 @@ export default function UserDashboard() {
             <h3 className="font-semibold text-stone-900 mb-2">
               Share your review
             </h3>
-            <p className="text-sm text-stone-600">
-              Share your Hajj/Umrah experience as a story (text or video). After
-              admin approval, it will be published on the Stories page.
+            <p className="text-sm text-stone-600 leading-relaxed">
+              Tell others how your Hajj or Umrah felt — the highlights, what moved you,
+              and practical tips for future travellers.
             </p>
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setStoryModalOpen(true)}
-                className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-semibold hover:bg-emerald-800"
-              >
-                Submit a Story
-              </button>
-              <button
-                type="button"
-                onClick={() => setReviewModalOpen(true)}
-                className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-stone-900 text-white font-semibold hover:bg-black"
-              >
-                Submit a Review
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setReviewModalOpen(true)}
+              className="mt-4 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-stone-900 text-white font-semibold hover:bg-black"
+            >
+              Submit a Review
+            </button>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow border border-stone-200 p-6">
+            <h3 className="font-semibold text-stone-900 mb-2">
+              Share your story
+            </h3>
+            <p className="text-sm text-stone-600 leading-relaxed">
+              Go deeper with a personal story: add a title, optional written context,
+              and{" "}
+              <span className="font-medium text-stone-800">a video clip you must upload</span>{" "}
+              (MP4, WebM, or similar). We publish approved stories on the Stories page so
+              others can see real moments from the journey.
+            </p>
+            <button
+              type="button"
+              onClick={() => setStoryModalOpen(true)}
+              className="mt-4 inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-emerald-700 text-white font-semibold hover:bg-emerald-800"
+            >
+              Submit a Story
+            </button>
           </div>
         </aside>
       </div>
@@ -2835,7 +2866,7 @@ export default function UserDashboard() {
             <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-stone-900">
-                  Upload Documents
+                  {hasCommonDocs ? "Update documents" : "Upload Documents"}
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
                   Upload visa and other document PDFs.
@@ -2967,7 +2998,7 @@ export default function UserDashboard() {
                   Submit a Story
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Fields: title, text, video
+                  Title and video are required; add text to give context if you like.
                 </p>
               </div>
               <button
@@ -2992,19 +3023,21 @@ export default function UserDashboard() {
               </div>
 
               <div>
-                <label className="block text-xs text-stone-600 mb-1">Text</label>
+                <label className="block text-xs text-stone-600 mb-1">
+                  Text <span className="text-stone-400 font-normal">(optional)</span>
+                </label>
                 <textarea
                   rows={5}
                   value={storyText}
                   onChange={(e) => setStoryText(e.target.value)}
                   className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                  placeholder="Optional if uploading a video"
+                  placeholder="Add context alongside your video — moments, duas, or advice for others."
                 />
               </div>
 
               <div>
                 <label className="block text-xs text-stone-600 mb-1">
-                  Video (optional)
+                  Video <span className="text-red-600">*</span>
                 </label>
                 <input
                   ref={storyVideoRef}
@@ -3012,7 +3045,11 @@ export default function UserDashboard() {
                   accept="video/mp4,video/webm,video/quicktime"
                   onChange={(e) => setStoryVideo(e.target.files?.[0] || null)}
                   className="w-full text-sm"
+                  required
                 />
+                <p className="text-[11px] text-stone-500 mt-1">
+                  Stories must include a video file so we can share your experience authentically.
+                </p>
               </div>
 
               <button
@@ -3036,7 +3073,7 @@ export default function UserDashboard() {
                   Submit a Review
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Keeps existing fields
+                  Text only — no video for reviews
                 </p>
               </div>
               <button
@@ -3130,20 +3167,8 @@ export default function UserDashboard() {
                   value={reviewText}
                   onChange={(e) => setReviewText(e.target.value)}
                   className="w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
-                  placeholder="Optional if uploading a video"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs text-stone-600 mb-1">
-                  Video (optional)
-                </label>
-                <input
-                  ref={reviewVideoRef}
-                  type="file"
-                  accept="video/mp4,video/webm,video/quicktime"
-                  onChange={(e) => setReviewVideo(e.target.files?.[0] || null)}
-                  className="w-full text-sm"
+                  placeholder="Write your review…"
+                  required
                 />
               </div>
 

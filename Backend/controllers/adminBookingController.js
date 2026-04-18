@@ -158,9 +158,20 @@ export const setPaymentStatus = async (req, res) => {
   }
 };
 
+const MIDDLE_JOURNEY_ORDER = [
+  "flight_takeoff",
+  "jeddah_airport",
+  "in_jeddah",
+  "ziyarat",
+  "in_makkah",
+  "in_madinah",
+  "makkah_airport",
+  "return_flight",
+];
+
 export const scheduleJourney = async (req, res) => {
   try {
-    const { startAt } = req.body || {};
+    const { startAt, plan: bodyPlan } = req.body || {};
     const dt = startAt ? new Date(startAt) : null;
     if (!dt || Number.isNaN(dt.getTime())) {
       return res.status(400).json({ message: "Valid startAt is required" });
@@ -212,26 +223,20 @@ export const scheduleJourney = async (req, res) => {
       }
     }
 
-    // Plan is chosen by the user at booking time (booking.journey.plan).
-    // Here we only schedule the start time and set stage to scheduled.
-    const rawPlan = Array.isArray(booking.journey?.plan) ? booking.journey.plan : [];
-    const allowedStages = new Set([
-      "flight_takeoff",
-      "jeddah_airport",
-      "in_jeddah",
-      "ziyarat",
-      "in_makkah",
-      "in_madinah",
-      "makkah_airport",
-      "return_flight",
-    ]);
-    const cleaned = [];
-    const seen = new Set();
-    for (const s of rawPlan) {
+    // Journey path is chosen by admin when scheduling (req.body.plan = middle stages only).
+    const allowedMiddle = new Set(MIDDLE_JOURNEY_ORDER);
+    const rawMiddle = Array.isArray(bodyPlan) ? bodyPlan : [];
+    const picked = new Set();
+    for (const s of rawMiddle) {
       const v = String(s || "").trim();
-      if (!v || !allowedStages.has(v) || seen.has(v)) continue;
-      seen.add(v);
-      cleaned.push(v);
+      if (allowedMiddle.has(v)) picked.add(v);
+    }
+    const cleaned = MIDDLE_JOURNEY_ORDER.filter((id) => picked.has(id));
+    if (cleaned.length === 0) {
+      return res.status(400).json({
+        message:
+          "Select at least one journey stage (flight, cities, return, etc.).",
+      });
     }
     const plan = ["scheduled", ...cleaned, "completed"];
 

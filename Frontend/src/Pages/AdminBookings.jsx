@@ -63,13 +63,28 @@ function planLabel(plan) {
   return cleaned.map((id) => stageLabel(id)).join(" → ");
 }
 
+/** Middle legs only; backend adds scheduled + completed. Order matches API. */
+const JOURNEY_MIDDLE_OPTIONS = [
+  { id: "flight_takeoff", label: "Flight takeoff" },
+  { id: "jeddah_airport", label: "Jeddah airport" },
+  { id: "in_jeddah", label: "In Jeddah" },
+  { id: "ziyarat", label: "Ziyarat" },
+  { id: "in_makkah", label: "In Makkah" },
+  { id: "in_madinah", label: "In Madinah" },
+  { id: "makkah_airport", label: "Makkah airport" },
+  { id: "return_flight", label: "Return flight" },
+];
+
+const DEFAULT_MIDDLE_SELECTION = JOURNEY_MIDDLE_OPTIONS.map((o) => o.id);
+
 export default function AdminBookings() {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
   const [busyId, setBusyId] = useState(null);
   const [scheduleFor, setScheduleFor] = useState(null);
   const [startAt, setStartAt] = useState("");
-  // Journey plan is chosen by the user at booking time.
+  /** Middle journey stages selected in the schedule modal (admin-defined path). */
+  const [scheduleMiddleStages, setScheduleMiddleStages] = useState([]);
   const [reasonDialog, setReasonDialog] = useState({
     open: false,
     bookingId: null,
@@ -190,12 +205,21 @@ export default function AdminBookings() {
 
   const schedule = async (id) => {
     if (!startAt) return;
+    if (!scheduleMiddleStages.length) {
+      toast.error("Select at least one journey stage.");
+      return;
+    }
     setBusyId(id);
     try {
-      await adminScheduleJourney(id, new Date(startAt).toISOString());
+      await adminScheduleJourney(
+        id,
+        new Date(startAt).toISOString(),
+        scheduleMiddleStages
+      );
       toast.success("Journey scheduled");
       setScheduleFor(null);
       setStartAt("");
+      setScheduleMiddleStages([]);
       await load({ silent: true });
     } catch (e) {
       toast.error(e.response?.data?.message || "Schedule failed");
@@ -432,21 +456,20 @@ export default function AdminBookings() {
                 title={rescheduleLocked ? "Cannot reschedule after the journey has started." : undefined}
               onClick={() => {
                   setScheduleFor(b._id);
-                  setStartAt(b.journey?.startAt ? new Date(b.journey.startAt).toISOString().slice(0, 16) : "");
+                  setStartAt(
+                    b.journey?.startAt
+                      ? new Date(b.journey.startAt).toISOString().slice(0, 16)
+                      : ""
+                  );
                   const plan = Array.isArray(b.journey?.plan) ? b.journey.plan : [];
-                  // Default selection (admin can uncheck)
-                  setSelectedStages(
-                    plan.length
-                      ? plan.filter((s) => s !== "scheduled" && s !== "completed")
-                      : [
-                          "flight_takeoff",
-                          "jeddah_airport",
-                          "in_jeddah",
-                          "in_makkah",
-                          "in_madinah",
-                          "ziyarat",
-                          "return_flight",
-                        ]
+                  const middle = plan.filter(
+                    (s) => s !== "scheduled" && s !== "completed"
+                  );
+                  const ordered = JOURNEY_MIDDLE_OPTIONS.map((o) => o.id).filter(
+                    (id) => middle.includes(id)
+                  );
+                  setScheduleMiddleStages(
+                    ordered.length ? ordered : [...DEFAULT_MIDDLE_SELECTION]
                   );
                 }}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
@@ -697,42 +720,98 @@ export default function AdminBookings() {
 
       {scheduleFor && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/50">
-          <div className="w-full max-w-sm rounded-2xl bg-white border border-zinc-200 shadow-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
+          <div className="w-full max-w-lg rounded-2xl bg-white border border-zinc-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-sm font-semibold text-zinc-900">Schedule Umrah start</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Moves user into active journey status.</p>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Set the start date and which journey stages apply. The user&apos;s dashboard and
+                  status dropdown will only show what you select here (plus scheduled → completed).
+                </p>
               </div>
-              <button type="button" onClick={() => setScheduleFor(null)}
-                className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400">
+              <button
+                type="button"
+                onClick={() => {
+                  setScheduleFor(null);
+                  setScheduleMiddleStages([]);
+                }}
+                className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400 shrink-0"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
               <div>
                 <label className="block text-xs font-medium text-zinc-600 mb-1.5">Start date & time</label>
-                <input type="datetime-local" value={startAt}
-                  onChange={e => setStartAt(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30" required />
+                <input
+                  type="datetime-local"
+                  value={startAt}
+                  onChange={(e) => setStartAt(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+                  required
+                />
               </div>
 
-              <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 px-4 py-3">
-                <p className="text-xs font-medium text-zinc-700">
-                  Journey options are based on what the user selected at booking time.
+              <div>
+                <p className="text-xs font-medium text-zinc-700 mb-2">Journey stages to track</p>
+                <p className="text-[11px] text-zinc-500 mb-2">
+                  Select the legs for this traveller. &quot;Scheduled&quot; and &quot;Completed&quot; are added
+                  automatically at the start and end (10 steps total on the timeline).
                 </p>
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  You only need to set the start date/time here.
-                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {JOURNEY_MIDDLE_OPTIONS.map((opt) => {
+                    const checked = scheduleMiddleStages.includes(opt.id);
+                    return (
+                      <label
+                        key={opt.id}
+                        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs cursor-pointer ${
+                          checked
+                            ? "border-amber-300 bg-amber-50/80 text-zinc-900"
+                            : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="rounded border-zinc-300 text-amber-600 focus:ring-amber-500/30"
+                          checked={checked}
+                          onChange={() => {
+                            setScheduleMiddleStages((prev) =>
+                              prev.includes(opt.id)
+                                ? prev.filter((x) => x !== opt.id)
+                                : [...prev, opt.id].sort(
+                                    (a, b) =>
+                                      JOURNEY_MIDDLE_OPTIONS.findIndex((o) => o.id === a) -
+                                      JOURNEY_MIDDLE_OPTIONS.findIndex((o) => o.id === b)
+                                  )
+                            );
+                          }}
+                        />
+                        <span className="font-medium">{opt.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setScheduleFor(null)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 border border-zinc-200 hover:bg-zinc-50 transition-colors">
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setScheduleFor(null);
+                    setScheduleMiddleStages([]);
+                  }}
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-zinc-600 border border-zinc-200 hover:bg-zinc-50 transition-colors"
+                >
                   Cancel
                 </button>
-                <button type="button" disabled={busyId === scheduleFor || !startAt}
+                <button
+                  type="button"
+                  disabled={
+                    busyId === scheduleFor || !startAt || scheduleMiddleStages.length === 0
+                  }
                   onClick={() => schedule(scheduleFor)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition-colors">
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                >
                   {busyId === scheduleFor && <Loader2 className="h-4 w-4 animate-spin" />}
                   {busyId === scheduleFor ? "Saving…" : "Save schedule"}
                 </button>
