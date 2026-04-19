@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Flight from "../Components/Booking/Flight";
+import ComingSoon from "./ComingSoon";
 import Hotel from "../Components/Booking/Hotel";
 import Visa from "../Components/Booking/Visa";
 import Transportation from "../Components/Booking/Transportation";
@@ -8,17 +9,17 @@ import { useAuth } from "../Context/AuthContext";
 import { ArrowLeft } from "lucide-react";
 
 export default function BookingApp() {
-  const [activeTab, setActiveTab] = useState("flights");
+  const [activeTab, setActiveTab] = useState("hotels");
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   const [registerPromptOpen, setRegisterPromptOpen] = useState(false);
 
   const tabs = [
-    { id: "flights", label: "Flights", icon: "✈️" },
     { id: "hotels", label: "Hotels", icon: "🏨" },
     { id: "visa", label: "Visa", icon: "📋" },
     { id: "transport", label: "Transportation", icon: "🚌" },
+    { id: "flights", label: "Flights", icon: "✈️" },
   ];
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function BookingApp() {
   const renderActiveSection = () => {
     switch (activeTab) {
       case "flights":
-        return <Flight />;
+        return <ComingSoon />;
       case "hotels":
         return (
           <Hotel
@@ -58,7 +59,7 @@ export default function BookingApp() {
           />
         );
       default:
-        return <Flight />;
+        return <Hotel />;
     }
   };
 
