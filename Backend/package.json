@@ -1,0 +1,33 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Backend server for project",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "Muhammad Moeez Jamil",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.2",
+    "firebase-admin": "^13.8.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.23.0",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.5",
+    "stripe": "^17.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

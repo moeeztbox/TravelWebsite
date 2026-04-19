@@ -1,0 +1,77 @@
+import mongoose from "mongoose";
+
+const bookingSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    packageId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    packageTitle: { type: String, required: true, trim: true },
+    packageSubtitle: { type: String, default: "" },
+    packagePrice: { type: String, default: "" },
+    packageDuration: { type: String, default: "" },
+    packageImage: { type: String, default: "" },
+    badge: { type: String, default: "" },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected", "cancelled"],
+      default: "pending",
+    },
+    statusReason: {
+      type: String,
+      default: "",
+    },
+    documents: {
+      visaPdf: { type: String, default: "" },
+      otherPdf: { type: String, default: "" },
+    },
+    payment: {
+      receiptPdf: { type: String, default: "" },
+      stripePaymentIntentId: { type: String, default: "" },
+      method: {
+        type: String,
+        enum: ["", "jazzcash", "easypaisa", "card", "bank_transfer", "stripe"],
+        default: "",
+      },
+      status: {
+        type: String,
+        enum: ["none", "verifying", "verified", "rejected"],
+        default: "none",
+      },
+    },
+    journey: {
+      startAt: { type: Date },
+      plan: { type: [String], default: [] },
+      stage: {
+        type: String,
+        enum: [
+          "not_started",
+          "scheduled",
+          "flight_takeoff",
+          "jeddah_airport",
+          "in_jeddah",
+          "ziyarat",
+          "in_makkah",
+          "in_madinah",
+          "makkah_airport",
+          "return_flight",
+          "completed",
+        ],
+        default: "not_started",
+      },
+      updatedAt: { type: Date },
+    },
+  },
+  { timestamps: true }
+);
+
+bookingSchema.index({ user: 1, packageId: 1, status: 1 });
+
+export default mongoose.model("Booking", bookingSchema);

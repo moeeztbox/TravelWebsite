@@ -1,1 +1,93 @@
 @import "tailwindcss";
+
+/* ✅ Your existing code */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+.animate-marquee {
+  animation: marquee var(--duration, 40s) linear infinite;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration, 40s) linear infinite;
+}
+
+/* Pause on hover support */
+.group:hover .group-hover\:\[animation-play-state\:paused\] {
+  animation-play-state: paused;
+}
+
+/* Animation direction reverse support */
+.\[animation-direction\:reverse\] {
+  animation-direction: reverse;
+}
+
+/* ✅ Hide horizontal scroll on entire website */
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* Use instant scroll by default — avoids page-wide smooth scroll / “jump” feel */
+html {
+  scroll-behavior: auto;
+}
+
+/* === Hide Google Translate UI elements === */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame,
+.goog-te-banner,
+.goog-logo-link,
+.goog-te-gadget span,
+.goog-te-balloon-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Google translate workaround: keep body top stable, but DO NOT override scroll lock */
+body:not([data-scroll-locked="true"]) {
+  top: 0 !important;
+}
+
+/* Scroll lock must win even if other CSS uses !important */
+body[data-scroll-locked="true"] {
+  position: fixed !important;
+  top: var(--scroll-lock-top, 0px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+
+.goog-te-gadget {
+  font-size: 0 !important;
+  color: transparent !important;
+}
+
+iframe.goog-te-menu-frame {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Stripe Payment Element: hide Link / secure-messaging promo iframe (fixed bottom-right chip) */
+iframe[title="Secure payment messaging frame"],
+iframe[title="Stripe messaging frame"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

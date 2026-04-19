@@ -1,0 +1,47 @@
+import express from "express";
+import { protect } from "../middleware/authMiddleware.js";
+import {
+  createDraftBooking,
+  listMyBookings,
+  getBookingById,
+  deleteMyBooking,
+  setMyPaymentMethod,
+} from "../controllers/bookingController.js";
+import {
+  createBookingPaymentIntent,
+  confirmBookingStripePayment,
+} from "../controllers/stripePaymentController.js";
+import {
+  attachCommonDocuments,
+  attachDocuments,
+} from "../controllers/bookingDocumentsController.js";
+import {
+  bookingUploadFields,
+  bookingPaymentReceiptField,
+} from "../middleware/uploadBookingDocs.js";
+import { attachPaymentReceipt } from "../controllers/bookingDocumentsController.js";
+
+const router = express.Router();
+
+router.use(protect);
+
+router.post("/", createDraftBooking);
+router.get("/", listMyBookings);
+router.post("/:id/stripe/payment-intent", createBookingPaymentIntent);
+router.post("/:id/stripe/confirm", confirmBookingStripePayment);
+router.get("/:id", getBookingById);
+router.delete("/:id", deleteMyBooking);
+router.patch("/:id/payment-method", setMyPaymentMethod);
+router.post(
+  "/:id/documents",
+  bookingUploadFields(),
+  attachDocuments
+);
+router.post("/:id/documents/attach-common", attachCommonDocuments);
+router.post(
+  "/:id/payment-receipt",
+  bookingPaymentReceiptField(),
+  attachPaymentReceipt
+);
+
+export default router;
