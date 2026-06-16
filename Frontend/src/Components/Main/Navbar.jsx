@@ -14,7 +14,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useScrollLock } from "../../Hooks/useScrollLock";
 import { UserCircle } from "lucide-react";
-import LanguageSwitcher from "../../Services/Languages/LanguageSwitcher";
 import { useAuth } from "../../Context/AuthContext";
 import { getBitmojiAvatarUrl } from "../../constants/bitmoji";
 
@@ -27,10 +26,10 @@ export default function NavbarDemo() {
   const navItems = [
     { name: "Home", link: "/" },
     { name: "Packages", link: "/packages" },
-    { name: "Booking", link: "/booking" },
+
     { name: "Services", link: "/services" },
     { name: "FAQ", link: "/faq" },
-    { name: "Stories", link: "/stories" },
+
     { name: "Policies", link: "/policies" },
     {
       name: "Guide",
@@ -84,14 +83,9 @@ export default function NavbarDemo() {
       <Navbar>
         <NavBody>
           <NavbarLogo />
-          <NavItems
-            items={navItems}
-            isAuthenticated={isAuthenticated}
-          />
+          <NavItems items={navItems} isAuthenticated={isAuthenticated} />
 
           <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
-            <LanguageSwitcher />
-
             {isAuthenticated ? (
               <div className="flex items-center gap-2 sm:gap-3">
                 {isAdmin ? (
@@ -102,7 +96,7 @@ export default function NavbarDemo() {
                       className={[
                         "flex items-center justify-center rounded-lg p-1.5 transition-colors outline-none",
                         location.pathname.startsWith("/admin") ||
-                          location.pathname === "/dashboard"
+                        location.pathname === "/dashboard"
                           ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60"
                           : "text-yellow-700 hover:bg-yellow-50",
                       ].join(" ")}
@@ -270,8 +264,8 @@ export default function NavbarDemo() {
                       className={[
                         "flex items-center justify-center rounded-xl p-1.5 transition-colors outline-none",
                         mobileAccountOpen ||
-                          location.pathname.startsWith("/admin") ||
-                          location.pathname === "/dashboard"
+                        location.pathname.startsWith("/admin") ||
+                        location.pathname === "/dashboard"
                           ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/70"
                           : "text-yellow-700 hover:bg-yellow-50",
                       ].join(" ")}
@@ -344,7 +338,7 @@ export default function NavbarDemo() {
                       className={[
                         "flex items-center justify-center rounded-xl p-1.5 transition-colors outline-none",
                         mobileAccountOpen ||
-                          location.pathname.startsWith("/dashboard")
+                        location.pathname.startsWith("/dashboard")
                           ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/70"
                           : "text-yellow-700 hover:bg-yellow-50",
                       ].join(" ")}

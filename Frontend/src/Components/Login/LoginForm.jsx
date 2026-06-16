@@ -4,7 +4,7 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { login } from "../../Services/authService";
 import { useAuth } from "../../Context/AuthContext";
-import GoogleLoginButton from "./GoogleLoginButton";
+
 import { validateEmail } from "../../utils/formValidation";
 
 function getErrorMessage(error) {
@@ -40,9 +40,7 @@ function LoginForm() {
     }
     const from = location.state?.from;
     const target =
-      from && typeof from === "object" && from.pathname
-        ? from.pathname
-        : "/";
+      from && typeof from === "object" && from.pathname ? from.pathname : "/";
     navigate(target, { replace: true });
   }, [ready, isAuthenticated, user?.role, navigate, location.state?.from]);
 
@@ -148,11 +146,9 @@ function LoginForm() {
               </Link>
             </div>
           </div>
-            
-            
+
           <div className="text-center pt-2 sm:pt-4">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <GoogleLoginButton />
               <button
                 type="submit"
                 disabled={loading}
@@ -171,13 +167,7 @@ function LoginForm() {
                 Register
               </Link>
             </p>
-
-            
-
-           
-           
           </div>
-            
         </form>
       </motion.div>
     </div>

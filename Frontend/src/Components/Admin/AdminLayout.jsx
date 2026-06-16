@@ -23,28 +23,19 @@ function sidebarLinkClass(active) {
   ].join(" ");
 }
 
-export default function AdminLayout({ title, subtitle, children, headerRight }) {
+export default function AdminLayout({
+  title,
+  subtitle,
+  children,
+  headerRight,
+}) {
   const location = useLocation();
   const path = location.pathname;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  const nav = [
-    { to: "/admin/packages", label: "Packages", icon: LayoutGrid },
-    {
-      to: "/admin/service-options",
-      label: "Transport & visa options",
-      icon: Layers,
-    },
-    { to: "/admin/bookings", label: "Bookings", icon: ClipboardList },
-    { to: "/admin/hotel-bookings", label: "Hotel bookings", icon: Hotel },
-    { to: "/admin/transportation", label: "Transportation Bookings", icon: Bus },
-    { to: "/admin/visa-requests", label: "Visa requests", icon: FileText },
-    { to: "/admin/custom-packages", label: "Custom Packages", icon: PackagePlus },
-    { to: "/admin/stories", label: "Stories", icon: BookOpen },
-    { to: "/admin/user-statuses", label: "User Statuses", icon: Users },
-  ];
+  const nav = [{ to: "/admin/packages", label: "Packages", icon: LayoutGrid }];
 
   return (
     <div className="min-h-screen box-border pt-16 lg:pt-20 flex bg-gradient-to-b from-amber-50/40 via-stone-50 to-stone-100">

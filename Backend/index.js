@@ -87,7 +87,6 @@ import {
   adminSetHotelPaymentStatus,
   adminDeleteHotelBooking,
 } from "./controllers/adminHotelBookingController.js";
-import chatbotRoutes from "./routes/chatbotRoutes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Always load Backend/.env even if you run `node Backend/index.js` from the repo root
@@ -163,7 +162,6 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/transportation", transportationRoutes);
 app.use("/api/visa", visaRequestRoutes);
 app.use("/api/hotels", hotelBookingRoutes);
-app.use("/api", chatbotRoutes);
 
 app.get(
   "/api/admin/transportation-bookings",

@@ -13,10 +13,7 @@ import Home from "./Pages/Home";
 import AboutUs from "./Pages/AboutUs";
 import ContactUs from "./Pages/ContactUs";
 import Packages from "./Pages/Packages";
-import Register from "./Pages/Register";
 import Login from "./Pages/Login";
-import ForgotPassword from "./Pages/ForgotPassword";
-import ResetPassword from "./Pages/ResetPassword";
 import Navbar from "./Components/Main/Navbar";
 import Footer from "./Components/Main/Footer";
 import FAQ from "./Pages/FAQ";
@@ -28,24 +25,12 @@ import UmrahPage from "./Components/Guide/UmrahPage";
 import TravelPage from "./Components/Guide/TravelPage";
 import ZiyaratPage from "./Components/Guide/ZiyaratPage";
 import ComingSoon from "./Pages/ComingSoon";
-import Booking from "./Pages/Booking";
-import UserDashboard from "./Pages/UserDashboard";
 import AdminPackages from "./Pages/AdminPackages";
-import AdminBookings from "./Pages/AdminBookings";
-import AdminUserStatuses from "./Pages/AdminUserStatuses";
-import AdminStories from "./Pages/AdminStories";
-import AdminCustomPackages from "./Pages/AdminCustomPackages";
-import AdminTransportation from "./Pages/AdminTransportation";
-import AdminVisaRequests from "./Pages/AdminVisaRequests";
-import AdminServiceOptions from "./Pages/AdminServiceOptions";
-import AdminHotelBookings from "./Pages/AdminHotelBookings";
-import Stories from "./Pages/Stories";
-import SubmitStory from "./Pages/SubmitStory";
+
 import {
   forceReleaseScrollLock,
   getScrollLockState,
 } from "./Hooks/useScrollLock";
-import Chatbot from "./Components/Main/Chatbot";
 
 function AppRoutes() {
   const location = useLocation();
@@ -146,21 +131,12 @@ function AppRoutes() {
         </div>
       ) : null}
       <Navbar />
-      <Chatbot />
+
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<Packages />} />
         <Route path="/services" element={<Services />} />
         <Route path="/faq" element={<FAQ />} />
-        <Route path="/stories" element={<Stories />} />
-        <Route
-          path="/stories/submit"
-          element={
-            <RequireAuth redirectTo="/login">
-              <SubmitStory />
-            </RequireAuth>
-          }
-        />
         <Route path="/guidance" element={<Guide />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/contact-us" element={<ContactUs />} />
@@ -168,20 +144,9 @@ function AppRoutes() {
         <Route path="/travel-guide" element={<TravelPage />} />
         <Route path="/ziyarat-guide" element={<ZiyaratPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/coming-soon" element={<ComingSoon />} />
-        <Route
-          path="/dashboard"
-          element={
-            <RequireAuth redirectTo="/login">
-              <UserDashboard />
-            </RequireAuth>
-          }
-        />
-        <Route path="/booking" element={<Booking />} />
+
         <Route
           path="/admin/packages"
           element={
@@ -190,70 +155,7 @@ function AppRoutes() {
             </RequireAdmin>
           }
         />
-        <Route
-          path="/admin/service-options"
-          element={
-            <RequireAdmin>
-              <AdminServiceOptions />
-            </RequireAdmin>
-          }
-        />
-        <Route
-          path="/admin/bookings"
-          element={
-            <RequireAdmin>
-              <AdminBookings />
-            </RequireAdmin>
-          }
-        />
-        <Route
-          path="/admin/hotel-bookings"
-          element={
-            <RequireAdmin>
-              <AdminHotelBookings />
-            </RequireAdmin>
-          }
-        />
-        <Route
-          path="/admin/transportation"
-          element={
-            <RequireAdmin>
-              <AdminTransportation />
-            </RequireAdmin>
-          }
-        />
-        <Route
-          path="/admin/visa-requests"
-          element={
-            <RequireAdmin>
-              <AdminVisaRequests />
-            </RequireAdmin>
-          }
-        />
-        <Route
-          path="/admin/custom-packages"
-          element={
-            <RequireAdmin>
-              <AdminCustomPackages />
-            </RequireAdmin>
-          }
-        />
-        <Route
-          path="/admin/user-statuses"
-          element={
-            <RequireAdmin>
-              <AdminUserStatuses />
-            </RequireAdmin>
-          }
-        />
-        <Route
-          path="/admin/stories"
-          element={
-            <RequireAdmin>
-              <AdminStories />
-            </RequireAdmin>
-          }
-        />
+
         <Route
           path="/admin"
           element={<Navigate to="/admin/packages" replace />}
