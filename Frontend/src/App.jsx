@@ -150,9 +150,9 @@ function AppRoutes() {
         <Route
           path="/admin/packages"
           element={
-            <RequireAdmin>
+            // <RequireAdmin>
               <AdminPackages />
-            </RequireAdmin>
+            // </RequireAdmin>
           }
         />
 

@@ -12,18 +12,6 @@ import {
 import { HIGHLIGHT_ICON_MAP } from "../constants/packageHighlightIcons";
 
 const ICON_OPTIONS = Object.keys(HIGHLIGHT_ICON_MAP);
-const JOURNEY_STAGE_OPTIONS = [
-  ["scheduled", "Scheduled"],
-  ["flight_takeoff", "Flight takeoff"],
-  ["jeddah_airport", "Jeddah airport"],
-  ["in_jeddah", "In Jeddah"],
-  ["ziyarat", "Ziyarat"],
-  ["in_madinah", "In Madinah"],
-  ["in_makkah", "In Makkah"],
-  ["makkah_airport", "Makkah airport"],
-  ["return_flight", "Return flight"],
-  ["completed", "Completed"],
-];
 
 function emptyForm() {
   return {
@@ -658,53 +646,7 @@ export default function AdminPackages() {
                       </div>
                     </fieldset>
 
-                    {/* Divider */}
-                    <hr className="border-zinc-100" />
-
-                    {/* Section: Journey stages */}
-                    <fieldset className="space-y-2">
-                      <legend className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                        Package includes (journey)
-                      </legend>
-                      <p className="text-xs text-zinc-400">
-                        These will be shown on the package card like: Flight takeoff → In Madinah → In Makkah → Return flight.
-                      </p>
-                      <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
-                        {JOURNEY_STAGE_OPTIONS.map(([id, label]) => {
-                          const checked = Array.isArray(form.journeyStages)
-                            ? form.journeyStages.includes(id)
-                            : false;
-                          return (
-                            <label
-                              key={id}
-                              className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
-                                checked
-                                  ? "border-amber-200 bg-amber-50/60"
-                                  : "border-zinc-200 bg-zinc-50 hover:bg-white"
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={(e) =>
-                                  setForm((f) => {
-                                    const current = Array.isArray(f.journeyStages)
-                                      ? f.journeyStages
-                                      : [];
-                                    const next = e.target.checked
-                                      ? Array.from(new Set([...current, id]))
-                                      : current.filter((x) => x !== id);
-                                    return { ...f, journeyStages: next };
-                                  })
-                                }
-                                className="h-4 w-4 rounded border-zinc-300 text-amber-500 focus:ring-amber-500"
-                              />
-                              <span className="text-sm text-zinc-700">{label}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </fieldset>
+                  
 
                     {/* Divider */}
                     <hr className="border-zinc-100" />

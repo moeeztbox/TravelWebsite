@@ -6,34 +6,19 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
-import bookingRoutes from "./routes/bookingRoutes.js";
+
 import packageRoutes from "./routes/packageRoutes.js";
 import complainRoutes from "./routes/complainRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
-import customPackageRoutes from "./routes/customPackageRoutes.js";
-import adminCustomPackageRoutes from "./routes/adminCustomPackageRoutes.js";
 import { listPackages } from "./controllers/packageController.js";
 import { adminListAllPackages } from "./controllers/packageController.js";
 import { sendComplainEmail } from "./controllers/complainController.js";
 import { sendContactEmail } from "./controllers/contactController.js";
-import {
-  createCustomPackageRequest,
-  listMyCustomPackageRequests,
-  acceptApprovedCustomPackage,
-  rejectUserCustomPackageProposal,
-  deleteMyCustomPackageRequest,
-} from "./controllers/customPackageController.js";
+
 import { adminLogin } from "./controllers/adminController.js";
 import { protectAdmin } from "./middleware/adminMiddleware.js";
-import {
-  listAllBookings,
-  setBookingStatus,
-  setPaymentStatus,
-  scheduleJourney,
-  setJourneyStage,
-  adminDeleteBooking,
-} from "./controllers/adminBookingController.js";
+
 import { seedPackagesIfEnabled } from "./seed/packagesSeed.js";
 import { seedAdminUserOnStart } from "./seed/adminSeed.js";
 import { seedTransportationAndVisaOptions } from "./seed/transportationVisaSeed.js";
