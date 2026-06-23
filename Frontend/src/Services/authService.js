@@ -73,38 +73,8 @@ export async function login(payload) {
   return data;
 }
 
-export async function loginWithFirebase(idToken) {
-  const { data } = await api.post("/auth/firebase", { idToken });
-  return data;
-}
-
-export async function forgotPassword(payload) {
-  const { data } = await api.post("/auth/forgot-password", payload);
-  return data;
-}
-
-export async function resetPassword(payload) {
-  const { data } = await api.post("/auth/reset-password", payload);
-  return data;
-}
-
 export async function fetchMe() {
   const { data } = await api.get("/auth/me");
-  return data;
-}
-
-export async function updateProfile(payload) {
-  const { data } = await api.patch("/auth/profile", payload);
-  return data;
-}
-
-export async function uploadCommonDocuments(formData) {
-  const { data } = await api.patch("/auth/documents", formData);
-  return data;
-}
-
-export async function deleteCommonDocument(doc) {
-  const { data } = await api.delete("/auth/documents", { params: { doc } });
   return data;
 }
 
@@ -131,8 +101,5 @@ export function formatAxiosError(error) {
   if (status === 401) {
     return "Invalid email or password.";
   }
-  return (
-    error.response.statusText ||
-    "Something went wrong. Please try again."
-  );
+  return error.response.statusText || "Something went wrong. Please try again.";
 }

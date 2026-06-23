@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
 import { useAuth } from "../Context/AuthContext";
-import { createDraftBooking } from "../Services/bookingService";
 
 function bookingErrorMessage(err) {
   if (axios.isAxiosError(err)) {
@@ -40,7 +39,9 @@ function bookingErrorMessage(err) {
 export function toBookingPayload(pkg) {
   const packageId =
     pkg.packageId ||
-    (pkg.id != null ? String(pkg.id) : pkg.title?.toLowerCase().replace(/\s+/g, "-")) ||
+    (pkg.id != null
+      ? String(pkg.id)
+      : pkg.title?.toLowerCase().replace(/\s+/g, "-")) ||
     "package";
   return {
     packageId,
@@ -63,7 +64,8 @@ export function usePackageBooking() {
       duration: 5000,
       action: {
         label: "Log in",
-        onClick: () => navigate("/login", { state: { from: { pathname: "/packages" } } }),
+        onClick: () =>
+          navigate("/login", { state: { from: { pathname: "/packages" } } }),
       },
     });
   }, [navigate]);
@@ -103,7 +105,7 @@ export function usePackageBooking() {
         toast.error(bookingErrorMessage(err));
       }
     },
-    [isAuthenticated, navigate, promptLoginForBooking]
+    [isAuthenticated, navigate, promptLoginForBooking],
   );
 
   return { bookPackage, goToPackagesOrPromptLogin, promptLoginForBooking };

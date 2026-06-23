@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "../../lib/utils";
 import Marquee from "../../UI/marquee";
-import { listApprovedStories } from "../../Services/storiesService";
+
 import { getApiOrigin } from "../../utils/apiOrigin";
 
 function nameFromStory(s) {
@@ -54,7 +54,7 @@ const MarqueeDemo = () => {
       const tripType = String(s?.type || "").toUpperCase() || "STORY";
       const location = String(s?.location || "").trim();
       const img = `https://avatar.vercel.sh/${encodeURIComponent(
-        username.replace("@", "")
+        username.replace("@", ""),
       )}`;
       const videoUrl = s?.videoUrl ? `${origin}${s.videoUrl}` : null;
       return {
@@ -75,11 +75,11 @@ const MarqueeDemo = () => {
   return (
     <div className="relative flex h-[80vh] w-full flex-col items-center justify-center overflow-hidden bg-gray-50 font-sans">
       <div className="text-center space-y-4 mb-12 px-4 z-10 relative">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">       
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900">
           Traveller <span className="text-amber-500">Reviews</span>
-        </h2>   
+        </h2>
 
-        <div className="flex items-center justify-center gap-3">             
+        <div className="flex items-center justify-center gap-3">
           <div className="h-px bg-amber-500 w-16"></div>
           <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
           <div className="h-px bg-amber-500 w-16"></div>
@@ -92,7 +92,9 @@ const MarqueeDemo = () => {
 
       <div className="w-full max-w-7xl relative z-10">
         {loading ? (
-          <div className="text-sm text-gray-500 text-center">Loading reviews…</div>
+          <div className="text-sm text-gray-500 text-center">
+            Loading reviews…
+          </div>
         ) : reviews.length === 0 ? (
           <div className="text-sm text-gray-500 text-center">
             No reviews yet.
@@ -167,8 +169,8 @@ const ReviewCard = ({
   return (
     <figure
       className={cn(
-        'relative w-80 lg:w-96 cursor-pointer overflow-hidden rounded-xl border p-6 mx-3',
-        'border-gray-200 bg-white hover:shadow-lg transition-shadow duration-300'
+        "relative w-80 lg:w-96 cursor-pointer overflow-hidden rounded-xl border p-6 mx-3",
+        "border-gray-200 bg-white hover:shadow-lg transition-shadow duration-300",
       )}
     >
       <div className="flex flex-row items-start gap-4 mb-5">
@@ -181,8 +183,16 @@ const ReviewCard = ({
             src={img}
           />
           <div className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 rounded-full shadow flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            <svg
+              className="w-3 h-3 text-white"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
         </div>
@@ -196,8 +206,16 @@ const ReviewCard = ({
               {tripType}
             </span>
             <div className="flex items-center gap-1 text-xs text-gray-500">
-              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              <svg
+                className="w-3 h-3 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span className="truncate">{location}</span>
             </div>
