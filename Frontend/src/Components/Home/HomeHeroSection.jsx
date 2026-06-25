@@ -34,32 +34,32 @@ const HomeHeroSection = () => {
         ease: "power2.out",
         pointerEvents: "none",
       },
-      0
+      0,
     )
       .to(
         titleRef.current,
         { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
-        0
+        0,
       )
       .to(
         subtitleRef.current,
         { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
-        0.4
+        0.4,
       )
       .to(
         lineRef.current,
         { width: "220px", duration: 0.7, ease: "power3.out" },
-        0.6
+        0.6,
       )
       .to(
         descriptionRef.current,
         { opacity: 0.5, y: 0, duration: 0.5, ease: "power3.out" },
-        0.8
+        0.8,
       )
       .to(
         buttonsRef.current,
         { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
-        1
+        1,
       );
 
     // Subtle button hover animations
@@ -299,10 +299,14 @@ const HomeHeroSection = () => {
             style={{ fontFamily: "Inter, sans-serif", fontWeight: "400" }}
           >
             <span className="sm:hidden">
-            We offer trusted and hassle-free Umrah Packages, ensuring your comfort. Our team ensures complete guidance from departure to return.
+              We offer trusted and hassle-free Umrah Packages, ensuring your
+              comfort. Our team ensures complete guidance from departure to
+              return.
             </span>
             <span className="hidden sm:inline">
-            We offer trusted and hassle-free Umrah Packages, ensuring your comfort. Our team ensures complete guidance from departure to return.
+              We offer trusted and hassle-free Umrah Packages, ensuring your
+              comfort. Our team ensures complete guidance from departure to
+              return.
             </span>
           </p>
 
@@ -315,13 +319,12 @@ const HomeHeroSection = () => {
             <button
               ref={primaryButtonRef}
               type="button"
-              onClick={() => navigate("/booking")}
+              onClick={() => navigate("/packages")}
               className="px-6 py-3 sm:px-8 sm:py-3 md:px-10 md:py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black font-bold rounded-lg tracking-wide drop-shadow-lg text-sm sm:text-base cursor-pointer"
               style={{ fontWeight: "600" }}
             >
               Book Now
             </button>
-            
           </div>
         </div>
       </div>

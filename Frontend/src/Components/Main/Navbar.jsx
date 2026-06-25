@@ -235,15 +235,7 @@ export default function NavbarDemo() {
                 )}
               </div>
             ) : (
-              <>
-                <NavbarButton
-                  variant="secondary"
-                  to="/login"
-                  className="px-4 lg:px-6 xl:px-8 py-2 lg:py-2.5 xl:py-3.5 text-sm lg:text-base xl:text-lg"
-                >
-                  Login
-                </NavbarButton>
-              </>
+              <></>
             )}
           </div>
         </NavBody>
@@ -422,23 +414,6 @@ export default function NavbarDemo() {
               isAuthenticated={isAuthenticated}
               onItemClick={() => setIsMobileMenuOpen(false)}
             />
-
-            {!isAuthenticated ? (
-              <div className="flex w-full flex-col gap-3 pt-4 border-t border-white/10">
-                <div className="px-4 sm:px-6 py-3">
-                  <div className="flex gap-2 sm:gap-3">
-                    <NavbarButton
-                      to="/login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      variant="secondary"
-                      className="flex-1 text-center justify-center font-medium py-2.5 sm:py-3 text-sm sm:text-base border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-800 transition-all duration-200"
-                    >
-                      Login
-                    </NavbarButton>
-                  </div>
-                </div>
-              </div>
-            ) : null}
           </MobileNavMenu>
         </MobileNav>
       </Navbar>
