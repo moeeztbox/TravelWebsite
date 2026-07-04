@@ -12,10 +12,13 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ children, className }) => {
   return (
-    <nav className={cn("fixed inset-x-0 top-0 z-40 w-full bg-white shadow-sm border-b border-gray-200", className)}>
-      <div className="w-full">
-        {children}
-      </div>
+    <nav
+      className={cn(
+        "fixed inset-x-0 top-0 z-40 w-full bg-white shadow-sm border-b border-gray-200",
+        className,
+      )}
+    >
+      <div className="w-full">{children}</div>
     </nav>
   );
 };
@@ -26,17 +29,16 @@ interface NavBodyProps {
   className?: string;
 }
 
-export const NavBody: React.FC<NavBodyProps> = ({
-  children,
-  className,
-}) => {
+export const NavBody: React.FC<NavBodyProps> = ({ children, className }) => {
   return (
-    <div className={cn(
-      "hidden lg:flex items-center justify-between w-full",
-      "px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-32",
-      "py-3 lg:py-4 xl:py-5",
-      className
-    )}>
+    <div
+      className={cn(
+        "hidden lg:flex items-center justify-between w-full",
+        "px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-32",
+        "py-3 lg:py-4 xl:py-5",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -84,9 +86,9 @@ export const NavItems: React.FC<NavItemsProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -131,7 +133,11 @@ export const NavItems: React.FC<NavItemsProps> = ({
         <div
           key={`nav-item-${idx}`}
           className="relative"
-          ref={idx === items.findIndex(i => i.name === "Guide") ? parentRef : undefined}
+          ref={
+            idx === items.findIndex((i) => i.name === "Guide")
+              ? parentRef
+              : undefined
+          }
           onMouseEnter={() => handleMouseEnter(item.name)}
           onMouseLeave={handleMouseLeave}
         >
@@ -146,7 +152,7 @@ export const NavItems: React.FC<NavItemsProps> = ({
                 "transition-all duration-300 whitespace-nowrap relative group flex items-center bg-transparent border-0 cursor-pointer font-inherit",
                 isMobile
                   ? "block px-6 py-5 text-lg font-semibold text-black hover:text-yellow-600 hover:bg-gray-50 first:pt-4 last:pb-4 w-full text-left"
-                  : "text-gray-700 hover:text-yellow-600"
+                  : "text-gray-700 hover:text-yellow-600",
               )}
             >
               {item.name}
@@ -155,45 +161,50 @@ export const NavItems: React.FC<NavItemsProps> = ({
               )}
             </button>
           ) : (
-          <Link
-            to={item.link}
-            onClick={handleItemClick}
-            className={cn(
-              "transition-all duration-300 whitespace-nowrap relative group flex items-center",
-              isMobile
-                ? "block px-6 py-5 text-lg font-semibold text-black hover:text-yellow-600 hover:bg-gray-50 first:pt-4 last:pb-4 w-full"
-                : "text-gray-700 hover:text-yellow-600"
-            )}
-          >
-            {item.name}
-            {!isMobile && item.subItems && item.subItems.length > 0 && (
-              <IconChevronDown
-                size={16}
-                className={cn(
-                  "ml-1 transition-transform duration-200",
-                  (hoveredItem === item.name || isHoveringDropdown) && "rotate-180"
-                )}
-              />
-            )}
-            {!isMobile && (
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-600 transition-all duration-300 group-hover:w-full"></span>
-            )}
-          </Link>
+            <Link
+              to={item.link}
+              onClick={handleItemClick}
+              className={cn(
+                "transition-all duration-300 whitespace-nowrap relative group flex items-center",
+                isMobile
+                  ? "block px-6 py-5 text-lg font-semibold text-black hover:text-yellow-600 hover:bg-gray-50 first:pt-4 last:pb-4 w-full"
+                  : "text-gray-700 hover:text-yellow-600",
+              )}
+            >
+              {item.name}
+              {!isMobile && item.subItems && item.subItems.length > 0 && (
+                <IconChevronDown
+                  size={16}
+                  className={cn(
+                    "ml-1 transition-transform duration-200",
+                    (hoveredItem === item.name || isHoveringDropdown) &&
+                      "rotate-180",
+                  )}
+                />
+              )}
+              {!isMobile && (
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-yellow-600 transition-all duration-300 group-hover:w-full"></span>
+              )}
+            </Link>
           )}
 
           {!isMobile && item.subItems && item.subItems.length > 0 && (
             <div
-              ref={idx === items.findIndex(i => i.name === "Guide") ? dropdownRef : undefined}
+              ref={
+                idx === items.findIndex((i) => i.name === "Guide")
+                  ? dropdownRef
+                  : undefined
+              }
               className={cn(
                 "absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 transition-all duration-200 transform origin-top",
-                (hoveredItem === item.name || isHoveringDropdown)
+                hoveredItem === item.name || isHoveringDropdown
                   ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
-                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none",
               )}
               onMouseEnter={handleDropdownMouseEnter}
               onMouseLeave={handleDropdownMouseLeave}
               style={{
-                transition: 'opacity 200ms ease, transform 200ms ease'
+                transition: "opacity 200ms ease, transform 200ms ease",
               }}
             >
               {item.subItems.map((subItem, subIdx) => (
@@ -239,10 +250,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   className,
 }) => {
   return (
-    <div className={cn(
-      "lg:hidden w-full px-4 sm:px-6 py-4 relative",
-      className
-    )}>
+    <div
+      className={cn("lg:hidden w-full px-4 sm:px-6 py-4 relative", className)}
+    >
       {children}
     </div>
   );
@@ -258,10 +268,7 @@ export const MobileNavHeader: React.FC<MobileNavHeaderProps> = ({
   className,
 }) => {
   return (
-    <div className={cn(
-      "flex items-center justify-between w-full",
-      className
-    )}>
+    <div className={cn("flex items-center justify-between w-full", className)}>
       {children}
     </div>
   );
@@ -289,12 +296,13 @@ export const MobileNavMenu: React.FC<MobileNavMenuProps> = ({
         onClick={onClose}
       />
 
-      <div className={cn(
-        "fixed left-0 right-0 z-50",
-        "bg-white border-b border-gray-200 shadow-xl",
-        className
-      )}>
-
+      <div
+        className={cn(
+          "fixed left-0 right-0 z-50",
+          "bg-white border-b border-gray-200 shadow-xl",
+          className,
+        )}
+      >
         <div className="w-full py-4 max-h-[70vh] overflow-y-auto text-black">
           {children}
         </div>
@@ -320,7 +328,10 @@ export const MobileNavToggle: React.FC<MobileNavToggleProps> = ({
       aria-label={isOpen ? "Close menu" : "Open menu"}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/0 to-yellow-500/0 group-hover:from-yellow-500/5 group-hover:to-yellow-500/10 rounded-2xl transition-all duration-300" />
-      <Icon size={20} className="sm:w-6 sm:h-6 relative z-10 transition-transform duration-200 group-hover:scale-110" />
+      <Icon
+        size={20}
+        className="sm:w-6 sm:h-6 relative z-10 transition-transform duration-200 group-hover:scale-110"
+      />
     </button>
   );
 };
@@ -357,7 +368,7 @@ export const NavbarLogo: React.FC<NavbarLogoProps> = ({ onClick }) => {
 
 interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href?: string;
-  to?: string; 
+  to?: string;
   as?: React.ElementType;
   children: ReactNode;
   className?: string;
@@ -367,22 +378,22 @@ interface NavbarButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement
 export const NavbarButton: React.FC<NavbarButtonProps> = ({
   href,
   to,
-  as: Tag = to ? Link : "a", 
+  as: Tag = to ? Link : "a",
   children,
   className,
   variant = "primary",
   ...props
 }) => {
-  const baseStyles = "px-4 py-2 lg:px-6 lg:py-2.5 xl:px-8 xl:py-3.5 rounded-lg text-sm lg:text-base xl:text-lg font-semibold transition-colors duration-200 whitespace-nowrap cursor-pointer";
+  const baseStyles =
+    "px-4 py-2 lg:px-6 lg:py-2.5 xl:px-8 xl:py-3.5 rounded-lg text-sm lg:text-base xl:text-lg font-semibold transition-colors duration-200 whitespace-nowrap cursor-pointer";
 
   const variantStyles = {
     primary: "bg-yellow-500 text-white hover:bg-yellow-600",
-    secondary: "border lg:border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50",
+    secondary:
+      "border lg:border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50",
   };
 
-  const linkProps = to 
-    ? { to } 
-    : { href }; 
+  const linkProps = to ? { to } : { href };
 
   return (
     <Tag
@@ -395,7 +406,6 @@ export const NavbarButton: React.FC<NavbarButtonProps> = ({
   );
 };
 
-
 interface NavbarActionsProps {
   children: ReactNode;
   className?: string;
@@ -406,10 +416,12 @@ export const NavbarActions: React.FC<NavbarActionsProps> = ({
   className,
 }) => {
   return (
-    <div className={cn(
-      "flex items-center space-x-2 sm:space-x-3 lg:space-x-4 xl:space-x-6 w-full lg:w-auto",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex items-center space-x-2 sm:space-x-3 lg:space-x-4 xl:space-x-6 w-full lg:w-auto",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -425,10 +437,12 @@ export const MobileNavActions: React.FC<MobileNavActionsProps> = ({
   className,
 }) => {
   return (
-    <div className={cn(
-      "px-4 sm:px-6 py-4 border-t border-gray-100 space-y-3 w-full",
-      className
-    )}>
+    <div
+      className={cn(
+        "px-4 sm:px-6 py-4 border-t border-gray-100 space-y-3 w-full",
+        className,
+      )}
+    >
       {children}
     </div>
   );
