@@ -3,6 +3,7 @@ import ContactUsHeroSection from "../Components/ContactUs/ContactUsHeroSection";
 import InquiryForm from "../Components/ContactUs/InquiryForm";
 import ComplainForm from "../Components/ContactUs/ComplainForm";
 import UrgentContact from "../Components/ContactUs/UrgentContact";
+import Reviews from "../Components/ContactUs/Reviews";
 
 function ContactUs() {
   const [activeForm, setActiveForm] = useState("inquiry");
@@ -42,6 +43,8 @@ function ContactUs() {
           <UrgentContact />
         </div>
       </div>
+
+      <Reviews />
     </div>
   );
 }

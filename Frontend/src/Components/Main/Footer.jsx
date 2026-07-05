@@ -3,14 +3,16 @@ import {
   Facebook,
   Instagram,
   Linkedin,
-  Twitter,
+  X,
   MapPin,
   Phone,
   Mail,
   ArrowUpRight,
   Send,
 } from "lucide-react";
+import { FaTiktok } from "react-icons/fa6";
 import { Link as RouterLink } from "react-router-dom";
+import alBuraqLogo from "../../Assets/Images/logo/AL-BURAQ.png";
 import {
   newsletterStatus,
   subscribeNewsletter,
@@ -98,7 +100,8 @@ export default function Footer() {
     { icon: Facebook, href: "#", label: "Facebook" },
     { icon: Instagram, href: "#", label: "Instagram" },
     { icon: Linkedin, href: "#", label: "LinkedIn" },
-    { icon: Twitter, href: "#", label: "Twitter" },
+    { icon: X, href: "#", label: "X (Twitter)" },
+    { icon: FaTiktok, href: "#", label: "TikTok" },
   ];
 
   const quickLinks = [
@@ -111,10 +114,10 @@ export default function Footer() {
 
   const services = [
     { to: "/packages", label: "Umrah Packages" },
-    { to: { pathname: "/booking", search: "?tab=transport" }, label: "Transportation" },
-    { to: { pathname: "/booking", search: "?tab=visa" }, label: "Visa Processing" },
-    { to: { pathname: "/booking", search: "?tab=hotels" }, label: "International Tours" },
-    { to: { pathname: "/booking", search: "?tab=flights" }, label: "Air Ticketing" },
+    { to: "/coming-soon", label: "Transportation" },
+    { to: "/coming-soon", label: "Visa Processing" },
+    { to: "/coming-soon", label: "International Tours" },
+    { to: "/coming-soon", label: "Air Ticketing" },
   ];
 
   return (
@@ -233,16 +236,18 @@ export default function Footer() {
           {/* Company Info + Payment */}
           <div className="lg:col-span-1">
             <div className="mb-6">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
                   <img
-                    src="https://placehold.co/48x48/FCD34D/000000?text=AB"
-                    alt="Al Buraq International Logo"
-                    className="w-full h-full object-contain scale-125 drop-shadow-sm rounded-full"
+                    src={alBuraqLogo}
+                    alt="Al Buraq Global Logo"
+                    className="w-full h-full object-contain drop-shadow-sm"
+                    loading="lazy"
                   />
                 </div>
-                <span className="font-semibold text-white">
-                  <span className="text-yellow-400 text-md">Pilgrim</span>
+                <span className="font-semibold text-white leading-tight">
+                  <span className="text-yellow-400">Al Buraq</span>{" "}
+                  <span className="text-gray-300">Global</span>
                 </span>
               </div>
             </div>
@@ -346,12 +351,25 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                <span>Pilgrim Travel & Tours pvt ltd.<br />Lahore, Pakistan</span>
+                <span>54-A Commercial Eden City DHA Phase 8 Lahore</span>
               </div>
 
-              <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
-                <Phone size={16} className="text-yellow-400 flex-shrink-0" />
-                <span>+92 327 3276060</span>
+              <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
+                <Phone size={16} className="text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <a
+                    href="tel:+923273276060"
+                    className="hover:text-white transition-colors duration-300"
+                  >
+                    +92 327 3276060
+                  </a>
+                  <a
+                    href="tel:+923214440467"
+                    className="hover:text-white transition-colors duration-300"
+                  >
+                    +92 321 4440467
+                  </a>
+                </div>
               </div>
 
               <div className="flex items-center gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
