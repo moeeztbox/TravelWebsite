@@ -351,7 +351,7 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
                 <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                <span>54-A Commercial Eden City DHA Phase 8 Lahore</span>
+                <span>PLAZA NO.54 BLOCK A COMMERCIAL AREA, EDEN CITY, DHA PHASE 8, LAHORE.</span>
               </div>
 
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">

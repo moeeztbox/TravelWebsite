@@ -49,7 +49,7 @@ function UrgentContact() {
           <div className="flex items-center gap-3">
             <MapPin className="text-yellow-600" size={28} />
             <span className="text-md lg:text-[14px]">
-              347-E Salamat Pura Stop, Main G.T Road,  Lahore, Pakistan
+              PLAZA NO.54 BLOCK A COMMERCIAL AREA, EDEN CITY, DHA PHASE 8, LAHORE.
             </span>
           </div>
         </div>
