@@ -1,7 +1,10 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import { api, formatAxiosError } from "../../Services/authService";
 import { useAuth } from "../../Context/AuthContext";
-import { sanitizeDigits, validateCommonFields } from "../../utils/formValidation";
+import {
+  sanitizeDigits,
+  validateCommonFields,
+} from "../../utils/formValidation";
 import {
   User,
   Mail,
@@ -76,7 +79,8 @@ function CustomizePackage() {
   const passengerSummaryString = useMemo(() => {
     const parts = [];
     if (adults > 0) parts.push(`${adults} Adult${adults > 1 ? "s" : ""}`);
-    if (children > 0) parts.push(`${children} Child${children > 1 ? "ren" : ""}`);
+    if (children > 0)
+      parts.push(`${children} Child${children > 1 ? "ren" : ""}`);
     if (infants > 0) parts.push(`${infants} Infant${infants > 1 ? "s" : ""}`);
     return parts.join(", ") || "0 Passengers";
   }, [adults, children, infants]);
@@ -140,17 +144,26 @@ function CustomizePackage() {
     }
 
     if (new Date(form.arrivalDate) < new Date(form.startDate)) {
-      setStatus({ type: "error", message: "Arrival date (return date) cannot be before departure date." });
+      setStatus({
+        type: "error",
+        message: "Arrival date (return date) cannot be before departure date.",
+      });
       return;
     }
 
     if (totalPassengers <= 0) {
-      setStatus({ type: "error", message: "Please select at least 1 passenger to continue." });
+      setStatus({
+        type: "error",
+        message: "Please select at least 1 passenger to continue.",
+      });
       return;
     }
 
     if (totalPassengers > 100) {
-      setStatus({ type: "error", message: "Total passengers cannot exceed 100." });
+      setStatus({
+        type: "error",
+        message: "Total passengers cannot exceed 100.",
+      });
       return;
     }
 
@@ -161,7 +174,10 @@ function CustomizePackage() {
     });
     if (Object.keys(commonErrors).length > 0) {
       setErrors(commonErrors);
-      setStatus({ type: "error", message: "Please fix the highlighted fields." });
+      setStatus({
+        type: "error",
+        message: "Please fix the highlighted fields.",
+      });
       return;
     }
 
@@ -204,7 +220,10 @@ Estimated Package Price: ${formatPkr(estimate.total)}
         message: emailMessage,
       });
 
-      setStatus({ type: "success", message: "Your email has been sent to our company." });
+      setStatus({
+        type: "success",
+        message: "Your email has been sent to our company.",
+      });
       setAdults(1);
       setChildren(0);
       setInfants(0);
@@ -224,7 +243,7 @@ Estimated Package Price: ${formatPkr(estimate.total)}
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto mb-16 px-4">
+    <div className="w-full max-w-7xl mx-auto mb-16 px-4">
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
         {/* Top Header Card */}
         <div className="relative bg-gradient-to-r from-yellow-600 to-yellow-500 p-8 text-center text-white select-none">
@@ -250,17 +269,22 @@ Estimated Package Price: ${formatPkr(estimate.total)}
               }`}
               role="alert"
             >
-              <Info className={`w-5 h-5 shrink-0 mt-0.5 ${status.type === "success" ? "text-green-600" : "text-red-600"}`} />
+              <Info
+                className={`w-5 h-5 shrink-0 mt-0.5 ${status.type === "success" ? "text-green-600" : "text-red-600"}`}
+              />
               <div>
-                <span className="font-bold">{status.type === "success" ? "Success!" : "Notice"}</span>
-                <p className="mt-0.5 font-medium leading-relaxed">{status.message}</p>
+                <span className="font-bold">
+                  {status.type === "success" ? "Success!" : "Notice"}
+                </span>
+                <p className="mt-0.5 font-medium leading-relaxed">
+                  {status.message}
+                </p>
               </div>
             </div>
           ) : null}
 
           {/* Form Fields Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             {/* Full Name */}
             <div className="space-y-1.5">
               <label className="text-gray-700 text-sm font-semibold flex items-center gap-2">
@@ -275,13 +299,17 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                   value={form.fullName}
                   onChange={handleChange}
                   className={`w-full border rounded-xl pl-11 pr-4 py-3 bg-white text-gray-900 transition-all duration-300 focus:outline-none focus:ring-2 focus:border-yellow-500 focus:ring-yellow-500/20 ${
-                    errors.name ? "border-red-400 focus:ring-red-200" : "border-gray-300 hover:border-gray-400"
+                    errors.name
+                      ? "border-red-400 focus:ring-red-200"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   required
                 />
               </div>
               {errors.name && (
-                <p className="text-red-500 text-xs font-semibold mt-1">{errors.name}</p>
+                <p className="text-red-500 text-xs font-semibold mt-1">
+                  {errors.name}
+                </p>
               )}
             </div>
 
@@ -299,13 +327,17 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                   value={form.email}
                   onChange={handleChange}
                   className={`w-full border rounded-xl pl-11 pr-4 py-3 bg-white text-gray-900 transition-all duration-300 focus:outline-none focus:ring-2 focus:border-yellow-500 focus:ring-yellow-500/20 ${
-                    errors.email ? "border-red-400 focus:ring-red-200" : "border-gray-300 hover:border-gray-400"
+                    errors.email
+                      ? "border-red-400 focus:ring-red-200"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   required
                 />
               </div>
               {errors.email && (
-                <p className="text-red-500 text-xs font-semibold mt-1">{errors.email}</p>
+                <p className="text-red-500 text-xs font-semibold mt-1">
+                  {errors.email}
+                </p>
               )}
             </div>
 
@@ -325,13 +357,17 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                   inputMode="numeric"
                   pattern="[0-9]*"
                   className={`w-full border rounded-xl pl-11 pr-4 py-3 bg-white text-gray-900 transition-all duration-300 focus:outline-none focus:ring-2 focus:border-yellow-500 focus:ring-yellow-500/20 ${
-                    errors.phone ? "border-red-400 focus:ring-red-200" : "border-gray-300 hover:border-gray-400"
+                    errors.phone
+                      ? "border-red-400 focus:ring-red-200"
+                      : "border-gray-300 hover:border-gray-400"
                   }`}
                   required
                 />
               </div>
               {errors.phone && (
-                <p className="text-red-500 text-xs font-semibold mt-1">{errors.phone}</p>
+                <p className="text-red-500 text-xs font-semibold mt-1">
+                  {errors.phone}
+                </p>
               )}
             </div>
 
@@ -362,7 +398,9 @@ Estimated Package Price: ${formatPkr(estimate.total)}
               <div className="grid grid-cols-2 p-1.5 bg-gray-100 rounded-xl select-none">
                 <button
                   type="button"
-                  onClick={() => setForm((p) => ({ ...p, packageType: "customize" }))}
+                  onClick={() =>
+                    setForm((p) => ({ ...p, packageType: "customize" }))
+                  }
                   className={`py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${
                     form.packageType === "customize"
                       ? "bg-white text-yellow-600 shadow-sm"
@@ -373,7 +411,9 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setForm((p) => ({ ...p, packageType: "group" }))}
+                  onClick={() =>
+                    setForm((p) => ({ ...p, packageType: "group" }))
+                  }
                   className={`py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${
                     form.packageType === "group"
                       ? "bg-white text-yellow-600 shadow-sm"
@@ -401,7 +441,9 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                     {passengerSummaryString}
                   </span>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showPassengerDropdown ? "transform rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showPassengerDropdown ? "transform rotate-180" : ""}`}
+                />
               </button>
 
               {showPassengerDropdown && (
@@ -417,13 +459,17 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                         type="button"
                         onClick={() => setAdults(Math.max(0, adults - 1))}
                         className={`w-8 h-8 rounded-full border flex items-center justify-center transition active:scale-90 ${
-                          adults <= 0 ? "border-gray-200 text-gray-300 cursor-not-allowed" : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                          adults <= 0
+                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                            : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
                         }`}
                         disabled={adults <= 0}
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="w-6 text-center font-bold text-gray-800">{adults}</span>
+                      <span className="w-6 text-center font-bold text-gray-800">
+                        {adults}
+                      </span>
                       <button
                         type="button"
                         onClick={() => setAdults(adults + 1)}
@@ -437,7 +483,9 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                   {/* Children */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-bold text-gray-800">Children</p>
+                      <p className="text-sm font-bold text-gray-800">
+                        Children
+                      </p>
                       <p className="text-xs text-gray-500">Age 2–9 years</p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -445,13 +493,17 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                         type="button"
                         onClick={() => setChildren(Math.max(0, children - 1))}
                         className={`w-8 h-8 rounded-full border flex items-center justify-center transition active:scale-90 ${
-                          children <= 0 ? "border-gray-200 text-gray-300 cursor-not-allowed" : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                          children <= 0
+                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                            : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
                         }`}
                         disabled={children <= 0}
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="w-6 text-center font-bold text-gray-800">{children}</span>
+                      <span className="w-6 text-center font-bold text-gray-800">
+                        {children}
+                      </span>
                       <button
                         type="button"
                         onClick={() => setChildren(children + 1)}
@@ -473,13 +525,17 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                         type="button"
                         onClick={() => setInfants(Math.max(0, infants - 1))}
                         className={`w-8 h-8 rounded-full border flex items-center justify-center transition active:scale-90 ${
-                          infants <= 0 ? "border-gray-200 text-gray-300 cursor-not-allowed" : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
+                          infants <= 0
+                            ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                            : "border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400"
                         }`}
                         disabled={infants <= 0}
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="w-6 text-center font-bold text-gray-800">{infants}</span>
+                      <span className="w-6 text-center font-bold text-gray-800">
+                        {infants}
+                      </span>
                       <button
                         type="button"
                         onClick={() => setInfants(infants + 1)}
@@ -525,7 +581,8 @@ Estimated Package Price: ${formatPkr(estimate.total)}
             {/* Arrival Date */}
             <div className="space-y-1.5">
               <label className="text-gray-700 text-sm font-semibold flex items-center gap-2">
-                Arrival Date (Return Date) <span className="text-red-500">*</span>
+                Arrival Date (Return Date){" "}
+                <span className="text-red-500">*</span>
               </label>
               <div className="relative flex items-center">
                 <Calendar className="absolute left-4 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -544,14 +601,17 @@ Estimated Package Price: ${formatPkr(estimate.total)}
             <div className="md:col-span-2 space-y-2">
               <label className="text-gray-700 text-sm font-semibold flex items-center gap-2">
                 <Hotel className="w-4 h-4 text-yellow-600" />
-                Hotel Category Preference <span className="text-red-500">*</span>
+                Hotel Category Preference{" "}
+                <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 select-none">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     type="button"
-                    onClick={() => setForm((p) => ({ ...p, hotelCategory: star }))}
+                    onClick={() =>
+                      setForm((p) => ({ ...p, hotelCategory: star }))
+                    }
                     className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-300 ${
                       form.hotelCategory === star
                         ? "border-yellow-500 bg-yellow-50/20 text-yellow-700 shadow-md scale-[1.02]"
@@ -560,7 +620,10 @@ Estimated Package Price: ${formatPkr(estimate.total)}
                   >
                     <div className="flex gap-0.5 mb-1.5 justify-center">
                       {Array.from({ length: star }).map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                        <Star
+                          key={i}
+                          className="w-3 h-3 fill-yellow-500 text-yellow-500"
+                        />
                       ))}
                     </div>
                     <span className="text-xs font-extrabold">{star} Star</span>
@@ -592,9 +655,25 @@ Estimated Package Price: ${formatPkr(estimate.total)}
             >
               {sending ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Sending Request...
                 </>
@@ -610,10 +689,11 @@ Estimated Package Price: ${formatPkr(estimate.total)}
             <div className="md:col-span-2 flex items-start gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100">
               <Info className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
               <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                <strong className="text-gray-800">Note:</strong> Our team will review your request and contact you as soon as possible via your provided email address or phone number.
+                <strong className="text-gray-800">Note:</strong> Our team will
+                review your request and contact you as soon as possible via your
+                provided email address or phone number.
               </p>
             </div>
-
           </div>
         </form>
       </div>

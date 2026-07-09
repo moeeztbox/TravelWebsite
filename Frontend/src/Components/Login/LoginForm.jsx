@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { login } from "../../Services/authService";
@@ -19,7 +19,7 @@ function getErrorMessage(error) {
 function LoginForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isAuthenticated, ready, user } = useAuth();
+  const { signIn, isAuthenticated, ready } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [focused, setFocused] = useState({});
   const [email, setEmail] = useState(() => location.state?.email ?? "");
@@ -33,16 +33,8 @@ function LoginForm() {
 
   useEffect(() => {
     if (!ready || !isAuthenticated) return;
-    // Admin should never land on member dashboard.
-    if (user?.role === "isAdmin") {
-      navigate("/admin/packages", { replace: true });
-      return;
-    }
-    const from = location.state?.from;
-    const target =
-      from && typeof from === "object" && from.pathname ? from.pathname : "/";
-    navigate(target, { replace: true });
-  }, [ready, isAuthenticated, user?.role, navigate, location.state?.from]);
+    navigate("/admin/packages", { replace: true });
+  }, [ready, isAuthenticated, navigate]);
 
   const handleFocus = (field) => setFocused({ ...focused, [field]: true });
   const handleBlur = (field) => setFocused({ ...focused, [field]: false });
@@ -75,11 +67,6 @@ function LoginForm() {
         className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 md:p-10 w-full max-w-md sm:max-w-lg md:max-w-xl mt-10 md:mt-24"
       >
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          {location.state?.registered ? (
-            <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-              Account created. Sign in with your email and password.
-            </p>
-          ) : null}
           {error ? (
             <p
               className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"

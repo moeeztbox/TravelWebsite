@@ -13,6 +13,7 @@ import {
 import { FaTiktok } from "react-icons/fa6";
 import { Link as RouterLink } from "react-router-dom";
 import alBuraqLogo from "../../Assets/Images/logo/AL-BURAQ.png";
+import MapFrame from "../Common/MapFrame";
 import {
   newsletterStatus,
   subscribeNewsletter,
@@ -171,7 +172,7 @@ export default function Footer() {
 
               {/* Social Icons */}
               <div className="flex gap-3 mt-6">
-                {socialLinks.map(({ icon: Icon, href, label }, index) => (
+                {socialLinks.map(({ icon: Icon, href, label }) => (
                   <a
                     key={label}
                     href={href}
@@ -383,13 +384,9 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-6 text-lg">Our Location</h3>
             <div className="w-full h-32 md:h-40 lg:h-44 overflow-hidden rounded-lg border border-gray-700/30 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
-              <iframe
+              <MapFrame
                 title="Company Location"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3398.672664687032!2d74.41268219999999!3d31.5880231!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39190fe1a1fea88d%3A0x5eaa9ea9c6d3fb17!2sEhsan%20Traders!5e0!3m2!1sen!2s!4v1759326513829!5m2!1sen!2s"
-                width="100%"
-                height="100%"
-                allowFullScreen=""
-                loading="lazy"
                 className="rounded-lg border-none filter contrast-90 brightness-90"
               />
             </div>

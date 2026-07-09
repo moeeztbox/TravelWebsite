@@ -1,6 +1,7 @@
 import React from "react";
 import { Phone, Mail, MapPin } from "lucide-react"; // icons
 import { FaWhatsapp } from "react-icons/fa";
+import MapFrame from "../Common/MapFrame";
 
 function UrgentContact() {
   return (
@@ -29,7 +30,10 @@ function UrgentContact() {
           {/* Phone */}
           <div className="flex items-center gap-3">
             <Phone className="text-yellow-600" size={20} />
-            <a href="tel:+923212340008" className="text-md lg:text-[14px] hover:underline">
+            <a
+              href="tel:+923212340008"
+              className="text-md lg:text-[14px] hover:underline"
+            >
               +92 321 2340008
             </a>
           </div>
@@ -49,23 +53,19 @@ function UrgentContact() {
           <div className="flex items-center gap-3">
             <MapPin className="text-yellow-600" size={28} />
             <span className="text-md lg:text-[14px]">
-              PLAZA NO.54 BLOCK A COMMERCIAL AREA, EDEN CITY, DHA PHASE 8, LAHORE.
+              PLAZA NO.54 BLOCK A COMMERCIAL AREA, EDEN CITY, DHA PHASE 8,
+              LAHORE.
             </span>
           </div>
         </div>
 
         {/* Map Embed */}
         <div className="mt-10">
-          <iframe
+          <MapFrame
             title="office-location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3398.672664687032!2d74.41268219999999!3d31.5880231!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39190fe1a1fea88d%3A0x5eaa9ea9c6d3fb17!2sEhsan%20Traders!5e0!3m2!1sen!2s!4v1759326513829!5m2!1sen!2s"
-            width="100%"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3401.521976112091!2d74.43219827625492!3d31.509820747661994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39190f9963fd5e79%3A0x650b30303ede56c!2sAl%20Buraq%20Global%20Travel%20%26%20Tours!5e0!3m2!1sen!2s!4v1783615492880!5m2!1sen!2s"
             height="300"
-            style={{ border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          ></iframe>
+          />
         </div>
       </div>
     </div>

@@ -1,7 +1,8 @@
 // pages/ZiyaratPage.js
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { MapPin, Clock, Star, Navigation, ExternalLink } from "lucide-react";
 import gsap from "gsap";
+import MapFrame from "../Common/MapFrame";
 
 function ZiyaratPage() {
     // Hero Section Refs
@@ -303,17 +304,11 @@ function ZiyaratPage() {
                                     </a>
                                 </div>
                                 <div className="h-80 w-full">
-                                    <iframe
+                                    <MapFrame
                                         src={site.mapEmbed}
-                                        width="100%"
-                                        height="100%"
-                                        style={{ border: 0 }}
-                                        allowFullScreen=""
-                                        loading="lazy"
-                                        referrerPolicy="no-referrer-when-downgrade"
                                         title={`Map of ${site.title}`}
                                         className="w-full h-full"
-                                    ></iframe>
+                                    />
                                 </div>
                                 <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
                                     <p className="text-sm text-gray-600 text-center">

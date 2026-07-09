@@ -5,9 +5,8 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { AuthProvider } from "./Context/AuthContext";
-import RequireAuth from "./components/RequireAuth";
 import RequireAdmin from "./Components/RequireAdmin";
 import Home from "./Pages/Home";
 import AboutUs from "./Pages/AboutUs";
@@ -26,11 +25,20 @@ import TravelPage from "./Components/Guide/TravelPage";
 import ZiyaratPage from "./Components/Guide/ZiyaratPage";
 import ComingSoon from "./Pages/ComingSoon";
 import AdminPackages from "./Pages/AdminPackages";
+import AdminReviews from "./Pages/AdminReviews";
 
 import {
   forceReleaseScrollLock,
   getScrollLockState,
 } from "./Hooks/useScrollLock";
+
+// The browser's own back/forward scroll restoration fights with the scroll-to-top
+// reset below (it can reapply the old scroll position after our effect runs),
+// which is why navigation sometimes landed mid-page or at the bottom. We own
+// scroll position ourselves on every route change, so opt the browser out.
+if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+  window.history.scrollRestoration = "manual";
+}
 
 function AppRoutes() {
   const location = useLocation();
@@ -102,9 +110,11 @@ function AppRoutes() {
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // Keep navigation natural but always land at the top of the new page.
     // If there's a hash, scroll to that section instead.
+    // useLayoutEffect (not useEffect) so this runs before the browser paints —
+    // otherwise the old page's scroll position can flash briefly on route change.
     if (location.hash) {
       const id = location.hash.replace(/^#/, "");
       const el = id ? document.getElementById(id) : null;
@@ -150,9 +160,18 @@ function AppRoutes() {
         <Route
           path="/admin/packages"
           element={
-            // <RequireAdmin>
+            <RequireAdmin>
               <AdminPackages />
-            // </RequireAdmin>
+            </RequireAdmin>
+          }
+        />
+
+        <Route
+          path="/admin/reviews"
+          element={
+            <RequireAdmin>
+              <AdminReviews />
+            </RequireAdmin>
           }
         />
 

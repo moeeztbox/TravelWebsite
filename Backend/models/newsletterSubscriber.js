@@ -20,8 +20,6 @@ const newsletterSubscriberSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-newsletterSubscriberSchema.index({ email: 1 }, { unique: true });
-
 export default mongoose.model(
   "NewsletterSubscriber",
   newsletterSubscriberSchema

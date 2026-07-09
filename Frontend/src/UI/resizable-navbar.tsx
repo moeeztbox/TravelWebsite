@@ -355,11 +355,11 @@ export const NavbarLogo: React.FC<NavbarLogoProps> = ({ onClick }) => {
         />
       </div>
       <div className="flex flex-col">
-        <span className="text-yellow-600 text-lg lg:text-xl xl:text-2xl font-bold leading-tight">
-          AL BURAQ
+        <span className="text-yellow-600 text-lg lg:text-xl xl:text-2xl font-bold leading-tight whitespace-nowrap">
+          Al Buraq Global
         </span>
-        <span className="text-gray-600 text-xs lg:text-sm xl:text-base font-medium leading-tight">
-          PILGRIM
+        <span className="text-gray-600 text-[10px] lg:text-xs xl:text-sm font-medium leading-tight whitespace-nowrap">
+          Travel &amp; Tours Pvt Ltd
         </span>
       </div>
     </Link>

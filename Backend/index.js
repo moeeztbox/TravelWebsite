@@ -10,6 +10,7 @@ import packageRoutes from "./routes/packageRoutes.js";
 import complainRoutes from "./routes/complainRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import newsletterRoutes from "./routes/newsletterRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 
 import {
   listPackages,
@@ -17,7 +18,6 @@ import {
 } from "./controllers/packageController.js";
 import { sendComplainEmail } from "./controllers/complainController.js";
 import { sendContactEmail } from "./controllers/contactController.js";
-import { adminLogin } from "./controllers/adminController.js";
 import { protectAdmin } from "./middleware/adminMiddleware.js";
 
 // 1. Load env FIRST
@@ -61,9 +61,6 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 
-// Admin login
-app.post("/api/admin/login", adminLogin);
-
 // Packages
 app.get("/api/packages", listPackages);
 app.get("/api/admin/packages", protectAdmin, adminListAllPackages);
@@ -79,6 +76,9 @@ app.use("/api/contact", contactRoutes);
 
 // Newsletter
 app.use("/api/newsletter", newsletterRoutes);
+
+// Reviews
+app.use("/api/reviews", reviewRoutes);
 
 // 5. CONNECT DB + START SERVER (MOST IMPORTANT FIX)
 const PORT = process.env.PORT || 5000;

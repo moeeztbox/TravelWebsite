@@ -190,3 +190,19 @@ export async function adminDeleteHotelBooking(id) {
   const { data } = await api.delete(`/admin/hotel-bookings/${id}`);
   return data;
 }
+
+/** Reviews (admin) */
+export async function adminListReviews() {
+  const { data } = await api.get("/reviews/admin/all");
+  return data.reviews ?? [];
+}
+
+export async function adminSetReviewStatus(id, status) {
+  const { data } = await api.patch(`/reviews/admin/${id}`, { status });
+  return data.review;
+}
+
+export async function adminDeleteReview(id) {
+  const { data } = await api.delete(`/reviews/admin/${id}`);
+  return data;
+}

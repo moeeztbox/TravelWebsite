@@ -88,12 +88,12 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
   const contentRef = useRef(null);
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [registerPromptOpen, setRegisterPromptOpen] = useState(false);
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const highlights = getHighlights(pkg);
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);
   const includesJourney = useMemo(() => journeyChain(pkg), [pkg]);
   const { isAuthenticated } = useAuth();
-  useScrollLock(Boolean(isOpen || confirmOpen || registerPromptOpen));
+  useScrollLock(Boolean(isOpen || confirmOpen || loginPromptOpen));
 
   useEffect(() => {
     if (!isOpen) setConfirmOpen(false);
@@ -101,7 +101,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
 
   // Safety net: if scroll-lock remains stuck after closing, force release it.
   useEffect(() => {
-    if (isOpen || confirmOpen || registerPromptOpen || booking) return undefined;
+    if (isOpen || confirmOpen || loginPromptOpen || booking) return undefined;
     const t = window.setTimeout(() => {
       if (document.body.getAttribute("data-scroll-locked") !== "true") return;
       const st = getScrollLockState();
@@ -112,7 +112,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
       }
     }, 50);
     return () => window.clearTimeout(t);
-  }, [isOpen, confirmOpen, registerPromptOpen, booking]);
+  }, [isOpen, confirmOpen, loginPromptOpen, booking]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -393,7 +393,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
               disabled={booking}
               onClick={() => {
                 if (!isAuthenticated) {
-                  setRegisterPromptOpen(true);
+                  setLoginPromptOpen(true);
                   return;
                 }
                 setConfirmOpen(true);
@@ -415,13 +415,13 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
         </div>
       </div>
 
-      {registerPromptOpen ? (
+      {loginPromptOpen ? (
         <div
           style={{ ...overlayStyle, zIndex: 100002 }}
-          onClick={() => setRegisterPromptOpen(false)}
+          onClick={() => setLoginPromptOpen(false)}
           role="dialog"
           aria-modal="true"
-          aria-labelledby="register-prompt-title"
+          aria-labelledby="login-prompt-title"
         >
           <div
             style={{
@@ -434,7 +434,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
           >
             <div style={{ padding: "1.25rem 1.5rem", background: "#fff" }}>
               <h3
-                id="register-prompt-title"
+                id="login-prompt-title"
                 style={{
                   fontSize: "18px",
                   fontWeight: 700,
@@ -442,7 +442,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
                   margin: 0,
                 }}
               >
-                Please register yourself for booking
+                Please log in to book
               </h3>
               <p
                 style={{
@@ -452,7 +452,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
                   lineHeight: 1.5,
                 }}
               >
-                You can browse packages, but you need an account to place a booking request.
+                You can browse packages, but you need to log in to place a booking request.
               </p>
             </div>
             <div
@@ -467,7 +467,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
             >
               <button
                 type="button"
-                onClick={() => setRegisterPromptOpen(false)}
+                onClick={() => setLoginPromptOpen(false)}
                 style={{
                   padding: "10px 16px",
                   borderRadius: "12px",
@@ -484,9 +484,9 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
               <button
                 type="button"
                 onClick={() => {
-                  setRegisterPromptOpen(false);
+                  setLoginPromptOpen(false);
                   onClose?.();
-                  navigate("/register", { state: { from: "/packages" } });
+                  navigate("/login", { state: { from: { pathname: "/packages" } } });
                 }}
                 style={{
                   padding: "10px 16px",
@@ -499,7 +499,7 @@ function PackageDialog({ pkg, isOpen, onClose, onBookPackage, booking }) {
                   cursor: "pointer",
                 }}
               >
-                Register yourself
+                Log in
               </button>
             </div>
           </div>
@@ -610,7 +610,6 @@ function PackageCard({ pkg }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [booking, setBooking] = useState(false);
   useScrollLock(Boolean(booking));
-  const navigate = useNavigate();
   const { bookPackage } = usePackageBooking();
   const highlights = getHighlights(pkg).slice(0, 2);
   const services = useMemo(() => serviceBadges(pkg.services), [pkg.services]);

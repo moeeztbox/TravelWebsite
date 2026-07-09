@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Send, User, Mail, Phone, MessageSquare, Star } from "lucide-react";
+import { Send, User, Mail, Phone, MessageSquare, Star, Loader2 } from "lucide-react";
 import {
   sanitizeDigits,
   validateEmail,
   validateName,
   validatePhoneDigits,
 } from "../../utils/formValidation";
+import { submitReview } from "../../Services/reviewService";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -21,6 +22,7 @@ function Reviews() {
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: "", message: "" });
   const [hoverRating, setHoverRating] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
   const [focused, setFocused] = useState({
     fullName: false,
     email: false,
@@ -75,30 +77,53 @@ function Reviews() {
     return nextErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ type: "", message: "" });
 
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      setStatus({ type: "error", message: "Please fix the highlighted fields." });
+      setStatus({
+        type: "error",
+        message: "Please fix the highlighted fields.",
+      });
       return;
     }
 
     setErrors({});
-    setStatus({
-      type: "success",
-      message: "Thank you! Your review has been submitted successfully.",
-    });
-    setFormData({
-      fullName: "",
-      email: "",
-      phone: "",
-      review: "",
-      rating: 0,
-    });
-    setHoverRating(0);
+    setSubmitting(true);
+    try {
+      await submitReview({
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone,
+        review: formData.review.trim(),
+        rating: formData.rating,
+      });
+      setStatus({
+        type: "success",
+        message:
+          "Thank you! Your review has been submitted and is pending admin approval.",
+      });
+      setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        review: "",
+        rating: 0,
+      });
+      setHoverRating(0);
+    } catch (err) {
+      setStatus({
+        type: "error",
+        message:
+          err.response?.data?.message ||
+          "Could not submit your review. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const activeRating = hoverRating || formData.rating;
@@ -114,7 +139,7 @@ function Reviews() {
       className="w-full max-w-7xl mx-auto px-2 sm:px-4 pb-16 pt-4"
       aria-labelledby="reviews-heading"
     >
-      <div className="w-full max-w-3xl lg:max-w-4xl mx-auto">
+      <div className="w-full max-w-3xl lg:max-w-6xl mx-auto">
         <form
           onSubmit={handleSubmit}
           noValidate
@@ -175,10 +200,15 @@ function Reviews() {
                   errors.fullName,
                 )} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
                 aria-invalid={Boolean(errors.fullName)}
-                aria-describedby={errors.fullName ? "review-fullName-error" : undefined}
+                aria-describedby={
+                  errors.fullName ? "review-fullName-error" : undefined
+                }
               />
               {errors.fullName ? (
-                <p id="review-fullName-error" className="mt-1 text-xs text-red-600">
+                <p
+                  id="review-fullName-error"
+                  className="mt-1 text-xs text-red-600"
+                >
                   {errors.fullName}
                 </p>
               ) : null}
@@ -213,10 +243,15 @@ function Reviews() {
                     errors.email,
                   )} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
                   aria-invalid={Boolean(errors.email)}
-                  aria-describedby={errors.email ? "review-email-error" : undefined}
+                  aria-describedby={
+                    errors.email ? "review-email-error" : undefined
+                  }
                 />
                 {errors.email ? (
-                  <p id="review-email-error" className="mt-1 text-xs text-red-600">
+                  <p
+                    id="review-email-error"
+                    className="mt-1 text-xs text-red-600"
+                  >
                     {errors.email}
                   </p>
                 ) : null}
@@ -251,10 +286,15 @@ function Reviews() {
                     errors.phone,
                   )} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white hover:border-yellow-600/50`}
                   aria-invalid={Boolean(errors.phone)}
-                  aria-describedby={errors.phone ? "review-phone-error" : undefined}
+                  aria-describedby={
+                    errors.phone ? "review-phone-error" : undefined
+                  }
                 />
                 {errors.phone ? (
-                  <p id="review-phone-error" className="mt-1 text-xs text-red-600">
+                  <p
+                    id="review-phone-error"
+                    className="mt-1 text-xs text-red-600"
+                  >
                     {errors.phone}
                   </p>
                 ) : null}
@@ -289,10 +329,15 @@ function Reviews() {
                   errors.review,
                 )} rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none transition-all duration-300 hover:bg-white resize-none`}
                 aria-invalid={Boolean(errors.review)}
-                aria-describedby={errors.review ? "review-comment-error" : undefined}
+                aria-describedby={
+                  errors.review ? "review-comment-error" : undefined
+                }
               />
               {errors.review ? (
-                <p id="review-comment-error" className="mt-1 text-xs text-red-600">
+                <p
+                  id="review-comment-error"
+                  className="mt-1 text-xs text-red-600"
+                >
                   {errors.review}
                 </p>
               ) : null}
@@ -343,10 +388,17 @@ function Reviews() {
 
           <button
             type="submit"
-            className="w-full bg-yellow-600 text-white font-semibold p-3 sm:p-4 rounded-xl hover:bg-yellow-700 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-[1.02] group"
+            disabled={submitting}
+            className="w-full bg-yellow-600 text-white font-semibold p-3 sm:p-4 rounded-xl hover:bg-yellow-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 hover:scale-[1.02] group"
           >
-            <span className="text-base sm:text-lg">Submit Review</span>
-            <Send className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+            <span className="text-base sm:text-lg">
+              {submitting ? "Submitting…" : "Submit Review"}
+            </span>
+            {submitting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Send className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+            )}
           </button>
         </form>
       </div>

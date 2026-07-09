@@ -21,7 +21,6 @@ export default function NavbarDemo() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, user, signOut } = useAuth();
-  const isAdmin = user?.role === "isAdmin";
 
   const navItems = [
     { name: "Home", link: "/" },
@@ -58,11 +57,6 @@ export default function NavbarDemo() {
 
   const closeMobileAccount = () => setMobileAccountOpen(false);
 
-  const displayName =
-    user?.firstName || user?.lastName
-      ? [user.firstName, user.lastName].filter(Boolean).join(" ").trim()
-      : user?.email?.split("@")[0] || "Account";
-
   // Keep avatar URL consistent with UserDashboard (seed order matters).
   const avatarSeed = user?._id || user?.email || "";
   const avatarIndex = Number.isFinite(Number(user?.bitmojiIndex))
@@ -88,151 +82,75 @@ export default function NavbarDemo() {
           <div className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-2 sm:gap-3">
-                {isAdmin ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setDesktopAccountOpen((o) => !o)}
-                      className={[
-                        "flex items-center justify-center rounded-lg p-1.5 transition-colors outline-none",
-                        location.pathname.startsWith("/admin") ||
-                        location.pathname === "/dashboard"
-                          ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60"
-                          : "text-yellow-700 hover:bg-yellow-50",
-                      ].join(" ")}
-                      aria-expanded={desktopAccountOpen}
-                      aria-haspopup="menu"
-                      aria-label="Account menu"
-                    >
-                      {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt="Avatar"
-                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white ring-1 ring-amber-200 object-cover"
-                        />
-                      ) : (
-                        <UserCircle
-                          className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
-                          strokeWidth={1.5}
-                        />
-                      )}
-                    </button>
-                    {desktopAccountOpen ? (
-                      <>
-                        <button
-                          type="button"
-                          className="fixed inset-0 z-[55]"
-                          aria-label="Close account menu"
-                          onClick={() => setDesktopAccountOpen(false)}
-                        />
-                        <div
-                          className="absolute right-0 top-full z-[60] pt-1"
-                          role="menu"
-                          aria-label="Admin account"
-                        >
-                          <div className="rounded-xl border border-amber-200 bg-white shadow-lg py-1 min-w-[13rem]">
-                            <Link
-                              to="/admin/packages"
-                              role="menuitem"
-                              onClick={() => {
-                                setDesktopAccountOpen(false);
-                              }}
-                              className={[
-                                "block px-4 py-2.5 text-sm font-medium transition-colors",
-                                location.pathname.startsWith("/admin")
-                                  ? "bg-amber-50 text-amber-950"
-                                  : "text-stone-700 hover:bg-amber-50/80",
-                              ].join(" ")}
-                            >
-                              Admin panel
-                            </Link>
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={handleLogout}
-                              className="block w-full text-left border-t border-stone-100 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-                            >
-                              Log out
-                            </button>
-                          </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setDesktopAccountOpen((o) => !o)}
+                    className={[
+                      "flex items-center justify-center rounded-lg p-1.5 transition-colors outline-none",
+                      location.pathname.startsWith("/admin")
+                        ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60"
+                        : "text-yellow-700 hover:bg-yellow-50",
+                    ].join(" ")}
+                    aria-expanded={desktopAccountOpen}
+                    aria-haspopup="menu"
+                    aria-label="Account menu"
+                  >
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white ring-1 ring-amber-200 object-cover"
+                      />
+                    ) : (
+                      <UserCircle
+                        className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
+                        strokeWidth={1.5}
+                      />
+                    )}
+                  </button>
+                  {desktopAccountOpen ? (
+                    <>
+                      <button
+                        type="button"
+                        className="fixed inset-0 z-[55]"
+                        aria-label="Close account menu"
+                        onClick={() => setDesktopAccountOpen(false)}
+                      />
+                      <div
+                        className="absolute right-0 top-full z-[60] pt-1"
+                        role="menu"
+                        aria-label="Admin account"
+                      >
+                        <div className="rounded-xl border border-amber-200 bg-white shadow-lg py-1 min-w-[13rem]">
+                          <Link
+                            to="/admin/packages"
+                            role="menuitem"
+                            onClick={() => {
+                              setDesktopAccountOpen(false);
+                            }}
+                            className={[
+                              "block px-4 py-2.5 text-sm font-medium transition-colors",
+                              location.pathname.startsWith("/admin")
+                                ? "bg-amber-50 text-amber-950"
+                                : "text-stone-700 hover:bg-amber-50/80",
+                            ].join(" ")}
+                          >
+                            Admin panel
+                          </Link>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={handleLogout}
+                            className="block w-full text-left border-t border-stone-100 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            Log out
+                          </button>
                         </div>
-                      </>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setDesktopAccountOpen((o) => !o)}
-                      className={[
-                        "flex items-center rounded-lg transition-colors gap-2 px-2 py-1.5 outline-none",
-                        location.pathname.startsWith("/dashboard")
-                          ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/60"
-                          : "text-yellow-700 hover:bg-yellow-50",
-                      ].join(" ")}
-                      aria-expanded={desktopAccountOpen}
-                      aria-haspopup="menu"
-                      aria-label="Account menu"
-                    >
-                      {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt="Avatar"
-                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white ring-1 ring-amber-200 object-cover"
-                        />
-                      ) : (
-                        <UserCircle
-                          className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
-                          strokeWidth={1.5}
-                        />
-                      )}
-                      <span className="hidden sm:inline max-w-[140px] lg:max-w-[180px] truncate text-sm lg:text-base font-semibold">
-                        {displayName}
-                      </span>
-                    </button>
-                    {desktopAccountOpen ? (
-                      <>
-                        <button
-                          type="button"
-                          className="fixed inset-0 z-[55]"
-                          aria-label="Close account menu"
-                          onClick={() => setDesktopAccountOpen(false)}
-                        />
-                        <div
-                          className="absolute right-0 top-full z-[60] pt-1"
-                          role="menu"
-                          aria-label="Your account"
-                        >
-                          <div className="rounded-xl border border-amber-200 bg-white shadow-lg py-1 min-w-[13rem]">
-                            <Link
-                              to="/dashboard"
-                              role="menuitem"
-                              onClick={() => {
-                                setDesktopAccountOpen(false);
-                              }}
-                              className={[
-                                "block px-4 py-2.5 text-sm font-medium transition-colors",
-                                location.pathname.startsWith("/dashboard")
-                                  ? "bg-amber-50 text-amber-950"
-                                  : "text-stone-700 hover:bg-amber-50/80",
-                              ].join(" ")}
-                            >
-                              My Profile
-                            </Link>
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={handleLogout}
-                              className="block w-full text-left border-t border-stone-100 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-                            >
-                              Log out
-                            </button>
-                          </div>
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-                )}
+                      </div>
+                    </>
+                  ) : null}
+                </div>
               </div>
             ) : (
               <></>
@@ -245,154 +163,77 @@ export default function NavbarDemo() {
             <NavbarLogo />
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {isAuthenticated ? (
-                isAdmin ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileAccountOpen((o) => !o);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={[
-                        "flex items-center justify-center rounded-xl p-1.5 transition-colors outline-none",
-                        mobileAccountOpen ||
-                        location.pathname.startsWith("/admin") ||
-                        location.pathname === "/dashboard"
-                          ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/70"
-                          : "text-yellow-700 hover:bg-yellow-50",
-                      ].join(" ")}
-                      aria-expanded={mobileAccountOpen}
-                      aria-haspopup="menu"
-                      aria-label="Account menu"
-                    >
-                      {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt="Avatar"
-                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white ring-1 ring-amber-200 object-cover"
-                        />
-                      ) : (
-                        <UserCircle
-                          className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
-                          strokeWidth={1.5}
-                        />
-                      )}
-                    </button>
-                    {mobileAccountOpen ? (
-                      <>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileAccountOpen((o) => !o);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={[
+                      "flex items-center justify-center rounded-xl p-1.5 transition-colors outline-none",
+                      mobileAccountOpen || location.pathname.startsWith("/admin")
+                        ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/70"
+                        : "text-yellow-700 hover:bg-yellow-50",
+                    ].join(" ")}
+                    aria-expanded={mobileAccountOpen}
+                    aria-haspopup="menu"
+                    aria-label="Account menu"
+                  >
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white ring-1 ring-amber-200 object-cover"
+                      />
+                    ) : (
+                      <UserCircle
+                        className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
+                        strokeWidth={1.5}
+                      />
+                    )}
+                  </button>
+                  {mobileAccountOpen ? (
+                    <>
+                      <button
+                        type="button"
+                        className="fixed inset-0 z-[55]"
+                        aria-label="Close account menu"
+                        onClick={closeMobileAccount}
+                      />
+                      <div
+                        className="absolute right-0 top-full z-[60] mt-1 min-w-[13rem] rounded-xl border border-amber-200 bg-white py-1 shadow-lg"
+                        role="menu"
+                      >
+                        <Link
+                          to="/admin/packages"
+                          role="menuitem"
+                          onClick={() => {
+                            closeMobileAccount();
+                          }}
+                          className={[
+                            "block px-4 py-2.5 text-sm font-medium",
+                            location.pathname.startsWith("/admin")
+                              ? "bg-amber-50 text-amber-950"
+                              : "text-stone-700 hover:bg-amber-50/80",
+                          ].join(" ")}
+                        >
+                          Admin panel
+                        </Link>
                         <button
                           type="button"
-                          className="fixed inset-0 z-[55]"
-                          aria-label="Close account menu"
-                          onClick={closeMobileAccount}
-                        />
-                        <div
-                          className="absolute right-0 top-full z-[60] mt-1 min-w-[13rem] rounded-xl border border-amber-200 bg-white py-1 shadow-lg"
-                          role="menu"
+                          role="menuitem"
+                          onClick={() => {
+                            handleLogout();
+                          }}
+                          className="block w-full border-t border-stone-100 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50"
                         >
-                          <Link
-                            to="/admin/packages"
-                            role="menuitem"
-                            onClick={() => {
-                              closeMobileAccount();
-                            }}
-                            className={[
-                              "block px-4 py-2.5 text-sm font-medium",
-                              location.pathname.startsWith("/admin")
-                                ? "bg-amber-50 text-amber-950"
-                                : "text-stone-700 hover:bg-amber-50/80",
-                            ].join(" ")}
-                          >
-                            Admin panel
-                          </Link>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              handleLogout();
-                            }}
-                            className="block w-full border-t border-stone-100 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50"
-                          >
-                            Log out
-                          </button>
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMobileAccountOpen((o) => !o);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className={[
-                        "flex items-center justify-center rounded-xl p-1.5 transition-colors outline-none",
-                        mobileAccountOpen ||
-                        location.pathname.startsWith("/dashboard")
-                          ? "bg-amber-100 text-amber-900 ring-1 ring-amber-300/70"
-                          : "text-yellow-700 hover:bg-yellow-50",
-                      ].join(" ")}
-                      aria-expanded={mobileAccountOpen}
-                      aria-haspopup="menu"
-                      aria-label="Account menu"
-                    >
-                      {avatarUrl ? (
-                        <img
-                          src={avatarUrl}
-                          alt="Avatar"
-                          className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white ring-1 ring-amber-200 object-cover"
-                        />
-                      ) : (
-                        <UserCircle
-                          className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
-                          strokeWidth={1.5}
-                        />
-                      )}
-                    </button>
-                    {mobileAccountOpen ? (
-                      <>
-                        <button
-                          type="button"
-                          className="fixed inset-0 z-[55]"
-                          aria-label="Close account menu"
-                          onClick={closeMobileAccount}
-                        />
-                        <div
-                          className="absolute right-0 top-full z-[60] mt-1 min-w-[13rem] rounded-xl border border-amber-200 bg-white py-1 shadow-lg"
-                          role="menu"
-                        >
-                          <Link
-                            to="/dashboard"
-                            role="menuitem"
-                            onClick={() => {
-                              closeMobileAccount();
-                            }}
-                            className={[
-                              "block px-4 py-2.5 text-sm font-medium",
-                              location.pathname.startsWith("/dashboard")
-                                ? "bg-amber-50 text-amber-950"
-                                : "text-stone-700 hover:bg-amber-50/80",
-                            ].join(" ")}
-                          >
-                            My Profile
-                          </Link>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              handleLogout();
-                            }}
-                            className="block w-full border-t border-stone-100 px-4 py-2.5 text-left text-sm font-medium text-red-600 hover:bg-red-50"
-                          >
-                            Log out
-                          </button>
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-                )
+                          Log out
+                        </button>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
               ) : null}
               <MobileNavToggle
                 isOpen={isMobileMenuOpen}

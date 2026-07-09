@@ -1,77 +1,38 @@
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
-import nodemailer from "nodemailer";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import User from "../models/user.js";
 
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-
- 
-
-const signToken = (userDoc) => {
-  const role = userDoc?.role || "user";
-  const email = userDoc?.email;
-  return jwt.sign(
-    { userId: userDoc._id, role, email },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-};
-
-const toUserPayload = (userDoc) => {
-  const u = userDoc.toSafeObject ? userDoc.toSafeObject() : userDoc.toObject();
-  delete u.password;
-  return u;
-};
-
-
- 
+const signAdminToken = (email) =>
+  jwt.sign({ role: "isAdmin", email }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-    if (!user.password) {
-      return res.status(401).json({
-        message:
-          "This account uses Google sign-in. Please continue with Google.",
-      });
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    const emailMatches =
+      adminEmail && email.trim().toLowerCase() === adminEmail.toLowerCase();
+    const passwordMatches = adminPassword && password === adminPassword;
+
+    if (!emailMatches || !passwordMatches) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = signToken(user);
+    const token = signAdminToken(adminEmail);
 
     res.json({
       message: "Login successful",
       token,
-      user: toUserPayload(user),
+      user: { email: adminEmail, role: "isAdmin" },
     });
   } catch (error) {
     res.status(500).json({ message: error.message || "Server error" });
   }
 };
-
-
-
-export const getMe = async (req, res) => {
-  res.json({ user: req.user });
-};
-
-
-
-
-
-
-

@@ -11,6 +11,7 @@ import {
   FileText,
   Layers,
   Hotel,
+  MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -35,7 +36,10 @@ export default function AdminLayout({
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  const nav = [{ to: "/admin/packages", label: "Packages", icon: LayoutGrid }];
+  const nav = [
+    { to: "/admin/packages", label: "Packages", icon: LayoutGrid },
+    { to: "/admin/reviews", label: "Reviews", icon: MessageSquare },
+  ];
 
   return (
     <div className="min-h-screen box-border pt-16 lg:pt-20 flex bg-gradient-to-b from-amber-50/40 via-stone-50 to-stone-100">

@@ -85,7 +85,13 @@ function releaseLock() {
 export function useScrollLock(active) {
   useLayoutEffect(() => {
     if (!active) return undefined;
-    if (lockCount === 0) applyLock();
+    // Guard on `locked` (the DOM's actual current lock state), not `lockCount === 0`.
+    // The counter can hit 0 before releaseLock() actually runs (its DOM revert is
+    // deferred by one rAF below). If a new lock starts inside that window, checking
+    // lockCount would wrongly treat the still-locked DOM as "the original state" and
+    // capture it into prevBody/prevHtml -- permanently baking position:fixed and
+    // overflow:hidden into the "restore to normal" snapshot once release finally runs.
+    if (!locked) applyLock();
     lockCount += 1;
     return () => {
       lockCount -= 1;
