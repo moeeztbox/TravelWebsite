@@ -72,7 +72,7 @@ export default function Footer() {
       setNote(
         r?.alreadySubscribed
           ? "You are already subscribed."
-          : "Subscribed! Check your inbox for updates."
+          : "Subscribed! Check your inbox for updates.",
       );
     } catch (err) {
       setNote(err?.response?.data?.message || "Could not subscribe");
@@ -167,8 +167,12 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             {/* Left side - Stay Connected */}
             <div className="flex-1">
-              <h3 className="text-white font-semibold text-xl mb-4">Stay Connected to Pilgrim</h3>
-              <p className="text-gray-400 text-sm">Get the latest updates on packages, offers, and travel tips.</p>
+              <h3 className="text-white font-semibold text-xl mb-4">
+                Stay Connected to Pilgrim
+              </h3>
+              <p className="text-gray-400 text-sm">
+                Get the latest updates on packages, offers, and travel tips.
+              </p>
 
               {/* Social Icons */}
               <div className="flex gap-3 mt-6">
@@ -179,7 +183,10 @@ export default function Footer() {
                     className="w-10 h-10 bg-gray-700/50 backdrop-blur-sm border border-gray-600/30 rounded-full flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-600/20 hover:to-yellow-500/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-110"
                     aria-label={label}
                   >
-                    <Icon size={16} className="text-gray-300 hover:text-white transition-colors duration-300" />
+                    <Icon
+                      size={16}
+                      className="text-gray-300 hover:text-white transition-colors duration-300"
+                    />
                   </a>
                 ))}
               </div>
@@ -187,7 +194,9 @@ export default function Footer() {
 
             {/* Right side - Newsletter Subscribe */}
             <div className="flex-1 w-full md:max-w-xl">
-              <h3 className="text-white font-semibold text-xl mb-4">Subscribe to Our Newsletter</h3>
+              <h3 className="text-white font-semibold text-xl mb-4">
+                Subscribe to Our Newsletter
+              </h3>
               <div className="relative">
                 <div className="relative group">
                   <input
@@ -203,7 +212,11 @@ export default function Footer() {
                     className="absolute right-1.5 top-1/2 -translate-y-1/2 px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full font-medium transition-colors duration-200 flex items-center gap-2"
                   >
                     <span>
-                      {busy ? "Please wait…" : subscribed ? "Subscribed" : "Subscribe"}
+                      {busy
+                        ? "Please wait…"
+                        : subscribed
+                          ? "Subscribed"
+                          : "Subscribe"}
                     </span>
                     {!subscribed ? <Send size={14} /> : null}
                   </button>
@@ -211,7 +224,7 @@ export default function Footer() {
               </div>
               <div className="mt-3 px-1 flex items-center justify-between gap-3">
                 <p className="text-gray-500 text-xs">
-                We respect your privacy. Unsubscribe at any time.
+                  We respect your privacy. Unsubscribe at any time.
                 </p>
                 {subscribed ? (
                   <button
@@ -254,7 +267,8 @@ export default function Footer() {
             </div>
 
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              Your trusted partner for Hajj, Umrah, and Global Travel Services. Experience a journey rich with comfort, care, and excellence.
+              Your trusted partner for Hajj, Umrah, and Global Travel Services.
+              Experience a journey rich with comfort, care, and excellence.
             </p>
 
             {/* Payment Methods */}
@@ -300,7 +314,9 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-6 text-lg">Quick Links</h3>
+            <h3 className="text-white font-semibold mb-6 text-lg">
+              Quick Links
+            </h3>
             <ul className="space-y-3">
               {quickLinks.map(({ to, label }) => (
                 <li
@@ -324,7 +340,9 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h3 className="text-white font-semibold mb-6 text-lg">Our Services</h3>
+            <h3 className="text-white font-semibold mb-6 text-lg">
+              Our Services
+            </h3>
             <ul className="space-y-3">
               {services.map(({ to, label }) => (
                 <li
@@ -348,15 +366,26 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-white font-semibold mb-6 text-lg">Contact Us</h3>
+            <h3 className="text-white font-semibold mb-6 text-lg">
+              Contact Us
+            </h3>
             <div className="space-y-4">
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
-                <MapPin size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                <span>PLAZA NO.54 BLOCK A COMMERCIAL AREA, EDEN CITY, DHA PHASE 8, LAHORE.</span>
+                <MapPin
+                  size={16}
+                  className="text-blue-400 mt-0.5 flex-shrink-0"
+                />
+                <span>
+                  PLAZA NO.54 BLOCK A COMMERCIAL AREA, EDEN CITY, DHA PHASE 8,
+                  LAHORE.
+                </span>
               </div>
 
               <div className="flex items-start gap-3 text-sm text-gray-400 hover:translate-x-0.5 transition-transform duration-200">
-                <Phone size={16} className="text-yellow-400 flex-shrink-0 mt-0.5" />
+                <Phone
+                  size={16}
+                  className="text-yellow-400 flex-shrink-0 mt-0.5"
+                />
                 <div className="flex flex-col gap-1">
                   <a
                     href="tel:+923273276060"
@@ -382,7 +411,9 @@ export default function Footer() {
 
           {/* Map */}
           <div>
-            <h3 className="text-white font-semibold mb-6 text-lg">Our Location</h3>
+            <h3 className="text-white font-semibold mb-6 text-lg">
+              Our Location
+            </h3>
             <div className="w-full h-32 md:h-40 lg:h-44 overflow-hidden rounded-lg border border-gray-700/30 backdrop-blur-sm hover:scale-105 transition-transform duration-300">
               <MapFrame
                 title="Company Location"

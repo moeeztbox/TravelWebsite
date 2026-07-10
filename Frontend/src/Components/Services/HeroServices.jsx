@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { HelpCircle, Shield } from "lucide-react";
 import gsap from "gsap";
+import masjidAlHaramHero from "../../assets/Images/Services/Masjid_al-Haram_hero.png";
 
 export default function FAQHeroSection() {
     const containerRef = useRef(null);
@@ -41,8 +42,8 @@ export default function FAQHeroSection() {
     return (
         <div
             style={{
-                backgroundImage: "url('/Masjid_al-Haram_hero.png')",
-                backgroundSize: "100%",
+                backgroundImage: `url('${masjidAlHaramHero}')`,
+                backgroundSize: "cover",
                 backgroundPosition: "50% 40%",
             }}
             className="h-[85vh] flex items-center justify-center relative"

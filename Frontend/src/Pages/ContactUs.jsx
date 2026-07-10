@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ContactUsHeroSection from "../Components/ContactUs/ContactUsHeroSection";
 import InquiryForm from "../Components/ContactUs/InquiryForm";
 import ComplainForm from "../Components/ContactUs/ComplainForm";
@@ -7,10 +8,31 @@ import Reviews from "../Components/ContactUs/Reviews";
 
 function ContactUs() {
   const [activeForm, setActiveForm] = useState("inquiry");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Arriving from a "Book Your ..." button elsewhere on the site: make sure
+  // the Inquiry tab is selected and smoothly scroll down to it, then clear
+  // the nav state so a later refresh of this page doesn't repeat the scroll.
+  useEffect(() => {
+    if (!location.state?.scrollTo) return;
+    if (location.state.form === "inquiry") setActiveForm("inquiry");
+
+    const id = window.setTimeout(() => {
+      document
+        .getElementById(location.state.scrollTo)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+
+    navigate(location.pathname, { replace: true, state: null });
+
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
-  
+
       <ContactUsHeroSection />
 
       <div className="flex justify-center gap-4 mt-6">
@@ -35,7 +57,10 @@ function ContactUs() {
         </button>
       </div>
 
-      <div className="mx-auto mt-10 flex flex-col gap-8 md:flex-row md:gap-12 w-full max-w-7xl px-2 sm:px-4">
+      <div
+        id="inquiry-form-section"
+        className="mx-auto mt-10 flex flex-col gap-8 md:flex-row md:gap-12 w-full max-w-7xl px-2 sm:px-4"
+      >
         <div className="w-full md:w-2/3 lg:w-3/5 mb-8 md:mb-0 flex-1">
           {activeForm === "inquiry" ? <InquiryForm /> : <ComplainForm />}
         </div>
