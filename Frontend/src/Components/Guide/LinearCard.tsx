@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Dialog,
   DialogTrigger,
@@ -7,7 +9,7 @@ import {
   DialogClose,
   DialogDescription,
   DialogContainer,
-} from '../../UI/linear-modal';
+} from '../../ui/linear-modal';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 

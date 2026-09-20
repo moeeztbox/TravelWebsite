@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { isValidEmail } from "../utils/validation.js";
 
 const normalizeType = (t) => {
   const v = String(t || "").trim().toLowerCase();
@@ -24,6 +25,15 @@ export const sendContactEmail = async (req, res, next) => {
       return res.status(400).json({
         message: "userEmail and message are required",
       });
+    }
+    if (!isValidEmail(userEmail)) {
+      return res.status(400).json({ message: "userEmail must be a valid email address" });
+    }
+    if (String(message).length > 5000) {
+      return res.status(400).json({ message: "message must be 5000 characters or fewer" });
+    }
+    if (String(userName || "").length > 200) {
+      return res.status(400).json({ message: "userName must be 200 characters or fewer" });
     }
 
     const MAIL_USER = String(process.env.MAIL_USER || "").trim();

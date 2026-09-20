@@ -1,13 +1,10 @@
 import nodemailer from "nodemailer";
 import NewsletterSubscriber from "../models/newsletterSubscriber.js";
+import { isValidEmail } from "../utils/validation.js";
 
 function normalizeEmail(raw) {
   const email = String(raw || "").trim().toLowerCase();
   return email;
-}
-
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ""));
 }
 
 function createTransporterOrThrow() {

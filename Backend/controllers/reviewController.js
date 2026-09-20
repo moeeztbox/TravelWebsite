@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import Review from "../models/reviewModel.js";
+import { isValidEmail } from "../utils/validation.js";
 
 const RESUBMIT_COOLDOWN_DAYS = 30;
 const RESUBMIT_COOLDOWN_MS = RESUBMIT_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
@@ -10,14 +12,23 @@ export const submitReview = async (req, res) => {
     if (!fullName || !String(fullName).trim()) {
       return res.status(400).json({ message: "Full name is required" });
     }
-    if (!email || !String(email).trim()) {
-      return res.status(400).json({ message: "Email is required" });
+    if (String(fullName).length > 200) {
+      return res.status(400).json({ message: "Full name must be 200 characters or fewer" });
+    }
+    if (!email || !isValidEmail(email)) {
+      return res.status(400).json({ message: "A valid email is required" });
     }
     if (!phone || !String(phone).trim()) {
       return res.status(400).json({ message: "Phone number is required" });
     }
+    if (String(phone).length > 30) {
+      return res.status(400).json({ message: "Phone number must be 30 characters or fewer" });
+    }
     if (!review || !String(review).trim()) {
       return res.status(400).json({ message: "Review is required" });
+    }
+    if (String(review).length > 2000) {
+      return res.status(400).json({ message: "Review must be 2000 characters or fewer" });
     }
 
     const ratingNum = Number(rating);
@@ -91,6 +102,9 @@ export const adminListReviews = async (req, res) => {
 
 export const adminSetReviewStatus = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid review id" });
+    }
     const { status } = req.body || {};
     if (!["Approved", "Rejected"].includes(status)) {
       return res
@@ -115,6 +129,9 @@ export const adminSetReviewStatus = async (req, res) => {
 
 export const adminDeleteReview = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid review id" });
+    }
     const review = await Review.findByIdAndDelete(req.params.id);
     if (!review) {
       return res.status(404).json({ message: "Review not found" });

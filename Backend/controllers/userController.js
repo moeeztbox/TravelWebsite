@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const signAdminToken = (email) =>
   jwt.sign({ role: "isAdmin", email }, process.env.JWT_SECRET, {
@@ -15,11 +16,13 @@ export const loginUser = async (req, res) => {
     }
 
     const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
     const emailMatches =
       adminEmail && email.trim().toLowerCase() === adminEmail.toLowerCase();
-    const passwordMatches = adminPassword && password === adminPassword;
+    const passwordMatches =
+      adminPasswordHash &&
+      (await bcrypt.compare(password, adminPasswordHash).catch(() => false));
 
     if (!emailMatches || !passwordMatches) {
       return res.status(401).json({ message: "Invalid credentials" });

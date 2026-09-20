@@ -1,8 +1,10 @@
 "use client";
 import { cn } from "../lib/utils";
 import { IconMenu2, IconX, IconChevronDown } from "@tabler/icons-react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
+import Image from "next/image";
 import React, { ReactNode, useState, useRef, useEffect } from "react";
+import alBuraqLogo from "../assets/Images/logo/AL-BURAQ.png";
 
 // 1. Simple Navbar Container
 interface NavbarProps {
@@ -162,7 +164,7 @@ export const NavItems: React.FC<NavItemsProps> = ({
             </button>
           ) : (
             <Link
-              to={item.link}
+              href={item.link}
               onClick={handleItemClick}
               className={cn(
                 "transition-all duration-300 whitespace-nowrap relative group flex items-center",
@@ -210,7 +212,7 @@ export const NavItems: React.FC<NavItemsProps> = ({
               {item.subItems.map((subItem, subIdx) => (
                 <Link
                   key={`subitem-${subIdx}`}
-                  to={subItem.link}
+                  href={subItem.link}
                   className="block px-4 py-3 text-sm text-gray-700 hover:text-yellow-600 hover:bg-yellow-50 transition-all duration-200 font-medium"
                   onClick={handleItemClick}
                 >
@@ -225,7 +227,7 @@ export const NavItems: React.FC<NavItemsProps> = ({
               {item.subItems.map((subItem, subIdx) => (
                 <Link
                   key={`mobile-subitem-${subIdx}`}
-                  to={subItem.link}
+                  href={subItem.link}
                   onClick={handleItemClick}
                   className="block px-6 py-4 text-base font-medium text-gray-600 hover:text-yellow-600 hover:bg-gray-100 border-b border-gray-100 last:border-b-0 transition-all duration-200"
                 >
@@ -343,15 +345,16 @@ interface NavbarLogoProps {
 export const NavbarLogo: React.FC<NavbarLogoProps> = ({ onClick }) => {
   return (
     <Link
-      to="/"
+      href="/"
       onClick={onClick}
       className="flex items-center space-x-3 lg:space-x-4 xl:space-x-5"
     >
-      <div className="w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 flex items-center justify-center">
-        <img
-          src="./src/Assets/Images/logo/AL-BURAQ.png"
+      <div className="relative w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 flex items-center justify-center">
+        <Image
+          src={alBuraqLogo}
           alt="Al Burak International Logo"
-          className="w-full h-full object-contain"
+          fill
+          className="object-contain"
         />
       </div>
       <div className="flex flex-col">
@@ -393,7 +396,7 @@ export const NavbarButton: React.FC<NavbarButtonProps> = ({
       "border lg:border-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50",
   };
 
-  const linkProps = to ? { to } : { href };
+  const linkProps = { href: to || href };
 
   return (
     <Tag

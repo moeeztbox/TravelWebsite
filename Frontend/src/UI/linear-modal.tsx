@@ -1,3 +1,5 @@
+"use client";
+
 'use client';
 
 import React, {
@@ -15,11 +17,11 @@ import {
   MotionConfig,
   Transition,
   Variant,
-} from 'motion/react';
+} from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { cn } from '../lib/utils';
 import { XIcon, Plus } from 'lucide-react';
-import { useScrollLock } from '../Hooks/useScrollLock';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface DialogContextType {
   isOpen: boolean;

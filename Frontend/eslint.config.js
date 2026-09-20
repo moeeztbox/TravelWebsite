@@ -1,29 +1,48 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from "@eslint/js";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import reactHooks from "eslint-plugin-react-hooks";
+import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+
+const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(["dist", ".next", "node_modules", "next-env.d.ts"]),
+
+  // Next.js's own recommended rules (Core Web Vitals + TypeScript), bridged
+  // from its legacy eslintrc format via FlatCompat.
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // Project source: strict TypeScript, React hooks correctness.
   {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
+    files: ["**/*.{ts,tsx}"],
+    extends: [tseslint.configs.recommended],
+    plugins: { "react-hooks": reactHooks },
     languageOptions: {
-      ecmaVersion: 2020,
       globals: globals.browser,
       parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
+        project: "./tsconfig.json",
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      ...reactHooks.configs["recommended-latest"].rules,
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { varsIgnorePattern: "^[A-Z_]", argsIgnorePattern: "^_" },
+      ],
     },
   },
-])
+
+  // Root-level Node config files (this file, postcss.config.mjs) — plain JS.
+  {
+    files: ["*.js", "*.mjs"],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: globals.node,
+    },
+  },
+]);
