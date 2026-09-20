@@ -13,8 +13,25 @@ import type { AuthUser, LoginPayload, LoginResponse } from "../types/auth";
  * deployed frontend at a backend that doesn't exist there. Production
  * deployments MUST set NEXT_PUBLIC_API_URL to the real backend URL at build
  * time.
+ *
+ * In the browser during development, ALWAYS use the relative "/api" path
+ * and ignore NEXT_PUBLIC_API_URL, even when it's set to an absolute
+ * http://localhost:5000/api. An absolute URL containing "localhost" only
+ * resolves to the backend when the browser happens to be on the same PC as
+ * the dev server — opening the dev server's "Network" URL (e.g.
+ * http://192.168.x.x:3000) from that same PC makes the browser send an
+ * Origin the backend's dev CORS allowlist (localhost/127.0.0.1 only)
+ * rejects, and from a different LAN device "localhost:5000" would point at
+ * that device instead of this one. Routing through next.config.ts's rewrite
+ * instead makes the request same-origin (whatever origin loaded the page),
+ * so the browser never triggers CORS at all — the Next.js server does the
+ * cross-origin hop to the backend itself, server-to-server.
  */
 export function resolveApiBase(): string {
+  if (typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
+    return "/api";
+  }
+
   const raw = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (!raw) {
     return "/api";

@@ -35,6 +35,21 @@ const nextConfig: NextConfig = {
       { source: "/uploads/:path*", destination: `${apiOrigin}/uploads/:path*` },
     ];
   },
+  // Baseline hardening only — no CSP yet, since a wrong CSP could silently
+  // break the Google Translate widget (external script + its own frames)
+  // loaded in src/app/layout.tsx, and that needs a real browser to verify.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
