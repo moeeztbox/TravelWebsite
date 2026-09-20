@@ -4,6 +4,10 @@
 // invoke npm scripts, only this file directly. Requires `npm run build` to
 // have already produced .next (done by .cpanel.yml before Passenger starts
 // the app).
+//
+// CommonJS (require), not ESM: Passenger loads this file directly as plain
+// Node without a build step, and the project has no "type": "module".
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { createServer } = require("http");
 const next = require("next");
 
